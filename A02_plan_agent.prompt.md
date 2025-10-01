@@ -12,7 +12,7 @@ The plan will be very detailed, including files that need to be touched, rows wi
 
 The final plan document IS NOT ALLOWED TO CONTAIN QUESTIONS OR OPTIONS.
 
-For clarification and disambiguation, write everything that needs to be tackled in a Z02_{feature_name}_plan_clarify.md file.
+For clarification and disambiguation, write everything that needs to be tackled in a Z02_CLARIFY_{feature_name}_plan.md file.
 
 For every question add it like so:
 
