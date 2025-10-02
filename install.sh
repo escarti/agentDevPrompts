@@ -30,7 +30,6 @@ if grep -Eq '^/?\.prompt(/)?$' "$gitignore"; then
   exit 0
 fi
 
-printf "\n# Ignore local .prompt folder (added by .prompt/install.sh on %s)\n/.prompt\n" "$(timestamp)" >> "$gitignore"
-echo "[.prompt] Added '/.prompt' to $gitignore"
+printf "\n# Ignore local .prompt/*' to $gitignore"
 
 exit 0
