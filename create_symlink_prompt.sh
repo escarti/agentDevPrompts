@@ -23,8 +23,22 @@ GITIGNORE_FILE="$TARGET_DIR/.gitignore"
 mkdir -p "$PROMPTS_DIR"
 
 shopt -s nullglob
-PROMPT_FILES=("$SOURCE_DIR"/A[0-9][0-9]_*.prompt.md)
+PROMPT_FILES=("$SOURCE_DIR"/A[0-9][0-9]_*.m)
 shopt -u nullglob
+
+# Fallback to .md if no .m files are present
+if (( ${#PROMPT_FILES[@]} == 0 )); then
+  shopt -s nullglob
+  PROMPT_FILES=("$SOURCE_DIR"/A[0-9][0-9]_*.md)
+  shopt -u nullglob
+fi
+
+# Final fallback to legacy *.prompt.md
+if (( ${#PROMPT_FILES[@]} == 0 )); then
+  shopt -s nullglob
+  PROMPT_FILES=("$SOURCE_DIR"/*.prompt.md)
+  shopt -u nullglob
+fi
 
 if (( ${#PROMPT_FILES[@]} == 0 )); then
   echo "No A** prompt files found in $SOURCE_DIR" >&2

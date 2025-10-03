@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # install_copilot_prompts.sh
-# Install .prompt.md files from this repository into the VS Code "User/prompts" folder
+# Install  prompt .md files from this repository into the VS Code "User/prompts" folder
 # Supports macOS, Linux and Windows (when running under Git Bash / WSL with proper paths)
 
 script_path="${BASH_SOURCE[0]:-$0}"
@@ -25,7 +25,7 @@ Options:
 
 By default the script will try to find a likely VS Code User prompts folder for
 your platform (e.g. macOS: ~/Library/Application Support/Code/User/prompts) and
-install any *.prompt.md files found in this repository into that folder.
+install any prompt *.md files found in this repository into that folder.
 EOF
 }
 
@@ -113,12 +113,27 @@ fi
 
 # Find prompt files in repo root (portable)
 PROMPT_FILES=()
+# Prefer explicit A##_*.m prompt filenames to avoid matching README.md or other generic .md files
 while IFS= read -r -d $'\0' file; do
   PROMPT_FILES+=("$file")
-done < <(find "$repo_root" -maxdepth 1 -type f -name "*.prompt.md" -print0)
+done < <(find "$repo_root" -maxdepth 1 -type f -name "A[0-9][0-9]_*.m" -print0)
+
+# Fallback to A##_*.md (older naming that used .md)
+if [[ ${#PROMPT_FILES[@]} -eq 0 ]]; then
+  while IFS= read -r -d $'\0' file; do
+    PROMPT_FILES+=("$file")
+  done < <(find "$repo_root" -maxdepth 1 -type f -name "A[0-9][0-9]_*.md" -print0)
+fi
+
+# Final fallback for legacy naming
+if [[ ${#PROMPT_FILES[@]} -eq 0 ]]; then
+  while IFS= read -r -d $'\0' file; do
+    PROMPT_FILES+=("$file")
+  done < <(find "$repo_root" -maxdepth 1 -type f -name "*.prompt.md" -print0)
+fi
 
 if [[ ${#PROMPT_FILES[@]} -eq 0 ]]; then
-  echo "No *.prompt.md files found in $repo_root" >&2
+  echo "No prompt files (A##_*.m, A##_*.md or *.prompt.md) found in $repo_root" >&2
   exit 1
 fi
 
@@ -147,7 +162,18 @@ echo "Installing to $TARGET_DIR"
 
 for src in "${PROMPT_FILES[@]}"; do
   base="$(basename "$src")"
-  dest="$TARGET_DIR/$base"
+  # Derive a stable prompt filename for Copilot: always use the .prompt.md suffix
+  # Strip known extensions in order: .prompt.md (legacy), .m, .md
+  name_root="$base"
+  if [[ "$name_root" == *.prompt.md ]]; then
+    name_root="${name_root%.prompt.md}"
+  elif [[ "$name_root" == *.m ]]; then
+    name_root="${name_root%.m}"
+  elif [[ "$name_root" == *.md ]]; then
+    name_root="${name_root%.md}"
+  fi
+  dest_base="${name_root}.prompt.md"
+  dest="$TARGET_DIR/$dest_base"
 
   if [[ -e "$dest" && $FORCE -ne 1 ]]; then
     backup="$dest.bak.$(timestamp)"
@@ -161,9 +187,9 @@ for src in "${PROMPT_FILES[@]}"; do
 
   if [[ $DRY_RUN -eq 1 ]]; then
     if [[ $SYMLINK -eq 1 ]]; then
-      echo "[dry-run] ln -s "$src" "$dest""
+      echo "[dry-run] ln -s \"$src\" \"$dest\""
     else
-      echo "[dry-run] cp "$src" "$dest""
+      echo "[dry-run] cp \"$src\" \"$dest\""
     fi
   else
     if [[ $SYMLINK -eq 1 ]]; then

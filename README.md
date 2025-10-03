@@ -4,7 +4,7 @@ This folder contains helper scripts you can use when working with these prompt f
 
 Files
 - `install.sh` — Ensures the parent repository's `.gitignore` ignores a copied `/.prompt` folder.
-- `install_copilot_prompts.sh` — Installs or symlinks `*.prompt.md` files into VS Code's User `prompts` directory.
+- `install_copilot_prompts.sh` — Installs or symlinks prompt files named like `A01_... .m` (pattern: `A[0-9][0-9]_*.m`) into VS Code's User `prompts` directory.
 - `create_symlink_prompt.sh` — Creates a `.prompts` folder in the current working directory with symlinks to the repository prompt files and adds `.prompts/*` to that directory's `.gitignore`.
 - `install_symlink.sh` — Adds `create_symlink_prompt.sh` to your shell `PATH` via `~/.local/bin` so you can call it from anywhere by using `add_prompts`
 
@@ -26,7 +26,7 @@ Behavior
 - Leaves the file untouched when an ignore rule for `.prompt` is already present.
 
 install_copilot_prompts.sh — purpose and usage
-- Purpose: Install or symlink `*.prompt.md` files into VS Code's User prompts directory so they become available as Copilot/VS Code prompts.
+- Purpose: Install or symlink prompt files named like `A01_... .m` (pattern: `A[0-9][0-9]_*.m`) into VS Code's User prompts directory so they become available as Copilot/VS Code prompts.
 
 Options
 - `-t, --target DIR` — explicit target directory to install into
@@ -70,7 +70,7 @@ Usage
 
 Behavior
 - Resolves the real repository location even when invoked through a symlink.
-- Creates or reuses `.prompts`, linking every `A**_*.prompt.md` file.
+- Creates or reuses `.prompts`, linking every `A[0-9][0-9]_*.m` prompt file.
 - Appends `.prompts/*` to the current directory's `.gitignore` if missing.
 
 install_symlink.sh — purpose and usage
