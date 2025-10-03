@@ -17,7 +17,6 @@ Usage: $(basename "$0") [options]
 
 Options:
   -t, --target DIR    Explicit VS Code User prompts target directory
-  -s, --symlink        Create symlinks instead of copying
   -f, --force          Overwrite existing files without backup
   -y, --yes            Don't prompt for confirmation when creating target
   -n, --dry-run        Show what would be done and exit
@@ -30,7 +29,6 @@ EOF
 }
 
 DRY_RUN=0
-SYMLINK=0
 FORCE=0
 ASSUME_YES=0
 EXPLICIT_TARGET=""
@@ -38,7 +36,6 @@ EXPLICIT_TARGET=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -t|--target) EXPLICIT_TARGET="$2"; shift 2;;
-    -s|--symlink) SYMLINK=1; shift;;
     -f|--force) FORCE=1; shift;;
     -y|--yes) ASSUME_YES=1; shift;;
     -n|--dry-run) DRY_RUN=1; shift;;
@@ -186,17 +183,9 @@ for src in "${PROMPT_FILES[@]}"; do
   fi
 
   if [[ $DRY_RUN -eq 1 ]]; then
-    if [[ $SYMLINK -eq 1 ]]; then
-      echo "[dry-run] ln -s \"$src\" \"$dest\""
-    else
-      echo "[dry-run] cp \"$src\" \"$dest\""
-    fi
+    echo "[dry-run] cp \"$src\" \"$dest\""
   else
-    if [[ $SYMLINK -eq 1 ]]; then
-      ln -sf "$src" "$dest"
-    else
-      cp -p "$src" "$dest"
-    fi
+    cp -p "$src" "$dest"
     echo "Installed: $dest"
   fi
 done
