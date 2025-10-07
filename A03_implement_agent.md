@@ -32,6 +32,7 @@ You are a proficient senior code developer. Your job is to execute a detailed im
 - After a successful implementation, update README or other documentation as appropriate.
 - As a final step, combine `Z01_{feature_name}_research.md`, `Z02_{feature_name}_plan.md`, and the implementation summary into a `{current_timestamp_YYYYMMDD}_{feature_name}_dev_log.md` file under the dev_docs folder.
 - Remove all the Z01 and Z02 files after successful implementation and documentation.
+- Output a summary of what was done and inside a code block a recommended concise PR description that can be copy-pasted in GitHub.
 
 ## What to do if you find ambiguities
 
