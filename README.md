@@ -11,9 +11,14 @@ Research-driven feature development workflow for Claude Code. Produces directive
 
 ### Option 1: Via Plugin Marketplace (Recommended)
 
+This repository is a Claude Code marketplace containing the feature-workflow plugin.
+
 ```bash
 # In Claude Code
+# Step 1: Add the marketplace
 /plugin marketplace add escarti/agentDevPrompts
+
+# Step 2: Install the plugin from the marketplace
 /plugin install feature-workflow@agentDevPrompts
 ```
 
@@ -45,6 +50,8 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/development-logging ~/.claude/s
 
 ```
 agentDevPrompts/
+├── .claude-plugin/
+│   └── marketplace.json           # Marketplace catalog (enables marketplace installation)
 ├── plugin.json                    # Plugin manifest
 ├── skills/                        # Claude Code skills
 │   ├── feature-research/
@@ -56,6 +63,8 @@ agentDevPrompts/
 ├── A03_implement_agent.md         # Original implementation agent prompt
 └── README.md                      # This file
 ```
+
+**Note**: The `.claude-plugin/marketplace.json` file makes this repository installable as a marketplace. It contains a catalog that references the feature-workflow plugin in the same repository.
 
 ## Workflow
 

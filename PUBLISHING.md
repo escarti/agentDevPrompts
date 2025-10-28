@@ -5,17 +5,31 @@
 1. **GitHub Repository**: `git@github.com:escarti/agentDevPrompts.git`
 2. **Repository Name**: `agentDevPrompts` (matches the marketplace identifier)
 
+## Repository Structure
+
+This repository is a **marketplace** that contains the **feature-workflow plugin**:
+
+```
+agentDevPrompts/
+├── .claude-plugin/
+│   └── marketplace.json    # Marketplace catalog (required)
+├── plugin.json             # Plugin manifest
+├── skills/                 # Plugin skills
+│   ├── feature-research/
+│   └── development-logging/
+└── ...
+```
+
 ## Publishing Steps
 
 ### 1. Push to GitHub
 
 ```bash
-# Initialize git (if not already done)
-git init
+# Add all files including marketplace.json
 git add .
-git commit -m "Initial commit: feature-workflow plugin"
+git commit -m "Add marketplace.json and plugin files"
 
-# Add remote and push
+# Add remote and push (if not already done)
 git remote add origin git@github.com:escarti/agentDevPrompts.git
 git push -u origin main
 ```
@@ -27,7 +41,7 @@ git push -u origin main
 git tag -a v1.0.0 -m "Release v1.0.0: Initial release"
 git push origin v1.0.0
 
-# Create GitHub release via web UI or gh CLI
+# Create GitHub release via gh CLI
 gh release create v1.0.0 \
   --title "v1.0.0 - Initial Release" \
   --notes "Initial release with feature-research and development-logging skills"
@@ -38,8 +52,10 @@ gh release create v1.0.0 \
 Users can now install via:
 
 ```bash
-# In Claude Code
+# In Claude Code - Add the marketplace
 /plugin marketplace add escarti/agentDevPrompts
+
+# Install the plugin from the marketplace
 /plugin install feature-workflow@agentDevPrompts
 ```
 
@@ -55,10 +71,13 @@ When releasing new versions:
 ## Repository Requirements
 
 Your repository must contain:
+- ✅ `.claude-plugin/marketplace.json` - Marketplace catalog (required for `/plugin marketplace add`)
 - ✅ `plugin.json` - Plugin manifest
 - ✅ `skills/` directory - Skills directory structure
 - ✅ `README.md` - Installation and usage instructions
 - ✅ Valid SKILL.md files with proper YAML frontmatter
+
+**Key distinction**: The `.claude-plugin/marketplace.json` file makes this a marketplace that can be added via `/plugin marketplace add`. It references the plugin in the same repository.
 
 ## Testing Before Publishing
 

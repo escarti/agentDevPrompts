@@ -1,0 +1,22 @@
+{
+  "name": "agentDevPrompts",
+  "owner": {
+    "name": "Eduardo Escarti",
+    "email": "eduardo.escarti@example.com"
+  },
+  "metadata": {
+    "description": "Feature development workflow skills for research-driven specification and development logging",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "feature-workflow",
+      "source": "./",
+      "description": "Feature development workflow skills: research-driven specification and development logging",
+      "version": "1.0.0",
+      "author": {
+        "name": "Eduardo Escarti"
+      }
+    }
+  ]
+}
