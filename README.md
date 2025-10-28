@@ -1,94 +1,151 @@
-## Install scripts
+# Feature Workflow - Claude Code Skills
 
-This folder contains helper scripts you can use when working with these prompt files locally or when you copy the repository into another project.
+Research-driven feature development workflow for Claude Code. Produces directive specifications with structured clarifications, integrated with superpowers workflow.
 
-Files
-- `install.sh` — Ensures the parent repository's `.gitignore` ignores a copied `/.prompt` folder.
-- `install_copilot_prompts.sh` — Installs or symlinks prompt files named like `A01_... .m` (pattern: `A[0-9][0-9]_*.m`) into VS Code's User `prompts` directory.
-- `create_symlink_prompt.sh` — Creates a `.prompts` folder in the current working directory with symlinks to the repository prompt files and adds `.prompts/*` to that directory's `.gitignore`.
-- `install_symlink.sh` — Adds `create_symlink_prompt.sh` to your shell `PATH` via `~/.local/bin` so you can call it from anywhere by using `add_prompts`
+## Skills Included
 
-Quick notes
-- All scripts target bash-compatible shells and rely on standard utilities (`find`, `cp`, `ln`, `mkdir`, etc.).
-- Run them from this folder unless noted; they detect sensible defaults where possible.
+- **feature-research** - Systematic feature research producing directive specifications with zero ambiguity
+- **development-logging** - Post-implementation consolidation, cleanup, and PR generation
 
-install.sh — purpose and usage
-- Purpose: Add `/.prompt` to the parent repository's `.gitignore` when you copy this repo into that parent as `/.prompt`.
+## Installation
 
-Usage
+### Option 1: Via Plugin Marketplace (Recommended)
+
 ```bash
-# from inside the copied `.prompt` folder
-./install.sh
+# In Claude Code
+/plugin marketplace add escarti/agentDevPrompts
+/plugin install feature-workflow@agentDevPrompts
 ```
 
-Behavior
-- Creates the parent's `.gitignore` if it does not exist.
-- Leaves the file untouched when an ignore rule for `.prompt` is already present.
-
-install_copilot_prompts.sh — purpose and usage
-- Purpose: Install or symlink prompt files named like `A01_... .m` (pattern: `A[0-9][0-9]_*.m`) into VS Code's User prompts directory so they become available as Copilot/VS Code prompts.
-
-Options
-- `-t, --target DIR` — explicit target directory to install into
-- `-s, --symlink` — create symlinks instead of copying files
-- `-f, --force` — overwrite existing files without backup
-- `-y, --yes` — assume yes to prompts (non-interactive)
-- `-n, --dry-run` — show actions without modifying files
-- `-h, --help` — show help
-
-Examples
+Verify installation:
 ```bash
-# Dry-run to see where files would go
-./install_copilot_prompts.sh --dry-run
+/help
 
-# Install by copying into the detected VS Code User prompts folder
-./install_copilot_prompts.sh
-
-# Install using a custom target and create symlinks
-./install_copilot_prompts.sh -t "$HOME/Library/Application Support/Code/User/prompts" -s
-
-# Force overwrite without prompting
-./install_copilot_prompts.sh -f -y
+# Should see:
+# /feature-research - Research-driven feature specification
+# /development-logging - Post-implementation documentation
 ```
 
-Common default target locations
-- macOS: `$HOME/Library/Application Support/Code/User/prompts`
-- Linux: `$HOME/.config/Code/User/prompts` (or `$XDG_CONFIG_HOME/Code/User/prompts`)
-- Windows (Git Bash / WSL): `$APPDATA/Code/User/prompts` or equivalent
+### Option 2: Manual Installation (Development)
 
-Safety
-- By default the installer backs up files before overwriting them (unless `--force` is used).
+Clone this repository and symlink to Claude Code:
 
-create_symlink_prompt.sh — purpose and usage
-- Purpose: From any directory, create `.prompts` containing symlinks to the repository prompt files and keep `.prompts/*` out of version control.
-
-Usage
 ```bash
-# from inside a project that should reference these prompts
-/absolute/path/to/create_symlink_prompt.sh
+# Clone the repository
+git clone git@github.com:escarti/agentDevPrompts.git ~/Projects/Personal/agentDevPrompts
+
+# Create symlinks
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-research ~/.claude/skills/feature-research
+ln -s ~/Projects/Personal/agentDevPrompts/skills/development-logging ~/.claude/skills/development-logging
 ```
 
-Behavior
-- Resolves the real repository location even when invoked through a symlink.
-- Creates or reuses `.prompts`, linking every `A[0-9][0-9]_*.m` prompt file.
-- Appends `.prompts/*` to the current directory's `.gitignore` if missing.
+**Single Source of Truth**: Edit skills in the cloned repo, changes are immediately available via symlinks.
 
-install_symlink.sh — purpose and usage
-- Purpose: Install a global `create_symlink` command (or the name of your choice) into `~/.local/bin` and ensure that directory is on your `PATH`.
+## Repository Structure
 
-Usage
-```bash
-./install_symlink.sh
-# then restart your shell or source the profile it reports
-
-# call from anywhere
-create_symlink   # or rename the symlink after installation if you prefer a different command name
+```
+agentDevPrompts/
+├── plugin.json                    # Plugin manifest
+├── skills/                        # Claude Code skills
+│   ├── feature-research/
+│   │   └── SKILL.md
+│   └── development-logging/
+│       └── SKILL.md
+├── A01_research_agent.md          # Original research agent prompt
+├── A02_plan_agent.md              # Original planning agent prompt
+├── A03_implement_agent.md         # Original implementation agent prompt
+└── README.md                      # This file
 ```
 
-Behavior
-- Symlinks `create_symlink_prompt.sh` into `~/.local/bin/create_symlink` (you can rename that symlink later to `add_prompts`, etc.).
-- Creates the target directory if needed.
-- Detects a suitable shell profile (`.zshrc`, `.bashrc`, `.profile`, …) and prepends `~/.local/bin` to `PATH` if not already present.
-- Adds a single timestamped comment block when it modifies the profile.
+## Workflow
 
-If you want a wrapper or VS Code launch task to run these scripts from the editor, let me know.
+### New Feature Development
+
+1. **Research Phase** - Use `feature-research` skill
+   - Produces: `docs/ai/ongoing/Z01_{feature}_research.md`
+   - Produces: `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
+   - User answers clarification questions
+
+2. **Planning Phase** - Use `superpowers:writing-plans`
+   - Input: `docs/ai/ongoing/Z01_{feature}_research.md`
+   - Produces: `docs/ai/ongoing/Z02_{feature}_plan.md`
+
+3. **Implementation Phase** - Use `superpowers:executing-plans`
+   - Input: `docs/ai/ongoing/Z02_{feature}_plan.md`
+   - Implements the plan
+
+4. **Documentation Phase** - Use `development-logging` skill
+   - Consolidates Z01 + Z02 + implementation summary
+   - Produces: `docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md`
+   - Cleans up `docs/ai/ongoing/Z01*` and `Z02*` files
+   - Generates PR description
+
+## File Locations
+
+**Research & Planning** (temporary):
+- `docs/ai/ongoing/Z01_{feature}_research.md`
+- `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
+- `docs/ai/ongoing/Z02_{feature}_plan.md`
+
+**Development Logs** (permanent):
+- `docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md`
+
+## Skills vs Original Prompts
+
+**Original Prompts (A01, A02, A03)**:
+- Designed for separate agent instances
+- Multi-agent workflow (research → plan → implement)
+- Use when working with multiple specialized agents
+
+**Claude Code Skills**:
+- Designed for single Claude Code session
+- Integrated with superpowers workflow
+- Use `feature-research` + existing superpowers skills
+- `development-logging` for final documentation
+
+## Contributing
+
+### For Plugin Users
+
+To contribute improvements:
+1. Fork this repository
+2. Make changes to skills in `skills/` directory
+3. Test locally using manual installation method
+4. Submit a pull request
+
+### For Plugin Maintainers
+
+To release a new version:
+1. Update `plugin.json` version number
+2. Test changes with manual installation
+3. Commit and push to main branch
+4. Create a GitHub release with version tag
+5. Users will get updates via `/plugin update feature-workflow`
+
+## Development
+
+### Testing Changes
+
+Use manual installation (symlinks) for development:
+```bash
+# Your changes in the repo are immediately available via symlinks
+# Test by using skills in Claude Code
+```
+
+### Adding New Skills
+
+1. Create `skills/new-skill/SKILL.md`
+2. Add to `plugin.json`:
+   ```json
+   {
+     "skills": {
+       "new-skill": "skills/new-skill"
+     }
+   }
+   ```
+3. Follow TDD approach from `superpowers:writing-skills`
+4. Test before committing
+
+## License
+
+[Add your license here]

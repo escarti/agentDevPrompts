@@ -1,0 +1,17 @@
+# Local settings
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Test files
+test_*
+baseline_*
+dev_docs/
+
+# Editor
+.vscode/
+.idea/
