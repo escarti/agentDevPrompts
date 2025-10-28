@@ -1,6 +1,7 @@
 ---
 name: development-logging
 description: Use when implementation is complete and tests pass - consolidates research, plan, and implementation into timestamped dev log, cleans up temporary files, and generates PR description
+category: Documentation
 ---
 
 # Development Logging

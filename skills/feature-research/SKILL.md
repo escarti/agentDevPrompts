@@ -1,6 +1,7 @@
 ---
 name: feature-research
 description: Use when starting any feature implementation, before planning or coding, to produce a thorough directive specification - systematically researches codebase, APIs, data shapes, security, and edge cases, separating all ambiguities into structured clarification format
+category: Planning & Design
 ---
 
 # Feature Research
