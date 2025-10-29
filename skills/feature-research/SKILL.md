@@ -1,7 +1,6 @@
 ---
 name: feature-research
-description: Use when starting any feature implementation, before planning or coding, to produce a thorough directive specification - systematically researches codebase, APIs, data shapes, security, and edge cases, separating all ambiguities into structured clarification format
-category: Planning & Design
+description: Use after brainstorming is complete but before planning implementation, when you need technical details about integration points, APIs, data shapes, or existing patterns - produces directive specification with all ambiguities extracted to structured clarification file
 ---
 
 # Feature Research
@@ -10,251 +9,246 @@ category: Planning & Design
 
 Systematically research a feature request to produce a single directive specification with zero open questions. All ambiguities are extracted into a structured CLARIFY file for user resolution.
 
+**Workflow Position:** AFTER superpowers:brainstorming, BEFORE superpowers:writing-plans
+
 ## When to Use
 
-- User requests new feature or significant enhancement
-- Before using superpowers:writing-plans or superpowers:brainstorming
-- When thorough technical research is needed
-- When you need to understand integration points, APIs, data shapes, security considerations
+Use when:
+- Design direction is clear from brainstorming
+- Need thorough technical research before planning implementation
+- Need to understand integration points, APIs, data shapes, security considerations
+
+**Don't use when:**
+- Design is still unclear → Use superpowers:brainstorming first
+- Simple changes (typo fixes, trivial updates)
+- Already have complete technical specification
 
 ## Core Pattern
 
 ```
-Feature Request
-    ↓
-Research codebase systematically
-    ↓
-Produce 2 files:
-  - docs/ai/ongoing/Z01_{feature}_research.md (directive specification, zero questions)
-  - docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md (structured questions only)
-    ↓
-User answers CLARIFY
-    ↓
-Update docs/ai/ongoing/Z01_research.md with answers
-    ↓
-Hand to planning agent
+Feature Request → Research (docs first, then code) → 2 files:
+  - Z01_{feature}_research.md (directive, zero questions)
+  - Z01_CLARIFY_{feature}_research.md (questions only)
+→ User answers CLARIFY → Update Z01_research.md → Hand to planning
 ```
+
+## Research Output Format
+
+```dot
+digraph research_format {
+    "Significantly better alternative exists?" [shape=diamond];
+    "Single directive approach" [shape=box];
+    "Primary + 1 alternative" [shape=box];
+
+    "Significantly better alternative exists?" -> "Single directive approach" [label="no"];
+    "Significantly better alternative exists?" -> "Primary + 1 alternative" [label="yes"];
+}
+```
+
+**Single directive:** One clear approach (preserves existing patterns)
+**Primary + 1 alternative:** Only if alternative is significantly better for specific use case
+- Primary approach MUST preserve existing patterns from CLAUDE.md/docs
+- Alternative approach has different trade-offs (e.g., microservice vs monolith)
+- Both options have complete technical details (files, line ranges, pros/cons)
+- User chooses, then update Z01_research.md to be fully directive
 
 ## Required Deliverables
 
 **Exactly 2 files:**
 
 1. **`docs/ai/ongoing/Z01_{feature}_research.md`** - Directive specification
-   - What to implement (no questions, no options)
-   - Files to change with approximate line ranges
+   - What to implement (single approach OR primary + 1 alternative)
+   - Files to change with line ranges
    - APIs, data shapes, integration points
-   - Security, edge cases, failure modes
-   - Environment requirements
-   - Test requirements
+   - Security, edge cases, test requirements
 
 2. **`docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`** - Structured questions
-   - Use exact format below
-   - No explanations, no context
-   - User will answer inline
+   ```markdown
+   Agent question: Should we use OAuth 2.0 or SAML?
+   User response:
 
-## CLARIFY File Format
-
-```markdown
-Agent question: Should we use OAuth 2.0 or SAML?
-User response:
-
-Agent question: What is the expected request volume (requests/second)?
-User response:
-
-Agent question: Should authentication be at API Gateway or application level?
-User response:
-```
-
-**Critical**: Leave "User response:" blank. No explanations. Just questions.
-
-## Research Checklist
-
-Cover ALL of these areas in docs/ai/ongoing/Z01_research.md:
-
-- [ ] APIs and endpoints (existing and new)
-- [ ] Data shapes and schemas
-- [ ] Configuration changes needed
-- [ ] Integration points with existing code
-- [ ] Test requirements (unit, integration, e2e)
-- [ ] Environment variables and secrets
-- [ ] Edge cases and error handling
-- [ ] Failure modes and recovery
-- [ ] Security considerations
-- [ ] Performance implications
+   Agent question: Expected request volume (requests/second)?
+   User response:
+   ```
+   **Critical**: Leave "User response:" blank. No explanations.
 
 ## Implementation
 
-### Step 1: Explore Codebase
+### Step 1: Read Documentation FIRST
 
 ```bash
-# Find relevant files
-glob "**/*auth*" "**/*api*"
-
-# Search for patterns
-grep "authentication" --type py
-grep "class.*API" --type py
-
-# Read key files
-read path/to/relevant/file.py
+# MANDATORY FIRST - read these if they exist
+read CLAUDE.md              # Patterns, conventions, forbidden approaches
+read README.md              # Architecture overview
+read ARCHITECTURE.md        # System design
+glob "**/docs/**/*.md"      # All documentation
 ```
 
-### Step 2: Extract Feature Name
+**Why:** CLAUDE.md contains mandatory patterns and forbidden approaches. Primary solution MUST preserve these patterns.
 
-From request "add OAuth authentication" → feature name: `oauth_authentication`
+### Step 2: Explore Code
+
+```bash
+# Find related files
+glob "**/*{keyword}*" "**/*{related_concept}*"
+
+# Search for patterns
+grep "{feature_pattern}" --type {lang}
+
+# Read key files
+read path/to/relevant/file.ext
+```
 
 ### Step 3: Create Research File
 
-**File**: `docs/ai/ongoing/Z01_{feature}_research.md`
+**File**: `docs/ai/ongoing/Z01_{feature}_research.md` (use snake_case for feature name)
 
 **Structure**:
 ```markdown
 # {Feature} Research
 
 ## Summary
-One paragraph: what is being built and why.
+One paragraph: what and why.
 
 ## Current State
-What exists now. Files: path/to/file.py:123-145
+What exists. Files: path/to/file.py:123-145
+
+## Existing Patterns & Documentation
+### From CLAUDE.md
+- Conventions that MUST be followed
+- Architectural patterns to preserve
+- Forbidden patterns/approaches
+
+### Repository Structure
+- Directory conventions
+- File naming patterns
 
 ## Proposed Implementation
 
-### Architecture
-How it fits into existing system.
+### Primary Approach (Preserves Existing Patterns)
+- Architecture: How it fits existing system
+- Files: path/to/file.py:50-75 - What changes
+- Data shapes, APIs, integration points
+- Security, edge cases, test requirements
 
-### Files to Change
-- path/to/file.py:50-75 - Add auth middleware
-- path/to/config.py:20-30 - Add auth config
+### Alternative Approach (Optional - only if significantly better)
+- Why different: [specific advantages for use case]
+- Architecture, files, data shapes
+- Trade-offs vs primary
 
-### Data Shapes
-```python
-# Example schemas
-class UserAuth:
-    user_id: str
-    token: str
-    expires_at: datetime
-```
+## Integration Points
+How this connects to existing code.
 
-### APIs
-- Endpoint: POST /auth/login
-- Request: {username, password}
-- Response: {token, expires_at}
-
-### Integration Points
-Where this connects to existing code.
-
-### Security Considerations
-- Token storage: httpOnly cookies
-- HTTPS required
-- Rate limiting: 5 req/min per IP
-
-### Edge Cases
-- Token expiration
-- Concurrent logins
-- Network failures
-
-### Test Requirements
-- Unit: auth validation logic
-- Integration: full login flow
-- E2E: browser authentication
-
-### Environment Variables
-- AUTH_SECRET_KEY
-- AUTH_TOKEN_TTL
-- AUTH_PROVIDER_URL
+## Environment Variables
+- VAR_NAME - purpose
 ```
 
 ### Step 4: Create CLARIFY File
 
 **File**: `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
 
-Every ambiguity, technology choice, or missing requirement goes here:
-
+Every ambiguity, technology choice, or missing requirement:
 ```markdown
-Agent question: <concise question>
+Agent question: {concise question}
 User response:
 
-Agent question: <next question>
+Agent question: {next question}
 User response:
 ```
 
-### Step 5: Verify Zero Questions in Z01
+### Step 5: Verify Directive Nature
 
-Check docs/ai/ongoing/Z01_research.md for:
-- "Should we...?"
-- "Options include..."
-- "Alternatively..."
-- "We could..."
+Check Z01_research.md for vague questions:
+- "Should we...?" → Move to CLARIFY
+- "Options include..." (vague) → Make directive OR move to CLARIFY
+- "We could..." (incomplete) → Make directive OR move to CLARIFY
 
-**If found**: Move to CLARIFY file.
+**Acceptable:** Primary + 1 alternative with complete details for both
+**Not acceptable:** Vague alternatives, 3+ options, questions embedded
 
-## Common Mistakes
+## Research Checklist
+
+**Documentation (FIRST):**
+- [ ] CLAUDE.md patterns/forbidden approaches
+- [ ] README/ARCHITECTURE docs
+- [ ] Primary approach preserves existing patterns
+
+**Technical:**
+- [ ] APIs and endpoints
+- [ ] Data shapes with line ranges
+- [ ] Integration points
+- [ ] Security, edge cases, failure modes
+- [ ] Test requirements
+- [ ] Environment variables
+
+## Common Mistakes & Red Flags
 
 | Mistake | Fix |
 |---------|-----|
-| Creating 3+ documents | Only 2 files: docs/ai/ongoing/Z01_research + Z01_CLARIFY |
+| Code before documentation | ALWAYS read CLAUDE.md/README/docs FIRST |
+| Primary approach violates CLAUDE.md patterns | Primary MUST preserve existing patterns |
+| 3+ documents | Only 2 files: Z01_research + Z01_CLARIFY |
 | Questions in Z01_research.md | Move ALL questions to CLARIFY |
-| Making technology decisions | List as CLARIFY questions |
-| Vague file references | Include path + approximate line ranges |
-| Missing coverage areas | Use checklist above |
-| Explaining CLARIFY questions | Just question + blank response |
+| Vague file references | Include path + line ranges |
+| Missing "Existing Patterns" section | Always document and preserve patterns |
 
-## Red Flags - STOP and Fix
-
+**Red Flags - STOP and Fix:**
+- Did NOT read CLAUDE.md/README/docs first
+- Primary approach violates forbidden patterns from CLAUDE.md
 - More than 2 files created
-- "Option A vs Option B" in docs/ai/ongoing/Z01_research.md
-- "We could use X or Y" anywhere in Z01
-- No file paths mentioned
-- No line ranges provided
-- Missing areas from checklist
-- CLARIFY has explanations or context
-
-**All of these mean**: Review and fix before proceeding.
+- No file paths or line ranges
+- CLARIFY has explanations
 
 ## Rationalization Table
 
 | Excuse | Reality |
 |--------|---------|
-| "Multiple audiences need different docs" | Planning agent handles that. Research = 2 files only. |
+| "No CLAUDE.md exists, skip docs" | Still read README, docs/. Document patterns from code. |
+| "Small feature, patterns don't matter" | Small violations create technical debt. Patterns ALWAYS matter. |
+| "I can see the pattern in code" | CLAUDE.md may forbid what looks standard. Docs are truth. |
 | "Questions need context for user" | User has conversation context. CLARIFY = questions only. |
-| "User suggested solution, so proceed" | Still list as CLARIFY question. User confirms inline. |
-| "This is obvious, no need to clarify" | If it's a decision, it goes in CLARIFY. No assumptions. |
-| "Research comprehensive = many documents" | Research complete = ONE directive doc + ONE clarify doc. |
-| "File paths will be in planning step" | Research includes approximate files + line ranges NOW. |
+| "Research = many documents" | Research = 2 files only. |
+| "File paths in planning step" | Research includes files + line ranges NOW. |
+| "User requested deprecation, decision is final" | "Deprecate X" sounds directive but may be premature. Question premise in CLARIFY. |
+| "User suggested solution, proceed" | Still confirm via CLARIFY. No assumptions. |
+| "This alternative is better, skip primary" | Primary preserving patterns is REQUIRED. |
 
-## Example: OAuth Research
+## Example
 
-**Bad** (makes decisions, multiple docs, questions in main doc):
-- OAuth_Executive_Summary.md
-- OAuth_Technical_Spec.md
-- OAuth_Methodology.md
-- Contains: "We recommend FastAPI or Flask..."
-- Contains: "Should we use PKCE? This depends on..."
+**Good** (directive, 2 files, preserves patterns):
+- `docs/ai/ongoing/Z01_oauth_authentication_research.md`
+  - **Existing Patterns**: Service layer, no direct DB access (from CLAUDE.md)
+  - **Primary Approach**: FastAPI with Authlib, preserves service layer
+  - Files: src/api/auth.py:10-50, src/services/auth_service.py (new)
+  - Complete: APIs, data shapes, security, tests, env vars
+  - Zero questions in doc
+- `docs/ai/ongoing/Z01_CLARIFY_oauth_authentication_research.md`
+  - "Agent question: FastAPI or Flask?"
+  - "Agent question: Expected concurrent users?"
 
-**Good** (directive, 2 files, zero questions in main):
-- docs/ai/ongoing/Z01_oauth_authentication_research.md
-  - States: "Use FastAPI with Authlib library"
-  - Lists: src/api/auth.py:10-50, src/config.py:5-15
-  - Covers: APIs, data, security, edge cases, tests, env vars
-  - Zero questions
-- docs/ai/ongoing/Z01_CLARIFY_oauth_authentication_research.md
-  - "Agent question: FastAPI or Flask for API framework?"
-  - "Agent question: Expected user volume (concurrent users)?"
-  - No explanations
+## Handoff to Planning
 
-## After CLARIFY Answered
+When research complete:
+1. Announce: "Research complete. Z01_research.md ready for planning."
+2. If CLARIFY exists: "Waiting for Z01_CLARIFY.md answers"
+3. After answered: Update Z01_research.md, then "Using superpowers:writing-plans"
 
-1. User fills in responses in docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md
-2. Update docs/ai/ongoing/Z01_{feature}_research.md with answered information
-3. Verify zero ambiguities remain
-4. Hand off to superpowers:writing-plans
+**What planning receives:**
+- Patterns that MUST be preserved (from CLAUDE.md)
+- Forbidden approaches to AVOID
+- Files that MUST be modified (with line ranges)
+- APIs/libraries required
+- Security/integration requirements
+- When to proceed (user approval trigger)
 
 ## Success Criteria
 
-Research is complete when:
-- [ ] Exactly 2 files exist: docs/ai/ongoing/Z01_research.md + Z01_CLARIFY.md
-- [ ] Z01_research.md has zero questions
-- [ ] CLARIFY uses exact format (question + blank response)
-- [ ] All checklist areas covered
+- [ ] CLAUDE.md/README/docs read FIRST
+- [ ] "Existing Patterns" section in Z01_research.md
+- [ ] Primary approach preserves patterns
+- [ ] Exactly 2 files: Z01_research.md + Z01_CLARIFY.md
+- [ ] Z01_research.md is directive (single OR primary + 1 alternative)
+- [ ] If alternative: both have complete technical details
 - [ ] File paths + line ranges included
-- [ ] Technology choices resolved (either specified or in CLARIFY)
-- [ ] Implementer can code without making decisions
+- [ ] CLARIFY uses exact format
+- [ ] Implementer can code without architectural decisions
