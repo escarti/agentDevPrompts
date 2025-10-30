@@ -77,7 +77,8 @@ When superpowers:writing-plans completes:
 | "Superpowers will figure out output structure" | Generic plans lack our research integration | MUST provide explicit Z02* structure instruction when loading skill |
 | "Read only Z01_research, skip Z01_CLARIFY" | Missing context = incomplete plan | Read ALL Z01* files, include clarifications in context |
 | "Create Z02_CLARIFY even if no questions" | Empty files clutter docs/ai/ongoing | Only create Z02_CLARIFY if NEW blocking questions discovered |
-| "Use SlashCommand /superpowers:write-plan" | That's a command, not the skill - it won't follow Z02 conventions | Use Skill tool with "superpowers:writing-plans" (the skill) |
+| "Use SlashCommand /superpowers:write-plan" | That's a slash command, not a skill | Use Skill tool with "superpowers:writing-plans" (the skill name) |
+| "Just invoke superpowers:writing-plans directly" | Missing feature-workflow context (Z01 files, Z02 paths) | This skill (feature-plan) is a WRAPPER that loads Z01 context before invoking superpowers:writing-plans |
 
 ## Success Criteria
 

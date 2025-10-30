@@ -19,6 +19,14 @@ After successful implementation, consolidate all development artifacts into a si
 - Ready to document and create PR
 - **After** superpowers:verification-before-completion
 
+## When NOT to Use
+
+- Implementation is incomplete or has failing tests
+- No Z01/Z02 files exist (nothing to consolidate)
+- Already have a dev log for this feature
+- Working on exploratory/experimental code not ready for documentation
+- Feature was abandoned or reverted
+
 ## Core Pattern
 
 ```

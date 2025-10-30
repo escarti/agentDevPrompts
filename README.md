@@ -5,7 +5,9 @@ Research-driven feature development workflow for Claude Code. Produces directive
 ## Skills Included
 
 - **feature-research** - Systematic feature research producing directive specifications with zero ambiguity
-- **development-logging** - Post-implementation consolidation, cleanup, and PR generation
+- **feature-plan** - Create implementation plans from research with automatic context loading
+- **feature-implement** - Execute plans with batch processing and code review checkpoints
+- **feature-document** - Post-implementation consolidation, cleanup, and PR generation
 
 ## Installation
 
@@ -28,7 +30,9 @@ Verify installation:
 
 # Should see:
 # /feature-research - Research-driven feature specification
-# /development-logging - Post-implementation documentation
+# /feature-plan - Create implementation plan
+# /feature-implement - Execute plan with review checkpoints
+# /feature-document - Post-implementation documentation
 ```
 
 ### Option 2: Manual Installation (Development)
@@ -41,7 +45,9 @@ git clone git@github.com:escarti/agentDevPrompts.git ~/Projects/Personal/agentDe
 
 # Create symlinks
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-research ~/.claude/skills/feature-research
-ln -s ~/Projects/Personal/agentDevPrompts/skills/development-logging ~/.claude/skills/development-logging
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-plan ~/.claude/skills/feature-plan
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-implement ~/.claude/skills/feature-implement
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-document ~/.claude/skills/feature-document
 ```
 
 **Single Source of Truth**: Edit skills in the cloned repo, changes are immediately available via symlinks.
@@ -56,7 +62,11 @@ agentDevPrompts/
 ├── skills/                        # Claude Code skills
 │   ├── feature-research/
 │   │   └── SKILL.md
-│   └── development-logging/
+│   ├── feature-plan/
+│   │   └── SKILL.md
+│   ├── feature-implement/
+│   │   └── SKILL.md
+│   └── feature-document/
 │       └── SKILL.md
 ├── A01_research_agent.md          # Original research agent prompt
 ├── A02_plan_agent.md              # Original planning agent prompt
@@ -75,15 +85,17 @@ agentDevPrompts/
    - Produces: `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
    - User answers clarification questions
 
-2. **Planning Phase** - Use `superpowers:writing-plans`
+2. **Planning Phase** - Use `feature-plan` skill
    - Input: `docs/ai/ongoing/Z01_{feature}_research.md`
+   - Wraps `superpowers:writing-plans` with context loading
    - Produces: `docs/ai/ongoing/Z02_{feature}_plan.md`
 
-3. **Implementation Phase** - Use `superpowers:executing-plans`
+3. **Implementation Phase** - Use `feature-implement` skill
    - Input: `docs/ai/ongoing/Z02_{feature}_plan.md`
-   - Implements the plan
+   - Wraps `superpowers:executing-plans` with context loading
+   - Implements the plan in batches with code review checkpoints
 
-4. **Documentation Phase** - Use `development-logging` skill
+4. **Documentation Phase** - Use `feature-document` skill (auto-invoked by feature-implement)
    - Consolidates Z01 + Z02 + implementation summary
    - Produces: `docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md`
    - Cleans up `docs/ai/ongoing/Z01*` and `Z02*` files
@@ -109,8 +121,8 @@ agentDevPrompts/
 **Claude Code Skills**:
 - Designed for single Claude Code session
 - Integrated with superpowers workflow
-- Use `feature-research` + existing superpowers skills
-- `development-logging` for final documentation
+- Complete workflow: `feature-research` → `feature-plan` → `feature-implement` → `feature-document`
+- Wrapper skills (`feature-plan`, `feature-implement`) enrich superpowers with Z0* context
 
 ## Contributing
 

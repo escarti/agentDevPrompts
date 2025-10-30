@@ -5,7 +5,7 @@
 This repository is a **Claude Code marketplace** containing the **feature-workflow plugin**.
 
 **Repository**: `escarti/agentDevPrompts`
-**Plugin**: `feature-workflow` (feature-research + development-logging skills)
+**Plugin**: `feature-workflow` (feature-research, feature-plan, feature-implement, feature-document skills)
 
 ## Release Workflow
 
@@ -115,7 +115,11 @@ agentDevPrompts/
 ├── skills/                     # Skills directory
 │   ├── feature-research/
 │   │   └── SKILL.md
-│   └── development-logging/
+│   ├── feature-plan/
+│   │   └── SKILL.md
+│   ├── feature-implement/
+│   │   └── SKILL.md
+│   └── feature-document/
 │       └── SKILL.md
 ├── CLAUDE.md                   # This file (development guidelines)
 ├── PUBLISHING.md               # Detailed publishing guide
@@ -241,7 +245,9 @@ When releasing a version:
 ```bash
 # Use symlinks for development
 ln -s ~/Projects/Personal/prompts/skills/feature-research ~/.claude/skills/feature-research
-ln -s ~/Projects/Personal/prompts/skills/development-logging ~/.claude/skills/development-logging
+ln -s ~/Projects/Personal/prompts/skills/feature-plan ~/.claude/skills/feature-plan
+ln -s ~/Projects/Personal/prompts/skills/feature-implement ~/.claude/skills/feature-implement
+ln -s ~/Projects/Personal/prompts/skills/feature-document ~/.claude/skills/feature-document
 
 # Test skills in Claude Code
 # Verify changes work as expected
