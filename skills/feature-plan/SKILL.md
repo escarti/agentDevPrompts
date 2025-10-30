@@ -1,8 +1,28 @@
+---
+name: feature-plan
+description: Use after research (Z01 files exist) when you need to create implementation plan - wrapper that loads Z01 research context, invokes superpowers:writing-plans, and saves to Z02_{feature}_plan.md in docs/ai/ongoing/
+---
+
 # Feature Workflow: Plan Implementation
 
-**Skill Name:** feature-plan (formerly write-plan)
+## Overview
 
-**Use when:** Design/research is complete and you need detailed implementation tasks for engineers with zero codebase context. This skill automatically reads Z01 research files and produces Z02 plan files following the same directive/clarification pattern.
+**feature-plan is a WRAPPER skill** that automates the feature-workflow planning phase.
+
+**What it does:**
+1. Loads ALL Z01_* research files (research + clarifications)
+2. Invokes superpowers:writing-plans with that context
+3. Saves output to Z02_{feature}_plan.md in docs/ai/ongoing/
+4. Checks if Z02_CLARIFY needed (new blocking questions)
+5. Reports next steps to user
+
+**Why use this instead of superpowers:writing-plans directly?**
+- Automates Z01 → Z02 file management
+- Enforces feature-workflow naming conventions (Z02_{feature}_plan.md)
+- Integrates with clarification workflow (Z02_CLARIFY)
+- Provides consistent user experience across feature lifecycle
+
+**Workflow Position:** AFTER feature-research (Z01 files), BEFORE feature-implement
 
 ## Prerequisites Check
 
@@ -23,6 +43,8 @@ MANDATORY: Check if research files exist first.
    - Or proceed without research context (suboptimal)
 
 ## Invoke Superpowers Planning Skill
+
+**CRITICAL**: This skill is a WRAPPER. Its primary job is to invoke superpowers:writing-plans with Z01 context. If you skip this invocation, the skill provides no value.
 
 Use Skill tool to load the planning skill:
 
@@ -89,13 +111,16 @@ When superpowers:writing-plans completes:
 - [ ] Verified Z02_{feature}_plan.md was created in docs/ai/ongoing/
 - [ ] Reported next steps to user with clickable file links
 
-## Red Flags - STOP
+## Red Flags - STOP and Use This Skill
 
-- Did NOT check for Z01* files
+- Directly invoking superpowers:writing-plans without loading Z01 context first
+- Creating plan files with non-standard names (not Z02_{feature}_plan.md)
+- Saving plans to docs/plans/ instead of docs/ai/ongoing/
+- Did NOT check for Z01* files before proceeding
 - Used SlashCommand /superpowers:write-plan instead of Skill superpowers:writing-plans
 - Did NOT explicitly specify Z02* output path in prompt
-- Created plan in docs/plans/ instead of docs/ai/ongoing/
 - Skipped reading Z01_CLARIFY if it exists
-- Forgot to extract feature name from Z01 filename
+- Skipping Z02_CLARIFY decision
+- Not reporting next steps to user
 
-**All of these mean:** Stop, re-read this skill, follow the structure exactly.
+**All of these mean:** Stop, use feature-plan wrapper skill instead. It automates the entire Z01→Z02 workflow.
