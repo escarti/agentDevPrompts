@@ -37,7 +37,7 @@ Z02_{feature}_plan.md exists
     ↓
 Auto-load context: Z01*, Z02*, CLAUDE.md
     ↓
-Invoke /superpowers:execute-plan with enriched context
+Invoke superpowers:executing-plans skill with enriched context
     ↓
 Execute in batches with review checkpoints
     ↓
@@ -113,11 +113,15 @@ read docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md
 
 ## Invoke Superpowers Execution
 
-Use SlashCommand tool to invoke:
+Use Skill tool to load the execution skill:
 
 ```
-/superpowers:execute-plan
+superpowers:executing-plans
+```
 
+**When the skill loads, provide this enriched context:**
+
+```
 EXECUTION CONTEXT:
 
 === PROJECT PATTERNS (from CLAUDE.md) ===
@@ -236,7 +240,7 @@ Executing plan for oauth_authentication feature.
 - Z01_CLARIFY_oauth_authentication_research.md (answered questions)
 - Z02_oauth_authentication_plan.md (implementation plan)
 
-Invoking /superpowers:execute-plan with enriched context...
+Invoking superpowers:executing-plans skill with enriched context...
 [Execution proceeds in batches with review checkpoints]
 ```
 
@@ -248,7 +252,8 @@ Invoking /superpowers:execute-plan with enriched context...
 | "Clarify file has content, must be answered" | Content might be template with blanks | MUST check for empty "User response:" fields |
 | "CLAUDE.md optional, skip if missing" | Missing critical patterns breaks implementation | Check for CLAUDE.md, load if exists |
 | "Pass file paths to superpowers, it will read" | Generic superpowers won't know our Z0* convention | MUST read files and pass FULL CONTENT |
-| "Just invoke /superpowers:execute-plan" | Missing context = lower quality execution | MUST load and pass all Z0*, CLAUDE.md context |
+| "Use SlashCommand /superpowers:execute-plan" | That's a command, not the skill - different system | Use Skill tool with "superpowers:executing-plans" (the skill) |
+| "Just invoke superpowers without context" | Missing context = lower quality execution | MUST load and pass all Z0*, CLAUDE.md context |
 | "Read Z02 plan only, skip research" | Research has critical integration details | Read ALL available context: CLAUDE.md, Z01*, Z02* |
 | "Execute without code review checkpoints" | Large changes without review = risky | MUST instruct superpowers to use code review between batches |
 | "Tests pass, stop and ask user about logging" | Manual step breaks workflow automation | MUST automatically invoke development-logging after verification |
@@ -260,6 +265,7 @@ Invoking /superpowers:execute-plan with enriched context...
 |---------|-----|
 | Did NOT check for Z02_plan.md existence | MUST verify file exists before proceeding |
 | Proceeded with unanswered clarifications | MUST check Z02_CLARIFY for empty responses |
+| Used SlashCommand /superpowers:execute-plan | Use Skill tool with superpowers:executing-plans |
 | Invoked superpowers without passing context | MUST read and pass full content of Z0* + CLAUDE.md |
 | Passed file paths instead of content | Superpowers won't know Z0* convention - pass CONTENT |
 | Skipped CLAUDE.md when it exists | Project patterns critical - always load if exists |
@@ -270,7 +276,8 @@ Invoking /superpowers:execute-plan with enriched context...
 **Red Flags - STOP and Fix:**
 - Did NOT verify Z02_plan.md exists
 - Found Z02_CLARIFY with empty "User response:" fields
-- Invoked /superpowers:execute-plan with file paths instead of content
+- Used SlashCommand /superpowers:execute-plan instead of Skill superpowers:executing-plans
+- Invoked with file paths instead of FULL CONTENT
 - Did NOT check for CLAUDE.md
 - Forgot to pass research context (Z01 files)
 - Did NOT instruct code review between batches
@@ -287,7 +294,7 @@ Execution is complete when:
 - [ ] Read ALL Z01_{feature}* files (if exist)
 - [ ] Read Z02_{feature}_plan.md (required)
 - [ ] Read Z02_CLARIFY_{feature}_plan.md (if exists and answered)
-- [ ] Invoked /superpowers:execute-plan with FULL CONTENT of all context
+- [ ] Invoked superpowers:executing-plans skill (NOT slash command) with FULL CONTENT of all context
 - [ ] Instructed batch execution with code review checkpoints
 - [ ] All tasks completed and tests passing
 - [ ] Automatically invoked feature-workflow:development-logging
