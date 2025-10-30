@@ -485,9 +485,9 @@ The feature-research and write-plan skills successfully broke the failure patter
 
 ---
 
-## CRITICAL BUG DISCOVERED DURING TESTING
+## CRITICAL BUGS DISCOVERED DURING TESTING
 
-### Write-Plan Skill Bug: Wrong Tool Invocation
+### Bug #1: Write-Plan Skill - Wrong Tool Invocation
 
 **Issue:** `skills/write-plan/SKILL.md` was invoking `/superpowers:write-plan` (slash command) instead of `superpowers:writing-plans` (skill).
 
@@ -500,21 +500,54 @@ The feature-research and write-plan skills successfully broke the failure patter
 - `/superpowers:write-plan` = Slash command (different system)
 - `superpowers:writing-plans` = Skill (the one we need)
 
-**Fix Applied:** Changed line 25-53 in `skills/write-plan/SKILL.md`:
-- OLD: `Use SlashCommand tool to invoke: /superpowers:write-plan`
-- NEW: `Use Skill tool to load: superpowers:writing-plans`
+**Fix Applied (Commit 7330c14):**
+- Changed from SlashCommand tool → Skill tool
+- Updated rationalization table, success criteria, red flags
+- Added explicit Z02* output path instruction
 
-**Additional Changes:**
-- Updated rationalization table to counter "Use SlashCommand" excuse
-- Updated success criteria to verify Skill tool used (not SlashCommand)
-- Updated red flags to catch docs/plans/ vs docs/ai/ongoing/ mistake
+**Status:** ✅ Fixed, ⏭️ Retest required
 
-**Testing Impact:**
-- GREEN phase test was **invalid** - skill wrapper was not actually tested
-- Need to re-run GREEN phase test with corrected skill
-- RED phase findings remain valid (baseline violations documented)
+---
 
-**Status:** ✅ Fixed in commit, ⏭️ Retest required
+### Bug #2: Execute-Plan Skill - Same Wrong Tool Invocation
+
+**Issue:** `skills/execute-plan/SKILL.md` had the **exact same bug** - invoking `/superpowers:execute-plan` (slash command) instead of `superpowers:executing-plans` (skill).
+
+**Impact:**
+- Slash command would not receive enriched context (Z01*, Z02*, CLAUDE.md)
+- Would not follow batch-review-logging pattern
+- Execute-plan wrapper skill was never actually tested
+
+**Root Cause:** Same confusion between:
+- `/superpowers:execute-plan` = Slash command
+- `superpowers:executing-plans` = Skill (the one we need)
+
+**Fix Applied (Commit a566d6d):**
+- Changed from SlashCommand tool → Skill tool
+- Updated rationalization table with SlashCommand excuse
+- Updated red flags, success criteria, example flows
+- All references to slash command replaced with skill
+
+**Status:** ✅ Fixed, ❓ Not tested yet (execute-plan wasn't run in RED/GREEN phases)
+
+---
+
+### Pattern Analysis
+
+**Both wrapper skills had the identical bug:**
+- Using SlashCommand tool when they should use Skill tool
+- Calling slash commands that have similar names but different behavior
+- This broke the Z0* file convention integration
+
+**Why This Matters:**
+- Slash commands are standalone utilities with their own conventions
+- Skills can be composed and follow shared conventions (Z0* files)
+- The feature-workflow depends on Z0* file chain for context passing
+
+**Lesson Learned:**
+- Document the distinction between slash commands and skills clearly
+- Test wrapper skills actually invoke the right tool
+- Slash commands ≠ Skills, even when names are similar
 
 ---
 
