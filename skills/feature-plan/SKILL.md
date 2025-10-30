@@ -19,7 +19,7 @@ MANDATORY: Check if research files exist first.
    - Note the feature name from filename (e.g., Z01_metrics_research.md → feature="metrics")
 
 3. **If NO Z01 files found:**
-   - Ask user if they want to run feature-research first
+   - Ask user if they want to run feature-workflow:feature-research first
    - Or proceed without research context (suboptimal)
 
 ## Invoke Superpowers Planning Skill
@@ -66,13 +66,13 @@ When superpowers:writing-plans completes:
 3. **Report to user:**
    - "Plan created: [Z02_{feature}_plan.md](docs/ai/ongoing/Z02_{feature}_plan.md)"
    - If clarifications: "Blocking questions in [Z02_CLARIFY_{feature}_plan.md](docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md)"
-   - Next step: "Review clarifications, then use feature-implement or feature-document"
+   - Next step: "Review clarifications, then use feature-workflow:feature-implement or feature-workflow:feature-document"
 
 ## Rationalization Table
 
 | Excuse | Reality | Counter |
 |--------|---------|---------|
-| "No Z01 files, skip check" | Research context critical for quality plans | MUST check for Z01* files first, offer to run feature-research |
+| "No Z01 files, skip check" | Research context critical for quality plans | MUST check for Z01* files first, offer to run feature-workflow:feature-research |
 | "User can specify output paths manually" | Consistency breaks cross-skill workflow | MUST explicitly instruct Z02* path in prompt to writing-plans skill |
 | "Superpowers will figure out output structure" | Generic plans lack our research integration | MUST provide explicit Z02* structure instruction when loading skill |
 | "Read only Z01_research, skip Z01_CLARIFY" | Missing context = incomplete plan | Read ALL Z01* files, include clarifications in context |

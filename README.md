@@ -80,22 +80,22 @@ agentDevPrompts/
 
 ### New Feature Development
 
-1. **Research Phase** - Use `feature-research` skill
+1. **Research Phase** - Use `feature-workflow:feature-research` skill
    - Produces: `docs/ai/ongoing/Z01_{feature}_research.md`
    - Produces: `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
    - User answers clarification questions
 
-2. **Planning Phase** - Use `feature-plan` skill
+2. **Planning Phase** - Use `feature-workflow:feature-plan` skill
    - Input: `docs/ai/ongoing/Z01_{feature}_research.md`
    - Wraps `superpowers:writing-plans` with context loading
    - Produces: `docs/ai/ongoing/Z02_{feature}_plan.md`
 
-3. **Implementation Phase** - Use `feature-implement` skill
+3. **Implementation Phase** - Use `feature-workflow:feature-implement` skill
    - Input: `docs/ai/ongoing/Z02_{feature}_plan.md`
    - Wraps `superpowers:executing-plans` with context loading
    - Implements the plan in batches with code review checkpoints
 
-4. **Documentation Phase** - Use `feature-document` skill (auto-invoked by feature-implement)
+4. **Documentation Phase** - Use `feature-workflow:feature-document` skill (auto-invoked by feature-workflow:feature-implement)
    - Consolidates Z01 + Z02 + implementation summary
    - Produces: `docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md`
    - Cleans up `docs/ai/ongoing/Z01*` and `Z02*` files
@@ -121,8 +121,8 @@ agentDevPrompts/
 **Claude Code Skills**:
 - Designed for single Claude Code session
 - Integrated with superpowers workflow
-- Complete workflow: `feature-research` → `feature-plan` → `feature-implement` → `feature-document`
-- Wrapper skills (`feature-plan`, `feature-implement`) enrich superpowers with Z0* context
+- Complete workflow: `feature-workflow:feature-research` → `feature-workflow:feature-plan` → `feature-workflow:feature-implement` → `feature-workflow:feature-document`
+- Wrapper skills (`feature-workflow:feature-plan`, `feature-workflow:feature-implement`) enrich superpowers with Z0* context
 
 ## Contributing
 
