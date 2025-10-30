@@ -20,41 +20,37 @@ MANDATORY: Check if research files exist first.
    - Ask user if they want to run feature-research first
    - Or proceed without research context (suboptimal)
 
-## Invoke Superpowers Planning
+## Invoke Superpowers Planning Skill
 
-Use SlashCommand tool to invoke:
+Use Skill tool to load the planning skill:
 
 ```
-/superpowers:write-plan
-
-CONTEXT FROM RESEARCH:
-[Include full content from Z01_{feature}_research.md]
-[Include all questions from Z01_CLARIFY_{feature}_research.md if exists]
-
-IMPORTANT OUTPUT REQUIREMENTS:
-
-Create the implementation plan in this structure:
-
-1. Main plan document: docs/ai/ongoing/Z02_{feature}_plan.md
-   - This should be a DIRECTIVE document (zero questions, all answers)
-   - Comprehensive implementation plan with:
-     * Exact file paths from research
-     * Complete code examples
-     * Verification steps
-     * Assumes engineer has minimal domain knowledge
-
-2. Clarification questions: docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md
-   - ONLY if there are unresolved questions or ambiguities
-   - Format: One question per line or bullet
-   - These are questions that BLOCK implementation
-   - If no blocking questions exist, DO NOT create this file
-
-Use the same {feature} name from the Z01 files for consistency.
+superpowers:writing-plans
 ```
+
+**Before invoking, prepare context:**
+1. Read the full Z01_{feature}_research.md content
+2. Read all answered questions from Z01_CLARIFY_{feature}_research.md
+3. Extract the feature name (e.g., "audit_logging" from Z01_audit_logging_research.md)
+
+**When the skill loads, provide this instruction:**
+
+"Create an implementation plan for the {feature} feature based on the research in Z01_{feature}_research.md and clarifications in Z01_CLARIFY_{feature}_research.md.
+
+CRITICAL: Save the plan to docs/ai/ongoing/Z02_{feature}_plan.md (NOT docs/plans/).
+
+The plan should be a DIRECTIVE document with:
+- Exact file paths from research
+- Complete code examples
+- Verification steps for each task
+- TDD structure (test-fail-implement-pass-commit)
+- Assumes engineer has minimal domain knowledge
+
+If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file."
 
 ## After Planning
 
-When superpowers:write-plan completes:
+When superpowers:writing-plans completes:
 
 1. **Verify outputs created:**
    ```bash
@@ -75,25 +71,27 @@ When superpowers:write-plan completes:
 | Excuse | Reality | Counter |
 |--------|---------|---------|
 | "No Z01 files, skip check" | Research context critical for quality plans | MUST check for Z01* files first, offer to run feature-research |
-| "User can specify output paths manually" | Consistency breaks cross-skill workflow | MUST use Z02* naming convention in SlashCommand prompt |
-| "Superpowers will figure out output structure" | Generic plans lack our research integration | MUST explicitly instruct Z02* structure in prompt |
+| "User can specify output paths manually" | Consistency breaks cross-skill workflow | MUST explicitly instruct Z02* path in prompt to writing-plans skill |
+| "Superpowers will figure out output structure" | Generic plans lack our research integration | MUST provide explicit Z02* structure instruction when loading skill |
 | "Read only Z01_research, skip Z01_CLARIFY" | Missing context = incomplete plan | Read ALL Z01* files, include clarifications in context |
-| "Create Z02_CLARIFY even if no questions" | Empty files clutter docs/ai/ongoing | Only create Z02_CLARIFY if blocking questions exist |
+| "Create Z02_CLARIFY even if no questions" | Empty files clutter docs/ai/ongoing | Only create Z02_CLARIFY if NEW blocking questions discovered |
+| "Use SlashCommand /superpowers:write-plan" | That's a command, not the skill - it won't follow Z02 conventions | Use Skill tool with "superpowers:writing-plans" (the skill) |
 
 ## Success Criteria
 
 - [ ] Checked for Z01* files before proceeding
 - [ ] Read ALL Z01* files if they exist
-- [ ] Invoked /superpowers:write-plan with full research context
-- [ ] Explicitly instructed Z02* output structure in prompt
-- [ ] Verified Z02_{feature}_plan.md was created
+- [ ] Invoked superpowers:writing-plans skill (NOT slash command)
+- [ ] Explicitly instructed Z02* output path in prompt
+- [ ] Verified Z02_{feature}_plan.md was created in docs/ai/ongoing/
 - [ ] Reported next steps to user with clickable file links
 
 ## Red Flags - STOP
 
 - Did NOT check for Z01* files
-- Invoked /superpowers:write-plan without specifying Z02* output structure
-- Created generic plan.md instead of Z02_{feature}_plan.md
+- Used SlashCommand /superpowers:write-plan instead of Skill superpowers:writing-plans
+- Did NOT explicitly specify Z02* output path in prompt
+- Created plan in docs/plans/ instead of docs/ai/ongoing/
 - Skipped reading Z01_CLARIFY if it exists
 - Forgot to extract feature name from Z01 filename
 
