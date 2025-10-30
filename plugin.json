@@ -1,14 +1,18 @@
 {
   "name": "feature-workflow",
   "version": "1.1.1",
-  "description": "Feature development workflow skills: research-driven specification and development logging",
+  "description": "Complete feature development workflow: research, planning, automated execution, and logging",
   "author": "Eduardo Escarti",
   "skills": {
     "feature-research": "skills/feature-research",
+    "write-plan": "skills/write-plan",
+    "execute-plan": "skills/execute-plan",
     "development-logging": "skills/development-logging"
   },
   "commands": {
     "feature-research": "commands/feature-research.md",
+    "write-plan": "commands/write-plan.md",
+    "execute-plan": "commands/execute-plan.md",
     "development-logging": "commands/development-logging.md"
   }
 }

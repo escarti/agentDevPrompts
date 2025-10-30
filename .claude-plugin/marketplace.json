@@ -5,14 +5,14 @@
     "email": "necatus9@gmail.com"
   },
   "metadata": {
-    "description": "Feature development workflow skills for research-driven specification and development logging",
+    "description": "Complete feature development workflow: research, planning, automated execution, and logging",
     "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "feature-workflow",
       "source": "./",
-      "description": "Feature development workflow skills: research-driven specification and development logging",
+      "description": "Complete feature development workflow: research, planning, automated execution with code review checkpoints, and development logging",
       "version": "1.2.0",
       "author": {
         "name": "Eduardo Escarti"
