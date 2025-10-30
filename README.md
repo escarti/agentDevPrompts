@@ -169,4 +169,4 @@ Use manual installation (symlinks) for development:
 
 ## License
 
-[Add your license here]
+MIT License - see [LICENSE](LICENSE) for details.
