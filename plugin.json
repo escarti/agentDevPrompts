@@ -5,14 +5,14 @@
   "author": "Eduardo Escarti",
   "skills": {
     "feature-research": "skills/feature-research",
-    "write-plan": "skills/write-plan",
-    "execute-plan": "skills/execute-plan",
-    "development-logging": "skills/development-logging"
+    "feature-plan": "skills/feature-plan",
+    "feature-implement": "skills/feature-implement",
+    "feature-document": "skills/feature-document"
   },
   "commands": {
     "feature-research": "commands/feature-research.md",
-    "write-plan": "commands/write-plan.md",
-    "execute-plan": "commands/execute-plan.md",
-    "development-logging": "commands/development-logging.md"
+    "feature-plan": "commands/feature-plan.md",
+    "feature-implement": "commands/feature-implement.md",
+    "feature-document": "commands/feature-document.md"
   }
 }

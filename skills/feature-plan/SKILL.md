@@ -1,4 +1,6 @@
-# Feature Workflow: Write Plan
+# Feature Workflow: Plan Implementation
+
+**Skill Name:** feature-plan (formerly write-plan)
 
 **Use when:** Design/research is complete and you need detailed implementation tasks for engineers with zero codebase context. This skill automatically reads Z01 research files and produces Z02 plan files following the same directive/clarification pattern.
 
@@ -64,7 +66,7 @@ When superpowers:writing-plans completes:
 3. **Report to user:**
    - "Plan created: [Z02_{feature}_plan.md](docs/ai/ongoing/Z02_{feature}_plan.md)"
    - If clarifications: "Blocking questions in [Z02_CLARIFY_{feature}_plan.md](docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md)"
-   - Next step: "Review clarifications, then use /superpowers:execute-plan or feature-workflow:development-logging"
+   - Next step: "Review clarifications, then use feature-implement or feature-document"
 
 ## Rationalization Table
 

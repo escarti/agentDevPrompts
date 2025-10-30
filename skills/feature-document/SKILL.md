@@ -1,10 +1,12 @@
 ---
-name: development-logging
+name: feature-document
 description: Use when implementation is complete and tests pass - consolidates research, plan, and implementation into timestamped dev log, cleans up temporary files, and generates PR description
 category: Documentation
 ---
 
-# Development Logging
+# Feature Workflow: Document Implementation
+
+**Skill Name:** feature-document (formerly development-logging)
 
 ## Overview
 

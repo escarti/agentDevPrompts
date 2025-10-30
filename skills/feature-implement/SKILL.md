@@ -1,22 +1,24 @@
 ---
-name: execute-plan
+name: feature-implement
 description: Execute plan in batches with review checkpoints - automatically loads context from Z01 research, Z02 plan, and CLAUDE.md files
 category: Implementation
 ---
 
-# Feature Workflow: Execute Plan
+# Feature Workflow: Implement Feature
+
+**Skill Name:** feature-implement (formerly execute-plan)
 
 **Use when:** Plan is complete (Z02 files exist) and ready for implementation with built-in code review checkpoints.
 
 ## Overview
 
-This skill wraps `superpowers:execute-plan` with automatic context loading from your feature-workflow research and planning files. It enriches the execution with:
+This skill wraps `superpowers:executing-plans` with automatic context loading from your feature-workflow research and planning files. It enriches the execution with:
 - Research context (Z01 files)
 - Implementation plan (Z02 files)
 - Project patterns (CLAUDE.md)
 - Batch execution with review checkpoints
 
-**Workflow Position:** AFTER feature-workflow:write-plan, BEFORE feature-workflow:development-logging
+**Workflow Position:** AFTER feature-plan, BEFORE feature-document
 
 ## When to Use
 
@@ -26,7 +28,7 @@ Use when:
 - Ready to implement with automatic code review between batches
 
 **Don't use when:**
-- No plan exists → Use feature-workflow:write-plan first
+- No plan exists → Use feature-plan first
 - Clarifications unresolved → Answer Z02_CLARIFY questions first
 - Simple single-step tasks → Just implement directly
 
@@ -41,7 +43,7 @@ Invoke superpowers:executing-plans skill with enriched context
     ↓
 Execute in batches with review checkpoints
     ↓
-Tests pass → feature-workflow:development-logging
+Tests pass → feature-document
 ```
 
 ## Prerequisites Check
@@ -61,7 +63,7 @@ ls docs/ai/ongoing/Z02_*plan.md 2>/dev/null
 - List all available plans with clickable links
 
 **If NO Z02 plan exists:**
-- Ask: "No plan found. Should I run feature-workflow:write-plan first?"
+- Ask: "No plan found. Should I run feature-plan first?"
 - Do NOT proceed without a plan
 
 ### Step 2: Check for Unresolved Clarifications
@@ -164,7 +166,7 @@ Execute the plan in docs/ai/ongoing/Z02_{feature}_plan.md following these requir
 5. **Completion Criteria:**
    - ALL tasks from Z02_plan.md completed
    - Tests passing (use superpowers:verification-before-completion)
-   - Ready for feature-workflow:development-logging
+   - Ready for feature-document
 
 Begin execution now.
 ```
@@ -205,7 +207,7 @@ Confirm:
 
 ### Step 3: Invoke Development Logging
 
-**MANDATORY:** Automatically invoke feature-workflow:development-logging to:
+**MANDATORY:** Automatically invoke feature-document to:
 - Consolidate research + plan + implementation into timestamped dev log
 - Update relevant documentation
 - Clean up ALL Z0* temporary files
@@ -213,17 +215,17 @@ Confirm:
 
 Use Skill tool:
 ```
-feature-workflow:development-logging
+feature-document
 ```
 
-**Critical:** The development-logging skill will:
+**Critical:** The feature-document skill will:
 1. Read ALL Z01* and Z02* files
 2. Create consolidated dev log in docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md
 3. Update README/docs if needed
 4. Remove ALL Z0* files from docs/ai/ongoing/
 5. Generate PR description
 
-**Do NOT manually clean up Z0* files** - let development-logging handle it.
+**Do NOT manually clean up Z0* files** - let feature-document handle it.
 
 ## Example Usage
 
@@ -256,8 +258,8 @@ Invoking superpowers:executing-plans skill with enriched context...
 | "Just invoke superpowers without context" | Missing context = lower quality execution | MUST load and pass all Z0*, CLAUDE.md context |
 | "Read Z02 plan only, skip research" | Research has critical integration details | Read ALL available context: CLAUDE.md, Z01*, Z02* |
 | "Execute without code review checkpoints" | Large changes without review = risky | MUST instruct superpowers to use code review between batches |
-| "Tests pass, stop and ask user about logging" | Manual step breaks workflow automation | MUST automatically invoke development-logging after verification |
-| "Manually delete Z0* files after logging" | Manual cleanup error-prone and inconsistent | Let development-logging handle ALL cleanup |
+| "Tests pass, stop and ask user about logging" | Manual step breaks workflow automation | MUST automatically invoke feature-document after verification |
+| "Manually delete Z0* files after logging" | Manual cleanup error-prone and inconsistent | Let feature-document handle ALL cleanup |
 
 ## Common Mistakes & Red Flags
 
@@ -270,8 +272,8 @@ Invoking superpowers:executing-plans skill with enriched context...
 | Passed file paths instead of content | Superpowers won't know Z0* convention - pass CONTENT |
 | Skipped CLAUDE.md when it exists | Project patterns critical - always load if exists |
 | No code review between batches | MUST instruct superpowers:requesting-code-review usage |
-| Stopped after tests pass without dev logging | MUST invoke development-logging automatically |
-| Manually deleted Z0* files | Let development-logging handle cleanup |
+| Stopped after tests pass without dev logging | MUST invoke feature-document automatically |
+| Manually deleted Z0* files | Let feature-document handle cleanup |
 
 **Red Flags - STOP and Fix:**
 - Did NOT verify Z02_plan.md exists
@@ -281,8 +283,8 @@ Invoking superpowers:executing-plans skill with enriched context...
 - Did NOT check for CLAUDE.md
 - Forgot to pass research context (Z01 files)
 - Did NOT instruct code review between batches
-- Stopped after tests pass without invoking development-logging
-- Manually deleted Z0* files instead of using development-logging
+- Stopped after tests pass without invoking feature-document
+- Manually deleted Z0* files instead of using feature-document
 
 ## Success Criteria
 
@@ -297,7 +299,7 @@ Execution is complete when:
 - [ ] Invoked superpowers:executing-plans skill (NOT slash command) with FULL CONTENT of all context
 - [ ] Instructed batch execution with code review checkpoints
 - [ ] All tasks completed and tests passing
-- [ ] Automatically invoked feature-workflow:development-logging
+- [ ] Automatically invoked feature-document
 - [ ] Development logging completed (dev log created, docs updated, Z0* files cleaned up)
 
 ## Integration with Feature Workflow
@@ -305,10 +307,10 @@ Execution is complete when:
 This skill completes the feature-workflow cycle:
 
 ```
-1. feature-research     → Z01_research + Z01_CLARIFY
-2. write-plan          → Z02_plan + Z02_CLARIFY (optional)
-3. execute-plan        → Implementation + automatically calls development-logging (this skill)
-   └─→ development-logging → Dev log + cleanup + PR description
+1. feature-research    → Z01_research + Z01_CLARIFY
+2. feature-plan        → Z02_plan + Z02_CLARIFY (optional)
+3. feature-implement   → Implementation + automatically calls feature-document (this skill)
+   └─→ feature-document → Dev log + cleanup + PR description
 ```
 
 **Before this skill:**
