@@ -11,16 +11,17 @@ description: Use after research (Z01 files exist) when you need to create implem
 
 **What it does:**
 1. Loads ALL Z01_* research files (research + clarifications)
-2. Invokes superpowers:writing-plans with that context
+2. Invokes `superpowers:writing-plans` with that context
 3. Saves output to Z02_{feature}_plan.md in docs/ai/ongoing/
 4. Checks if Z02_CLARIFY needed (new blocking questions)
 5. Reports next steps to user
 
 **Why use this instead of superpowers:writing-plans directly?**
 - Automates Z01 → Z02 file management
+- Integrates seamlessly with feature-workflow research phase
+- Maintains consistent file naming and structure
 - Enforces feature-workflow naming conventions (Z02_{feature}_plan.md)
 - Integrates with clarification workflow (Z02_CLARIFY)
-- Provides consistent user experience across feature lifecycle
 
 **Workflow Position:** AFTER feature-research (Z01 files), BEFORE feature-implement
 
