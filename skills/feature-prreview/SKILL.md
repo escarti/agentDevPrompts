@@ -15,7 +15,56 @@ description: Use when reviewing pull request changes before providing feedback -
 
 **YOU MUST follow this exact sequence. No exceptions.**
 
-### 1. Detect PR
+### 0. Detect Repository Pattern
+
+**Detect paths before proceeding:**
+
+Use Bash tool:
+```bash
+# Scan for existing Z01/Z02 files to find ongoing directory
+ONGOING_DIR=$(find . -name "Z0[12]_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+
+# If not found, check common directories
+if [ -z "$ONGOING_DIR" ]; then
+  if [ -d "docs/ai/ongoing" ]; then
+    ONGOING_DIR="docs/ai/ongoing"
+  elif [ -d ".ai/ongoing" ]; then
+    ONGOING_DIR=".ai/ongoing"
+  elif [ -d "docs/ongoing" ]; then
+    ONGOING_DIR="docs/ongoing"
+  else
+    ONGOING_DIR="docs/ai/ongoing"
+    mkdir -p "$ONGOING_DIR"
+  fi
+fi
+
+echo "Using ONGOING_DIR: $ONGOING_DIR"
+```
+
+Set variable:
+- `ONGOING_DIR` - Where Z03 review file will be created
+
+### 1. Load Project Context (MANDATORY FIRST)
+
+**Read CLAUDE.md if it exists:**
+
+Use Read tool:
+```bash
+if [ -f CLAUDE.md ]; then
+  echo "Reading project guidelines..."
+  # Use Read tool to read CLAUDE.md
+fi
+```
+
+**Extract from CLAUDE.md (if exists):**
+- Mandatory patterns code should follow
+- Forbidden approaches to check for violations
+- Project conventions
+- Security and code quality standards
+
+**This context is critical for identifying violations and security issues during PR review.**
+
+### 2. Detect PR
 
 ```bash
 # Get PR for current branch
@@ -29,7 +78,7 @@ gh pr view [branch-name]
 
 **Extract**: PR number, title, author, branch name
 
-### 2. Get Changed Files
+### 3. Get Changed Files
 
 ```bash
 gh pr diff --name-only
@@ -37,14 +86,15 @@ gh pr diff --name-only
 
 **Extract**: List of all changed file paths
 
-### 3. Analyze with feature-research
+### 4. Analyze with feature-research
 
 **REQUIRED**: Use Skill tool to invoke `feature-workflow:feature-research` on the changed files.
 
 **Context to provide feature-research**:
 - List of changed files
 - PR title and description
-- Request: "Identify security issues, code quality problems, missing error handling, test gaps"
+- CLAUDE.md constraints (if exists) to check for pattern violations
+- Request: "Identify security issues, code quality problems, missing error handling, test gaps, violations of CLAUDE.md patterns"
 
 **Parse research output** for structured findings:
 - File path and line number
@@ -52,7 +102,7 @@ gh pr diff --name-only
 - Description of problem
 - Severity (critical/high/medium/low)
 
-### 4. Present Findings
+### 5. Present Findings
 
 Display findings in structured format:
 
@@ -69,9 +119,9 @@ Finding 2: ...
 Total findings: {count}
 ```
 
-### 5. User Decision Point (REQUIRED)
+### 6. User Decision Point (REQUIRED)
 
-**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 6 until user responds.**
+**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 7 until user responds.**
 
 **If you are reading this, you have NOT asked the user yet. STOP and use AskUserQuestion RIGHT NOW.**
 
@@ -101,7 +151,7 @@ AskUserQuestion({
 
 **After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
 
-### 6. Comment Format Sub-choice (IF commenting selected)
+### 7. Comment Format Sub-choice (IF commenting selected)
 
 **If user chose "Comment all" or "Review per-finding", ask about format**:
 
@@ -125,7 +175,27 @@ AskUserQuestion({
 })
 ```
 
-### 7. Execute User Choice
+## GitHub Comment Patterns for PR Review
+
+**IMPORTANT: feature-prreview posts NEW review comments on someone else's PR. This is different from feature-prfix which REPLIES to existing comments.**
+
+**For posting review findings (NEW comments):**
+
+1. **Individual comments** (`gh pr comment`):
+   - Creates separate top-level comments for each finding
+   - Good for: When user wants to comment on specific findings one by one
+   - Command: `gh pr comment {PR_NUM} --body "{finding}"`
+
+2. **Single consolidated review** (`gh pr review --comment`):
+   - Creates one review with all findings
+   - Good for: When user wants all findings in one place
+   - Command: `gh pr review {PR_NUM} --comment --body "{all findings}"`
+
+**Both create top-level comments, which is correct for new PR reviews.**
+
+**NOTE:** Do NOT use `gh api .../replies` in this skill. That's for feature-prfix (replying to existing comment threads). This skill reviews PRs independently of existing comments.
+
+### 8. Execute User Choice
 
 **Comment all** (separate):
 **YOU MUST use Bash tool to post comments. Do NOT just draft them.**
@@ -193,13 +263,13 @@ AskUserQuestion({
 - Stop processing, create Z03 documentation with what's been done so far
 
 **Document only**:
-Create Z03 file (see section 8)
+Create Z03 file (see section 9)
 
-### 8. Create Documentation (ALWAYS)
+### 9. Create Documentation (ALWAYS)
 
 **REGARDLESS of commenting choice, create Z03 file.**
 
-**Location**: `docs/ai/ongoing/Z03_{sanitized-pr-title}_review.md`
+**Location**: `$ONGOING_DIR/Z03_{sanitized-pr-title}_review.md` (use detected path)
 
 **Sanitization**: lowercase, replace spaces/special chars with hyphens, truncate to 50 chars
 
@@ -235,6 +305,10 @@ Create Z03 file (see section 8)
 
 ## Red Flags - STOP and Follow Workflow
 
+- Skipped Step 0 (path detection)
+- Skipped Step 1 (CLAUDE.md loading)
+- CLAUDE.md exists but was not read
+- Not passing CLAUDE.md constraints to feature-research
 - Reading PR code directly without gh CLI
 - Analyzing code without feature-research skill
 - Skipping user choice step (not using AskUserQuestion)
@@ -262,6 +336,7 @@ Create Z03 file (see section 8)
 | "Just post comments, no need for Z03" | Documentation creates audit trail. Always create Z03. |
 | "Time pressure, skip systematic workflow" | Systematic workflow is FASTER than ad-hoc review. |
 | "Senior engineer approved, light review OK" | Independent review requires systematic approach. Use workflow. |
+| "Should I use gh api .../replies to thread comments?" | **NO.** This skill posts NEW review comments (top-level). Use `gh pr comment` or `gh pr review`. The `gh api .../replies` is ONLY for feature-prfix (replying to existing threads). |
 
 ## Error Handling
 

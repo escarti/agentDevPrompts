@@ -17,6 +17,35 @@ description: Use after feature-implement completes - performs final quality chec
 
 **YOU MUST follow this exact sequence. No exceptions.**
 
+### 0. Detect Repository Pattern
+
+**Detect paths before proceeding:**
+
+Use Bash tool:
+```bash
+# Scan for existing Z01/Z02 files to find ongoing directory
+ONGOING_DIR=$(find . -name "Z0[12]_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+
+# If not found, check common directories
+if [ -z "$ONGOING_DIR" ]; then
+  if [ -d "docs/ai/ongoing" ]; then
+    ONGOING_DIR="docs/ai/ongoing"
+  elif [ -d ".ai/ongoing" ]; then
+    ONGOING_DIR=".ai/ongoing"
+  elif [ -d "docs/ongoing" ]; then
+    ONGOING_DIR="docs/ongoing"
+  else
+    ONGOING_DIR="docs/ai/ongoing"
+    mkdir -p "$ONGOING_DIR"
+  fi
+fi
+
+echo "Using ONGOING_DIR: $ONGOING_DIR"
+```
+
+Set variable:
+- `ONGOING_DIR` - Where Z01/Z02 files exist and Z05 finish file will be created
+
 ### 1. Detect Current Branch and Changes
 
 ```bash
@@ -33,16 +62,36 @@ git diff main --name-only
 
 **If on main branch**: Error - "Cannot run feature-finish from main branch. Switch to feature branch first."
 
-### 2. Load Plan Documentation
+### 2. Load Project Context (MANDATORY)
+
+**Read CLAUDE.md if it exists:**
+
+Use Read tool:
+```bash
+if [ -f CLAUDE.md ]; then
+  echo "Reading project guidelines..."
+  # Use Read tool to read CLAUDE.md
+fi
+```
+
+**Extract from CLAUDE.md (if exists):**
+- Mandatory patterns implementation should follow
+- Forbidden approaches to check for violations
+- Project conventions to verify compliance
+- Code quality standards
+
+**This context is critical for assessing implementation quality in step 3.**
+
+### 3. Load Plan Documentation
 
 **Read Z01 and Z02 files** to understand what was planned:
 
 ```bash
-# Find Z01 research file
-ls docs/ai/ongoing/Z01_*_research.md
+# Find Z01 research file (use detected path)
+ls $ONGOING_DIR/Z01_*_research.md
 
-# Find Z02 plan file
-ls docs/ai/ongoing/Z02_*_plan.md
+# Find Z02 plan file (use detected path)
+ls $ONGOING_DIR/Z02_*_plan.md
 ```
 
 **Use Read tool** to load both files.
@@ -55,14 +104,15 @@ ls docs/ai/ongoing/Z02_*_plan.md
 
 **If Z01/Z02 not found**: Continue anyway, but note that no plan exists (ad-hoc implementation).
 
-### 3. Assess Implementation with feature-research
+### 4. Assess Implementation with feature-research
 
 **REQUIRED**: Use Skill tool to invoke `feature-workflow:feature-research` on all changed files.
 
 **Context to provide feature-research**:
 - List of changed files
 - Feature name from Z01/Z02
-- Request: "Assess implementation quality: security issues, bugs, code quality problems, test gaps, deviations from plan"
+- CLAUDE.md constraints (if exists)
+- Request: "Assess implementation quality: security issues, bugs, code quality problems, test gaps, deviations from plan, violations of CLAUDE.md patterns"
 
 **Parse research output** for structured findings:
 - File path and line number
@@ -70,7 +120,7 @@ ls docs/ai/ongoing/Z02_*_plan.md
 - Description of issue
 - Severity (critical/high/medium/low)
 
-### 4. Compare Against Plan
+### 5. Compare Against Plan
 
 **For each finding, assess**:
 - Is this a deviation from Z02 plan? (compare with plan steps)
@@ -81,7 +131,7 @@ ls docs/ai/ongoing/Z02_*_plan.md
 - Intentional changes (with reason)
 - Unintentional mistakes
 
-### 5. Present Findings Summary
+### 6. Present Findings Summary
 
 Display in structured format:
 
@@ -115,7 +165,7 @@ Display in structured format:
 2. ...
 ```
 
-### 6. User Decision Point (REQUIRED)
+### 7. User Decision Point (REQUIRED)
 
 **STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 7 until user responds.**
 
@@ -147,7 +197,7 @@ AskUserQuestion({
 
 **After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
 
-### 7. Execute User Choice (ONLY AFTER USER RESPONDS)
+### 8. Execute User Choice (ONLY AFTER USER RESPONDS)
 
 **Fix all**:
 For each issue:
@@ -195,11 +245,11 @@ AskUserQuestion({
 **Document only**:
 Create Z05 file (see section 8)
 
-### 8. Create Documentation (ALWAYS)
+### 9. Create Documentation (ALWAYS)
 
 **REGARDLESS of action choice, create Z05 file.**
 
-**Location**: `docs/ai/ongoing/Z05_{sanitized-feature-name}_finish.md`
+**Location**: `$ONGOING_DIR/Z05_{sanitized-feature-name}_finish.md` (use detected path)
 
 **Sanitization**: lowercase, replace spaces/special chars with hyphens, truncate to 50 chars
 
@@ -250,7 +300,7 @@ Create Z05 file (see section 8)
 {Any follow-up actions needed}
 ```
 
-### 9. Update Z01/Z02 if Needed
+### 10. Update Z01/Z02 if Needed
 
 **If there were intentional plan deviations**:
 
@@ -322,9 +372,13 @@ Updated Assessment: Low severity - temporary technical debt with planned resolut
 
 ## Red Flags - STOP and Follow Workflow
 
+- Skipped Step 0 (path detection)
+- Skipped Step 2 (CLAUDE.md loading)
+- CLAUDE.md exists but was not read
 - Running from same context as feature-implement (need fresh context)
 - Skipping feature-research assessment
 - Not reading Z01/Z02 files
+- Not passing CLAUDE.md constraints to feature-research
 - Skipping user choice step (not using AskUserQuestion)
 - Not creating Z05 documentation
 - **Drafting fixes but not applying them with Edit tool**

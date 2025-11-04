@@ -15,7 +15,56 @@ description: Use when addressing PR review comments - assesses comment validity 
 
 **YOU MUST follow this exact sequence. No exceptions.**
 
-### 1. Detect PR
+### 0. Detect Repository Pattern
+
+**Detect paths before proceeding:**
+
+Use Bash tool:
+```bash
+# Scan for existing Z01/Z02 files to find ongoing directory
+ONGOING_DIR=$(find . -name "Z0[12]_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+
+# If not found, check common directories
+if [ -z "$ONGOING_DIR" ]; then
+  if [ -d "docs/ai/ongoing" ]; then
+    ONGOING_DIR="docs/ai/ongoing"
+  elif [ -d ".ai/ongoing" ]; then
+    ONGOING_DIR=".ai/ongoing"
+  elif [ -d "docs/ongoing" ]; then
+    ONGOING_DIR="docs/ongoing"
+  else
+    ONGOING_DIR="docs/ai/ongoing"
+    mkdir -p "$ONGOING_DIR"
+  fi
+fi
+
+echo "Using ONGOING_DIR: $ONGOING_DIR"
+```
+
+Set variable:
+- `ONGOING_DIR` - Where Z04 fix tracking file will be created
+
+### 1. Load Project Context (MANDATORY FIRST)
+
+**Read CLAUDE.md if it exists:**
+
+Use Read tool:
+```bash
+if [ -f CLAUDE.md ]; then
+  echo "Reading project guidelines..."
+  # Use Read tool to read CLAUDE.md
+fi
+```
+
+**Extract from CLAUDE.md (if exists):**
+- Mandatory patterns that MUST be preserved
+- Forbidden approaches to avoid
+- Project conventions
+- Code quality standards
+
+**This context helps validate whether reviewer comments are correct or based on misunderstanding of project patterns.**
+
+### 2. Detect PR
 
 ```bash
 # Get PR for current branch
@@ -29,7 +78,7 @@ gh pr view [branch-name]
 
 **Extract**: PR number, title, author, branch name
 
-### 2. Fetch Review Comments
+### 3. Fetch Review Comments
 
 ```bash
 gh pr view --comments --json comments,reviews
@@ -46,14 +95,15 @@ gh pr view --comments --json comments,reviews
 
 **IMPORTANT**: Save the comment ID for each review comment. You need this to reply to comments in the correct thread.
 
-### 3. Assess Each Comment with feature-research
+### 4. Assess Each Comment with feature-research
 
 **REQUIRED**: For EACH comment, use Skill tool to invoke `feature-workflow:feature-research` on the specific code section.
 
 **Context to provide feature-research**:
 - File path and line number from comment
 - Comment text from reviewer
-- Request: "Assess if this comment identifies a real bug/security issue or is a subjective style preference. Provide technical reasoning."
+- CLAUDE.md constraints (if exists) to validate against project patterns
+- Request: "Assess if this comment identifies a real bug/security issue or is a subjective style preference. Consider CLAUDE.md patterns when evaluating. Provide technical reasoning."
 
 **Parse research output** to generate assessment:
 - **Is claim valid?** (identifies real bug/security issue vs subjective preference)
@@ -61,7 +111,7 @@ gh pr view --comments --json comments,reviews
 - **Category**: bug / security / observability / style / subjective
 - **Technical reasoning**: Why valid or invalid
 
-### 4. Present Assessments
+### 5. Present Assessments
 
 Display all comments with AI assessment:
 
@@ -86,7 +136,7 @@ Summary:
 - Discuss (unclear): {count}
 ```
 
-### 5. User Decision Point (REQUIRED)
+### 6. User Decision Point (REQUIRED)
 
 **STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 6 until user responds.**
 
@@ -118,7 +168,7 @@ AskUserQuestion({
 
 **After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
 
-### 6. Execute User Choice (ONLY AFTER USER RESPONDS)
+### 7. Execute User Choice (ONLY AFTER USER RESPONDS)
 
 **Auto: fix valid, refute invalid**:
 
@@ -208,11 +258,11 @@ AskUserQuestion({
 **Document only**:
 Create Z04 file (see section 7)
 
-### 7. Create Documentation (ALWAYS)
+### 8. Create Documentation (ALWAYS)
 
 **REGARDLESS of action choice, create Z04 file.**
 
-**Location**: `docs/ai/ongoing/Z04_{sanitized-pr-title}_fix.md`
+**Location**: `$ONGOING_DIR/Z04_{sanitized-pr-title}_fix.md` (use detected path)
 
 **Sanitization**: lowercase, replace spaces/special chars with hyphens, truncate to 50 chars
 
@@ -347,6 +397,10 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 
 ## Red Flags - STOP and Follow Workflow
 
+- Skipped Step 0 (path detection)
+- Skipped Step 1 (CLAUDE.md loading)
+- CLAUDE.md exists but was not read
+- Not passing CLAUDE.md constraints to feature-research
 - Accepting all comments without verification
 - Fixing code without reading it first to verify reviewer's claim
 - Not using feature-research to assess validity

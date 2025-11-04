@@ -56,13 +56,13 @@ digraph research_format {
 
 **Exactly 2 files:**
 
-1. **`docs/ai/ongoing/Z01_{feature}_research.md`** - Directive specification
+1. **`$ONGOING_DIR/Z01_{feature}_research.md`** - Directive specification (path detected in Step 0)
    - What to implement (single approach OR primary + 1 alternative)
    - Files to change with line ranges
    - APIs, data shapes, integration points
    - Security, edge cases, test requirements
 
-2. **`docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`** - Structured questions
+2. **`$ONGOING_DIR/Z01_CLARIFY_{feature}_research.md`** - Structured questions (path detected in Step 0)
    ```markdown
    Agent question: Should we use OAuth 2.0 or SAML?
    User response:
@@ -73,6 +73,41 @@ digraph research_format {
    **Critical**: Leave "User response:" blank. No explanations.
 
 ## Implementation
+
+### Step 0: Detect Repository Pattern
+
+**Detect paths before proceeding:**
+
+Use Bash tool:
+```bash
+# Check CLAUDE.md for documentation pattern
+if [ -f "CLAUDE.md" ]; then
+  echo "Checking CLAUDE.md for documentation paths..."
+  # Look for ongoing directory references
+fi
+
+# Scan for existing Z01 files to find ongoing directory
+ONGOING_DIR=$(find . -name "Z01_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+
+# If no Z01 files found, check common directories
+if [ -z "$ONGOING_DIR" ]; then
+  if [ -d "docs/ai/ongoing" ]; then
+    ONGOING_DIR="docs/ai/ongoing"
+  elif [ -d ".ai/ongoing" ]; then
+    ONGOING_DIR=".ai/ongoing"
+  elif [ -d "docs/ongoing" ]; then
+    ONGOING_DIR="docs/ongoing"
+  else
+    ONGOING_DIR="docs/ai/ongoing"
+    mkdir -p "$ONGOING_DIR"
+  fi
+fi
+
+echo "Using ONGOING_DIR: $ONGOING_DIR"
+```
+
+Set variable:
+- `ONGOING_DIR` - Where Z01 research files will be created
 
 ### Step 1: Read Documentation FIRST
 
@@ -101,7 +136,7 @@ read path/to/relevant/file.ext
 
 ### Step 3: Create Research File
 
-**File**: `docs/ai/ongoing/Z01_{feature}_research.md` (use snake_case for feature name)
+**File**: `$ONGOING_DIR/Z01_{feature}_research.md` (use snake_case for feature name, use detected path)
 
 **Structure**:
 ```markdown
@@ -145,7 +180,7 @@ How this connects to existing code.
 
 ### Step 4: Create CLARIFY File
 
-**File**: `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
+**File**: `$ONGOING_DIR/Z01_CLARIFY_{feature}_research.md` (use detected path)
 
 Every ambiguity, technology choice, or missing requirement:
 ```markdown
@@ -185,6 +220,8 @@ Check Z01_research.md for vague questions:
 
 | Mistake | Fix |
 |---------|-----|
+| Skipping Step 0 (path detection) | ALWAYS detect ONGOING_DIR first |
+| Using hardcoded paths (docs/ai/ongoing) | Use detected $ONGOING_DIR variable |
 | Code before documentation | ALWAYS read CLAUDE.md/README/docs FIRST |
 | Primary approach violates CLAUDE.md patterns | Primary MUST preserve existing patterns |
 | 3+ documents | Only 2 files: Z01_research + Z01_CLARIFY |
@@ -193,6 +230,8 @@ Check Z01_research.md for vague questions:
 | Missing "Existing Patterns" section | Always document and preserve patterns |
 
 **Red Flags - STOP and Fix:**
+- Skipped Step 0 (path detection)
+- Using hardcoded paths instead of $ONGOING_DIR
 - Did NOT read CLAUDE.md/README/docs first
 - Primary approach violates forbidden patterns from CLAUDE.md
 - More than 2 files created
@@ -216,13 +255,13 @@ Check Z01_research.md for vague questions:
 ## Example
 
 **Good** (directive, 2 files, preserves patterns):
-- `docs/ai/ongoing/Z01_oauth_authentication_research.md`
+- `$ONGOING_DIR/Z01_oauth_authentication_research.md` (path detected)
   - **Existing Patterns**: Service layer, no direct DB access (from CLAUDE.md)
   - **Primary Approach**: FastAPI with Authlib, preserves service layer
   - Files: src/api/auth.py:10-50, src/services/auth_service.py (new)
   - Complete: APIs, data shapes, security, tests, env vars
   - Zero questions in doc
-- `docs/ai/ongoing/Z01_CLARIFY_oauth_authentication_research.md`
+- `$ONGOING_DIR/Z01_CLARIFY_oauth_authentication_research.md` (path detected)
   - "Agent question: FastAPI or Flask?"
   - "Agent question: Expected concurrent users?"
 
@@ -243,10 +282,12 @@ When research complete:
 
 ## Success Criteria
 
+- [ ] Step 0 completed: ONGOING_DIR detected and set
+- [ ] Using $ONGOING_DIR variable (not hardcoded paths)
 - [ ] CLAUDE.md/README/docs read FIRST
 - [ ] "Existing Patterns" section in Z01_research.md
 - [ ] Primary approach preserves patterns
-- [ ] Exactly 2 files: Z01_research.md + Z01_CLARIFY.md
+- [ ] Exactly 2 files: $ONGOING_DIR/Z01_research.md + $ONGOING_DIR/Z01_CLARIFY.md
 - [ ] Z01_research.md is directive (single OR primary + 1 alternative)
 - [ ] If alternative: both have complete technical details
 - [ ] File paths + line ranges included

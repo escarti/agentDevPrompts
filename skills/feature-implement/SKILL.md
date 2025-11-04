@@ -46,6 +46,40 @@ Execute in batches with review checkpoints
 Tests pass → feature-workflow:feature-document
 ```
 
+## Step 0: Detect Repository Pattern
+
+**Detect paths before proceeding:**
+
+Use Bash tool:
+```bash
+# Scan for existing Z02 files to find ongoing directory
+ONGOING_DIR=$(find . -name "Z02_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+
+# If no Z02 files found, check for Z01 files
+if [ -z "$ONGOING_DIR" ]; then
+  ONGOING_DIR=$(find . -name "Z01_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+fi
+
+# If still not found, check common directories
+if [ -z "$ONGOING_DIR" ]; then
+  if [ -d "docs/ai/ongoing" ]; then
+    ONGOING_DIR="docs/ai/ongoing"
+  elif [ -d ".ai/ongoing" ]; then
+    ONGOING_DIR=".ai/ongoing"
+  elif [ -d "docs/ongoing" ]; then
+    ONGOING_DIR="docs/ongoing"
+  else
+    echo "ERROR: No ongoing directory found. Run feature-workflow:feature-plan first."
+    exit 1
+  fi
+fi
+
+echo "Using ONGOING_DIR: $ONGOING_DIR"
+```
+
+Set variable:
+- `ONGOING_DIR` - Where Z01/Z02 files exist
+
 ## Prerequisites Check
 
 MANDATORY: Verify plan and context files exist.
@@ -53,8 +87,8 @@ MANDATORY: Verify plan and context files exist.
 ### Step 1: Locate Plan File
 
 ```bash
-# Find Z02 plan files
-ls docs/ai/ongoing/Z02_*plan.md 2>/dev/null
+# Find Z02 plan files (use detected path)
+ls $ONGOING_DIR/Z02_*plan.md 2>/dev/null
 ```
 
 **If multiple Z02 plans exist:**
@@ -69,19 +103,19 @@ ls docs/ai/ongoing/Z02_*plan.md 2>/dev/null
 ### Step 2: Check for Unresolved Clarifications
 
 ```bash
-# Check for clarification file
-ls docs/ai/ongoing/Z02_CLARIFY_*plan.md 2>/dev/null
+# Check for clarification file (use detected path)
+ls $ONGOING_DIR/Z02_CLARIFY_*plan.md 2>/dev/null
 ```
 
 **If Z02_CLARIFY exists:**
 - Read the file
 - Check if "User response:" fields are empty
-- If ANY empty → STOP, report: "Please answer questions in [Z02_CLARIFY_{feature}_plan.md](docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md) before execution"
+- If ANY empty → STOP, report: "Please answer questions in [Z02_CLARIFY_{feature}_plan.md]($ONGOING_DIR/Z02_CLARIFY_{feature}_plan.md) before execution"
 - If all answered → proceed
 
 ### Step 3: Extract Feature Name
 
-From `docs/ai/ongoing/Z02_{feature}_plan.md`:
+From `$ONGOING_DIR/Z02_{feature}_plan.md`:
 - Extract {feature} from filename
 - Example: `Z02_oauth_authentication_plan.md` → feature="oauth_authentication"
 
@@ -97,21 +131,21 @@ read CLAUDE.md
 
 ### 2. Research Context (if exists)
 ```bash
-# Read ALL Z01 files for this feature
-read docs/ai/ongoing/Z01_{feature}_research.md
-read docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md
+# Read ALL Z01 files for this feature (use detected path)
+read $ONGOING_DIR/Z01_{feature}_research.md
+read $ONGOING_DIR/Z01_CLARIFY_{feature}_research.md
 ```
 
 ### 3. Plan Context (required)
 ```bash
-# Read the plan (required)
-read docs/ai/ongoing/Z02_{feature}_plan.md
+# Read the plan (required, use detected path)
+read $ONGOING_DIR/Z02_{feature}_plan.md
 
 # Read clarifications if they exist and are answered
-read docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md
+read $ONGOING_DIR/Z02_CLARIFY_{feature}_plan.md
 ```
 
-**Critical:** Pass FULL CONTENT of these files to superpowers:execute-plan.
+**Critical:** Pass FULL CONTENT of these files to superpowers:executing-plans.
 
 ## Invoke Superpowers Execution
 
@@ -265,6 +299,8 @@ Invoking superpowers:executing-plans skill with enriched context...
 
 | Mistake | Fix |
 |---------|-----|
+| Skipping Step 0 (path detection) | ALWAYS detect ONGOING_DIR first |
+| Using hardcoded paths (docs/ai/ongoing) | Use detected $ONGOING_DIR variable |
 | Did NOT check for Z02_plan.md existence | MUST verify file exists before proceeding |
 | Proceeded with unanswered clarifications | MUST check Z02_CLARIFY for empty responses |
 | Used SlashCommand /superpowers:execute-plan | Use Skill tool with superpowers:executing-plans |
@@ -276,6 +312,8 @@ Invoking superpowers:executing-plans skill with enriched context...
 | Manually deleted Z0* files | Let feature-workflow:feature-document handle cleanup |
 
 **Red Flags - STOP and Fix:**
+- Skipped Step 0 (path detection)
+- Using hardcoded paths instead of $ONGOING_DIR
 - Did NOT verify Z02_plan.md exists
 - Found Z02_CLARIFY with empty "User response:" fields
 - Used SlashCommand /superpowers:execute-plan instead of Skill superpowers:executing-plans
@@ -289,7 +327,9 @@ Invoking superpowers:executing-plans skill with enriched context...
 ## Success Criteria
 
 Execution is complete when:
-- [ ] Verified Z02_{feature}_plan.md exists
+- [ ] Step 0 completed: ONGOING_DIR detected and set
+- [ ] Using $ONGOING_DIR variable (not hardcoded paths)
+- [ ] Verified Z02_{feature}_plan.md exists in $ONGOING_DIR
 - [ ] Checked Z02_CLARIFY has no unanswered questions (or doesn't exist)
 - [ ] Extracted {feature} name from plan filename
 - [ ] Read CLAUDE.md (if exists)
