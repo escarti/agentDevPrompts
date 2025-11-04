@@ -325,3 +325,25 @@ This skill completes the feature-workflow cycle:
 - All Z0* temp files cleaned up
 - PR description generated
 - Ready to commit and create PR
+
+## Next Steps After Implementation
+
+**Implementation complete!**
+
+**Recommended next steps (choose one):**
+
+**Option 1: Quality check before PR**
+1. Run `/clear` to start fresh context
+2. Run `/feature-finish` to perform final quality assessment
+3. Review findings with feature-research
+4. Fix any issues found
+5. Then proceed to PR creation
+
+**Option 2: Document and create PR immediately**
+1. Run `/clear` to start fresh context
+2. Run `/feature-document` to consolidate documentation and create PR
+
+**Why /clear first?**
+- Fresh context = unbiased review
+- No implementation history influencing assessment
+- Catches blind spots from implementation phase
