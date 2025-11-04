@@ -32,17 +32,19 @@ gh pr view [branch-name]
 ### 2. Fetch Review Comments
 
 ```bash
-gh pr view --comments --json comments
+gh pr view --comments --json comments,reviews
 ```
 
-**Parse JSON** to extract:
-- Comment ID
+**Parse JSON** to extract for each comment:
+- **Comment ID** (CRITICAL - needed for replies)
 - File path and line number
 - Comment body text
 - Reviewer username
 - Comment timestamp
 
 **If no comments**: "No review comments on this PR. Nothing to address."
+
+**IMPORTANT**: Save the comment ID for each review comment. You need this to reply to comments in the correct thread.
 
 ### 3. Assess Each Comment with feature-research
 
@@ -133,11 +135,15 @@ Edit({
 For each INVALID comment:
 **YOU MUST use Bash tool to post the refutation. Do NOT just draft it.**
 
+**Reply to the specific comment thread** (not top-level PR comment):
+
 ```bash
 # Use Bash tool to execute this command
-gh pr comment {number} --body "Re: {comment summary}
-
-Thank you for the review. I've assessed this suggestion and believe the current implementation is correct because:
+# Use gh api to reply to specific review comment
+gh api \
+  repos/{OWNER}/{REPO}/pulls/{PR_NUMBER}/comments/{COMMENT_ID}/replies \
+  -X POST \
+  -f body="Thank you for the review. I've assessed this suggestion and believe the current implementation is correct because:
 
 {technical reasoning from feature-research}
 
@@ -146,7 +152,12 @@ Thank you for the review. I've assessed this suggestion and believe the current 
 Would you like to discuss this further?"
 ```
 
-**REQUIRED**: After drafting refutation text, use Bash tool to execute `gh pr comment` command. Verify it posts successfully.
+**How to get OWNER/REPO/COMMENT_ID**:
+- OWNER/REPO: Extract from `gh pr view --json repository` or use `gh repo view --json nameWithOwner`
+- PR_NUMBER: From step 1
+- COMMENT_ID: From step 2 JSON parsing (saved for each comment)
+
+**REQUIRED**: After drafting refutation text, use Bash tool with `gh api` to post reply. Verify it posts successfully.
 
 **Review per-comment**:
 
@@ -175,8 +186,9 @@ AskUserQuestion({
 
 **If user chooses "Refute"**:
 - Draft refutation with technical reasoning
-- **USE Bash tool to execute**: `gh pr comment {number} --body "{refutation text}"`
-- **VERIFY** comment posted successfully (check Bash output)
+- **USE Bash tool to execute**: `gh api repos/{OWNER}/{REPO}/pulls/{PR_NUMBER}/comments/{COMMENT_ID}/replies -X POST -f body="{refutation text}"`
+- This posts as a **reply to the specific review comment**, not a top-level comment
+- **VERIFY** reply posted successfully (check Bash output for comment URL)
 - Continue to next comment
 
 **If user chooses "Explain"**:
@@ -238,6 +250,33 @@ Create Z04 file (see section 7)
   - Security: {count}
   - Style: {count}
   - Subjective: {count}
+```
+
+## Replying to Review Comments (CRITICAL)
+
+**DO NOT use `gh pr comment` for refutations.** That creates top-level comments, not replies.
+
+**Correct way to reply to review comments**:
+```bash
+gh api repos/{OWNER}/{REPO}/pulls/{PR_NUMBER}/comments/{COMMENT_ID}/replies \
+  -X POST \
+  -f body="Your refutation text here"
+```
+
+**Why this matters**:
+- `gh pr comment` → Creates separate top-level comment (loses conversation context)
+- `gh api .../comments/{ID}/replies` → Replies in the review comment thread (maintains context)
+
+**You MUST use the `gh api` command with `/replies` endpoint, not `gh pr comment`.**
+
+**Get the required values**:
+```bash
+# Get OWNER/REPO
+gh repo view --json nameWithOwner --jq .nameWithOwner
+# Returns: "owner/repo"
+
+# COMMENT_ID comes from step 2 (saved when parsing review comments)
+# PR_NUMBER comes from step 1
 ```
 
 ## Using "Explain" to Provide Context
@@ -314,8 +353,9 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 - Skipping user choice step (not using AskUserQuestion)
 - Not creating Z04 documentation
 - Refuting without technical reasoning
-- **Drafting refutation but not posting it with gh pr comment**
+- **Drafting refutation but not posting it with gh api**
 - **Documenting refutation in Z04 instead of posting to PR**
+- **Using `gh pr comment` instead of `gh api .../comments/{ID}/replies` (creates top-level comment, not reply)**
 - Letting authority/agreeableness pressure drive decisions
 
 **All of these mean**: Stop. Follow the workflow exactly.
@@ -328,8 +368,9 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 | "User obviously wants fixes, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
 | "I'll just start fixing, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
 | "Assessments are done, I can proceed" | **NO. Step 5 requires AskUserQuestion. You have NOT done step 5 yet.** |
-| "I drafted refutation, that's enough" | **NO. Use Bash tool to EXECUTE gh pr comment. Draft is not posted.** |
-| "I'll document refutation in Z04, no need to post" | **NO. User chose 'Refute' = post to PR. Use gh pr comment command.** |
+| "I drafted refutation, that's enough" | **NO. Use Bash tool to EXECUTE gh api with /replies endpoint. Draft is not posted.** |
+| "I'll document refutation in Z04, no need to post" | **NO. User chose 'Refute' = post to PR. Use gh api /replies command.** |
+| "I'll use gh pr comment to post refutation" | **NO. Use gh api .../comments/{ID}/replies to reply in thread, not top-level.** |
 | "Senior engineer knows best, just fix all" | Senior engineers make mistakes too. Verify claims. |
 | "Not worth arguing about style" | Style changes have maintenance cost. Require justification. |
 | "Faster to fix than debate" | Blind fixes accumulate technical debt. Assess first. |
@@ -383,8 +424,9 @@ You followed the workflow correctly if:
 - ✓ Presented assessments before user decision
 - ✓ Used AskUserQuestion for user choice
 - ✓ Applied fixes with Edit tool for valid comments
-- ✓ **Posted refutations with Bash tool executing `gh pr comment` for invalid comments**
-- ✓ **Verified each gh pr comment command succeeded (checked Bash output)**
+- ✓ **Posted refutations with Bash tool executing `gh api .../comments/{ID}/replies` for invalid comments**
+- ✓ **Verified each reply posted successfully as a thread reply (not top-level comment)**
+- ✓ **Used comment ID from step 2 to reply in correct thread**
 - ✓ Created Z04 documentation file
 - ✓ Resisted authority and agreeableness pressures
 
