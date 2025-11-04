@@ -71,7 +71,9 @@ Total findings: {count}
 
 ### 5. User Decision Point (REQUIRED)
 
-**YOU MUST use AskUserQuestion. Do not skip this step.**
+**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 6 until user responds.**
+
+**If you are reading this, you have NOT asked the user yet. STOP and use AskUserQuestion RIGHT NOW.**
 
 ```typescript
 AskUserQuestion({
@@ -96,6 +98,8 @@ AskUserQuestion({
   }]
 })
 ```
+
+**After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
 
 ### 6. Comment Format Sub-choice (IF commenting selected)
 
@@ -224,9 +228,12 @@ Create Z03 file (see section 8)
 
 | Excuse | Reality |
 |--------|---------|
+| "I can see what user wants, skip AskUserQuestion" | **NO. Use AskUserQuestion. Not optional. STOP and ask.** |
+| "User obviously wants comments, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
+| "I'll just start commenting, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
+| "Findings are presented, I can proceed" | **NO. Step 5 requires AskUserQuestion. You have NOT done step 5 yet.** |
 | "PR is simple, I can review directly" | feature-research finds issues you'll miss. Use it. |
 | "I'll just look at the code quickly" | Quick reviews miss systematic issues. Use gh + feature-research. |
-| "User obviously wants comments, skip asking" | User might want documentation only. Always ask. |
 | "I know what user wants from context" | Context can mislead. Use AskUserQuestion. |
 | "Just post comments, no need for Z03" | Documentation creates audit trail. Always create Z03. |
 | "Time pressure, skip systematic workflow" | Systematic workflow is FASTER than ad-hoc review. |

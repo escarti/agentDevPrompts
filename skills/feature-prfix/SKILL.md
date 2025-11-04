@@ -86,7 +86,9 @@ Summary:
 
 ### 5. User Decision Point (REQUIRED)
 
-**YOU MUST use AskUserQuestion. Do not skip this step.**
+**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 6 until user responds.**
+
+**If you are reading this, you have NOT asked the user yet. STOP and use AskUserQuestion RIGHT NOW.**
 
 ```typescript
 AskUserQuestion({
@@ -112,7 +114,9 @@ AskUserQuestion({
 })
 ```
 
-### 6. Execute User Choice
+**After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
+
+### 6. Execute User Choice (ONLY AFTER USER RESPONDS)
 
 **Auto: fix valid, refute invalid**:
 
@@ -252,6 +256,10 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 
 | Excuse | Reality |
 |--------|---------|
+| "I can see what user wants, skip AskUserQuestion" | **NO. Use AskUserQuestion. Not optional. STOP and ask.** |
+| "User obviously wants fixes, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
+| "I'll just start fixing, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
+| "Assessments are done, I can proceed" | **NO. Step 5 requires AskUserQuestion. You have NOT done step 5 yet.** |
 | "Senior engineer knows best, just fix all" | Senior engineers make mistakes too. Verify claims. |
 | "Not worth arguing about style" | Style changes have maintenance cost. Require justification. |
 | "Faster to fix than debate" | Blind fixes accumulate technical debt. Assess first. |
