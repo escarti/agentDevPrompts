@@ -5,16 +5,16 @@
     "email": "necatus9@gmail.com"
   },
   "metadata": {
-    "description": "Complete feature development workflow: research, planning, automated execution, and logging. Extends superpowers by obra with context-aware wrappers.",
-    "version": "1.3.4",
+    "description": "Complete feature development workflow: research, planning, automated execution, logging, and PR workflows. Includes PR review and fix skills. Extends superpowers by obra with context-aware wrappers.",
+    "version": "1.4.0",
     "license": "MIT"
   },
   "plugins": [
     {
       "name": "feature-workflow",
       "source": "./",
-      "description": "Complete feature development workflow: research, planning, automated execution with code review checkpoints, and development logging. Extends superpowers by obra with context-aware wrappers.",
-      "version": "1.3.4",
+      "description": "Complete feature development workflow: research, planning, automated execution with code review checkpoints, development logging, and PR workflows (review/fix). Extends superpowers by obra with context-aware wrappers.",
+      "version": "1.4.0",
       "author": {
         "name": "Eduardo Escarti"
       }
