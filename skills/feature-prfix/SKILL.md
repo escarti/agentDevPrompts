@@ -156,12 +156,21 @@ AskUserQuestion({
     options: [
       {label: "Fix", description: "Apply the fix using Edit tool"},
       {label: "Refute", description: "Post technical explanation as reply"},
+      {label: "Explain", description: "User will provide additional context to guide the decision"},
       {label: "Skip", description: "Skip this comment, continue to next"},
       {label: "Stop", description: "Stop processing remaining comments"}
     ]
   }]
 })
 ```
+
+**If user chooses "Explain"**:
+- User will provide additional context in their response
+- Re-read the code section with user's context in mind
+- Re-invoke feature-research with the additional context
+- Present updated assessment with user's context incorporated
+- Ask again: Fix / Refute / Skip / Stop (with updated reasoning)
+- Continue loop with new understanding
 
 **Document only**:
 Create Z04 file (see section 7)
@@ -190,8 +199,9 @@ Create Z04 file (see section 7)
 - **Reviewer**: @{reviewer}
 - **Comment**: "{full comment text}"
 - **Assessment**: Valid / Invalid - {reasoning}
-- **Action**: Fixed / Refuted / Skipped
-- **Status**: ✓ Applied / ✓ Responded / ⊘ Skipped
+- **User Context**: {if user provided explanation, include it here}
+- **Action**: Fixed / Refuted / Skipped / Explained
+- **Status**: ✓ Applied / ✓ Responded / ⊘ Skipped / ℹ User provided context
 
 ### Comment 2: ...
 [Continue for all comments]
@@ -200,6 +210,7 @@ Create Z04 file (see section 7)
 - Total comments: {count}
 - Fixed: {count}
 - Refuted: {count}
+- Explained (user provided context): {count}
 - Skipped: {count}
 - Categories:
   - Bugs: {count}
@@ -207,6 +218,40 @@ Create Z04 file (see section 7)
   - Style: {count}
   - Subjective: {count}
 ```
+
+## Using "Explain" to Provide Context
+
+When user chooses "Explain" during per-comment review:
+
+**Purpose**: User has additional context about:
+- Business requirements not visible in code
+- Future plans or architecture decisions
+- Historical context about why code was written this way
+- Team conventions or standards
+
+**Workflow**:
+1. User provides context in their response (free text)
+2. Re-read the relevant code file with user's context
+3. Re-assess the comment with new information
+4. Present updated assessment incorporating user's context
+5. Ask user again: Fix / Refute / Skip / Stop (now with full picture)
+
+**Example**:
+```
+Comment: "Extract this to a helper function"
+Initial Assessment: Invalid - used once, YAGNI violation
+
+User chooses "Explain" and says:
+"We're adding 3 more similar flows next sprint that will reuse this logic"
+
+Updated Assessment: Valid - planned reuse justifies extraction now
+→ Offer to fix with extraction
+```
+
+**Document in Z04**:
+- Include user's context verbatim
+- Show how it changed the assessment
+- Mark with "ℹ User provided context" status
 
 ## Refutation Best Practices
 
