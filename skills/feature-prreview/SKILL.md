@@ -128,18 +128,25 @@ AskUserQuestion({
 ### 7. Execute User Choice
 
 **Comment all** (separate):
+**YOU MUST use Bash tool to post comments. Do NOT just draft them.**
+
 ```bash
+# Use Bash tool to execute this command for each finding
 gh pr comment {number} --body "Finding 1: {description}
 
 File: {file}:{line}
 Severity: {severity}
 
 {details}"
-# Repeat for each finding
 ```
 
+**REQUIRED**: Use Bash tool to execute `gh pr comment` for each finding. Verify each posts successfully.
+
 **Comment all** (single review):
+**YOU MUST use Bash tool to post the review. Do NOT just draft it.**
+
 ```bash
+# Use Bash tool to execute this command
 gh pr review {number} --comment --body "$(cat <<'EOF'
 ## Review Findings
 
@@ -154,6 +161,8 @@ gh pr review {number} --comment --body "$(cat <<'EOF'
 EOF
 )"
 ```
+
+**REQUIRED**: Use Bash tool to execute `gh pr review` command. Verify review posts successfully.
 
 **Review per-finding**:
 Loop through each finding, ask user:
@@ -171,6 +180,17 @@ AskUserQuestion({
   }]
 })
 ```
+
+**If user chooses "Comment"**:
+- **USE Bash tool to execute**: `gh pr comment {number} --body "{finding text}"`
+- **VERIFY** comment posted successfully (check Bash output)
+- Continue to next finding
+
+**If user chooses "Skip"**:
+- Do nothing, continue to next finding
+
+**If user chooses "Stop"**:
+- Stop processing, create Z03 documentation with what's been done so far
 
 **Document only**:
 Create Z03 file (see section 8)
@@ -217,9 +237,11 @@ Create Z03 file (see section 8)
 
 - Reading PR code directly without gh CLI
 - Analyzing code without feature-research skill
-- Skipping user choice step
+- Skipping user choice step (not using AskUserQuestion)
 - Not creating Z03 documentation
 - Posting comments without asking user first
+- **Drafting comments but not posting them with gh commands**
+- **Documenting findings in Z03 instead of posting to PR when user chose 'Comment'**
 - Making assumptions about what user wants
 
 **All of these mean**: Stop. Follow the workflow exactly.
@@ -232,6 +254,8 @@ Create Z03 file (see section 8)
 | "User obviously wants comments, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
 | "I'll just start commenting, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
 | "Findings are presented, I can proceed" | **NO. Step 5 requires AskUserQuestion. You have NOT done step 5 yet.** |
+| "I drafted comments, that's enough" | **NO. Use Bash tool to EXECUTE gh pr comment. Draft is not posted.** |
+| "I'll document in Z03, no need to post" | **NO. User chose 'Comment' = post to PR. Use gh commands.** |
 | "PR is simple, I can review directly" | feature-research finds issues you'll miss. Use it. |
 | "I'll just look at the code quickly" | Quick reviews miss systematic issues. Use gh + feature-research. |
 | "I know what user wants from context" | Context can mislead. Use AskUserQuestion. |
@@ -276,6 +300,8 @@ You followed the workflow correctly if:
 - ✓ Presented structured findings
 - ✓ Used AskUserQuestion for user choice
 - ✓ Created Z03 documentation file
+- ✓ **Posted comments with Bash tool executing gh commands (not just drafts)**
+- ✓ **Verified each comment/review posted successfully (checked Bash output)**
 - ✓ Posted comments only after user approval
 - ✓ Resisted all rationalization pressures
 
