@@ -131,8 +131,10 @@ Edit({
 ```
 
 For each INVALID comment:
+**YOU MUST use Bash tool to post the refutation. Do NOT just draft it.**
+
 ```bash
-# Post refutation with technical reasoning
+# Use Bash tool to execute this command
 gh pr comment {number} --body "Re: {comment summary}
 
 Thank you for the review. I've assessed this suggestion and believe the current implementation is correct because:
@@ -143,6 +145,8 @@ Thank you for the review. I've assessed this suggestion and believe the current 
 
 Would you like to discuss this further?"
 ```
+
+**REQUIRED**: After drafting refutation text, use Bash tool to execute `gh pr comment` command. Verify it posts successfully.
 
 **Review per-comment**:
 
@@ -164,6 +168,17 @@ AskUserQuestion({
 })
 ```
 
+**If user chooses "Fix"**:
+- Use Edit tool to apply the fix
+- Verify edit succeeded
+- Continue to next comment
+
+**If user chooses "Refute"**:
+- Draft refutation with technical reasoning
+- **USE Bash tool to execute**: `gh pr comment {number} --body "{refutation text}"`
+- **VERIFY** comment posted successfully (check Bash output)
+- Continue to next comment
+
 **If user chooses "Explain"**:
 - User will provide additional context in their response
 - Re-read the code section with user's context in mind
@@ -171,6 +186,12 @@ AskUserQuestion({
 - Present updated assessment with user's context incorporated
 - Ask again: Fix / Refute / Skip / Stop (with updated reasoning)
 - Continue loop with new understanding
+
+**If user chooses "Skip"**:
+- Do nothing, continue to next comment
+
+**If user chooses "Stop"**:
+- Stop processing, create Z04 documentation with what's been done so far
 
 **Document only**:
 Create Z04 file (see section 7)
@@ -290,9 +311,11 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 - Accepting all comments without verification
 - Fixing code without reading it first to verify reviewer's claim
 - Not using feature-research to assess validity
-- Skipping user choice step
+- Skipping user choice step (not using AskUserQuestion)
 - Not creating Z04 documentation
 - Refuting without technical reasoning
+- **Drafting refutation but not posting it with gh pr comment**
+- **Documenting refutation in Z04 instead of posting to PR**
 - Letting authority/agreeableness pressure drive decisions
 
 **All of these mean**: Stop. Follow the workflow exactly.
@@ -305,6 +328,8 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 | "User obviously wants fixes, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
 | "I'll just start fixing, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
 | "Assessments are done, I can proceed" | **NO. Step 5 requires AskUserQuestion. You have NOT done step 5 yet.** |
+| "I drafted refutation, that's enough" | **NO. Use Bash tool to EXECUTE gh pr comment. Draft is not posted.** |
+| "I'll document refutation in Z04, no need to post" | **NO. User chose 'Refute' = post to PR. Use gh pr comment command.** |
 | "Senior engineer knows best, just fix all" | Senior engineers make mistakes too. Verify claims. |
 | "Not worth arguing about style" | Style changes have maintenance cost. Require justification. |
 | "Faster to fix than debate" | Blind fixes accumulate technical debt. Assess first. |
@@ -358,7 +383,8 @@ You followed the workflow correctly if:
 - ✓ Presented assessments before user decision
 - ✓ Used AskUserQuestion for user choice
 - ✓ Applied fixes with Edit tool for valid comments
-- ✓ Posted refutations with gh pr comment for invalid comments
+- ✓ **Posted refutations with Bash tool executing `gh pr comment` for invalid comments**
+- ✓ **Verified each gh pr comment command succeeded (checked Bash output)**
 - ✓ Created Z04 documentation file
 - ✓ Resisted authority and agreeableness pressures
 
