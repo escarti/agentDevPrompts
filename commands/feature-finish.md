@@ -1,0 +1,1 @@
+Use the feature-workflow:feature-finish skill to perform final quality check after feature-implement. Run from fresh context. Assesses implementation with feature-research, identifies issues, offers fix/loop/document choices, and updates Z01/Z02 if implementation deviated from plan.
