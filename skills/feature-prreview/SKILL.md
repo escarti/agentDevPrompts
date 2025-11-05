@@ -9,7 +9,51 @@ description: Use when reviewing pull request changes before providing feedback -
 
 **Systematically review PR changes using feature-research skill, present findings, and handle user choices about commenting vs documentation.**
 
+**Workflow Position:**: Flow agnostic
+
 **Core principle**: Don't review code ad-hoc. Use gh CLI + feature-research + structured workflow.
+
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
+    {content: "Step 1: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Detect PR (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
+    {content: "Step 3: Get changed files (gh pr diff --name-only)", status: "pending", activeForm: "Listing changed files"},
+    {content: "Step 4: Analyze with feature-research", status: "pending", activeForm: "Running deep code analysis"},
+    {content: "Step 5: Present findings (security/quality/testing)", status: "pending", activeForm: "Formatting review findings"},
+    {content: "Step 6: User decision (AskUserQuestion: Comment all/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 7: Comment format sub-choice (Separate/Single review)", status: "pending", activeForm: "Choosing comment format"},
+    {content: "Step 8: Execute user choice (post comments/review)", status: "pending", activeForm: "Posting review feedback"},
+    {content: "Step 9: Create Z03 documentation", status: "pending", activeForm: "Writing Z03 file"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "completed"},
+    {content: "Step 1: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Detect PR (gh pr view)", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
 
 ## Mandatory Workflow
 
@@ -342,6 +386,9 @@ Create Z03 file (see section 9)
 | "Time pressure, skip systematic workflow" | Systematic workflow is FASTER than ad-hoc review. |
 | "Senior engineer approved, light review OK" | Independent review requires systematic approach. Use workflow. |
 | "Should I use gh api .../replies to thread comments?" | **NO.** This skill posts NEW review comments (top-level). Use `gh pr comment` or `gh pr review`. The `gh api .../replies` is ONLY for feature-prfix (replying to existing threads). |
+| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
+| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
+| "Comment posting is quick, skip tracking" | **NO.** Posting is critical and error-prone. Track all steps. |
 
 ## Error Handling
 

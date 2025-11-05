@@ -42,6 +42,47 @@ Clean up ALL temporary Z01-Z05 files
 Output PR description (or retrospective if PR already merged)
 ```
 
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern (DEV_LOGS_DIR, ONGOING_DIR)", status: "in_progress", activeForm: "Detecting documentation paths"},
+    {content: "Step 1: Verify completion (tests pass, build succeeds)", status: "pending", activeForm: "Running verification checks"},
+    {content: "Step 2: Create dev logs directory", status: "pending", activeForm: "Creating directory structure"},
+    {content: "Step 3: Generate timestamp (YYYYMMDD)", status: "pending", activeForm: "Generating timestamp"},
+    {content: "Step 4: Consolidate files (read Z01-Z05, create dev log)", status: "pending", activeForm: "Reading and consolidating Z-files"},
+    {content: "Step 5: Update documentation (README, CHANGELOG, API docs)", status: "pending", activeForm: "Updating project documentation"},
+    {content: "Step 6: Clean up temp files (remove ALL Z01-Z05)", status: "pending", activeForm: "Removing temporary files"},
+    {content: "Step 7: Generate PR description", status: "pending", activeForm: "Creating PR description"},
+    {content: "Step 8: Ask about PR creation (AskUserQuestion)", status: "pending", activeForm: "Awaiting user decision"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern (DEV_LOGS_DIR, ONGOING_DIR)", status: "completed"},
+    {content: "Step 1: Verify completion (tests pass, build succeeds)", status: "in_progress", activeForm: "Running verification checks"},
+    {content: "Step 2: Create dev logs directory", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
+
 ## Required Deliverables
 
 1. **`$DEV_LOGS_DIR/{YYYYMMDD}_{feature}_dev_log.md`** - Consolidated development log (path detected in Step 0)
@@ -298,6 +339,8 @@ Implements OAuth 2.0 authentication with PKCE for API security.
 | Not updating README | Check if setup/usage docs need updates |
 | Missing deployment notes | Document env vars, migrations |
 | Not asking about PR creation | MUST use AskUserQuestion for PR prompt |
+| Not using TodoWrite to track steps | Use TodoWrite from start to track all 9 steps |
+| Skipping TodoWrite updates | Mark steps completed immediately, keep ONE in_progress |
 
 ## Red Flags - STOP and Fix
 

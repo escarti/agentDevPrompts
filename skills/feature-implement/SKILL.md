@@ -18,7 +18,7 @@ This skill wraps `superpowers:executing-plans` with automatic context loading fr
 - Project patterns (CLAUDE.md)
 - Batch execution with review checkpoints
 
-**Workflow Position:** AFTER feature-workflow:feature-plan, BEFORE feature-workflow:feature-document
+**Workflow Position:** AFTER feature-workflow:feature-plan, BEFORE feature-workflow:feature-document or feature-workflow:feature-finish
 
 ## When to Use
 
@@ -45,6 +45,46 @@ Execute in batches with review checkpoints
     ↓
 Tests pass → feature-workflow:feature-document
 ```
+
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
+    {content: "Step 1: Locate plan file (Z02_*_plan.md)", status: "pending", activeForm: "Finding plan file"},
+    {content: "Step 2: Check for unresolved clarifications (Z02_CLARIFY)", status: "pending", activeForm: "Verifying no open questions"},
+    {content: "Step 3: Extract feature name from Z02 filename", status: "pending", activeForm: "Parsing feature name"},
+    {content: "Load Context: Read CLAUDE.md, Z01 research, Z02 plan", status: "pending", activeForm: "Loading all context files"},
+    {content: "Invoke superpowers:executing-plans with enriched context", status: "pending", activeForm: "Starting batch execution"},
+    {content: "After Execution: Verify tests pass", status: "pending", activeForm: "Running test suite"},
+    {content: "Invoke feature-document automatically", status: "pending", activeForm: "Starting documentation"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "completed"},
+    {content: "Step 1: Locate plan file (Z02_*_plan.md)", status: "in_progress", activeForm: "Finding plan file"},
+    {content: "Step 2: Check for unresolved clarifications (Z02_CLARIFY)", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
 
 ## Step 0: Detect Repository Pattern
 
@@ -311,6 +351,8 @@ Invoking superpowers:executing-plans skill with enriched context...
 | No code review between batches | MUST instruct superpowers:requesting-code-review usage |
 | Stopped after tests pass without dev logging | MUST invoke feature-workflow:feature-document automatically |
 | Manually deleted Z0* files | Let feature-workflow:feature-document handle cleanup |
+| Not using TodoWrite to track steps | Use TodoWrite from start to track all 8 steps |
+| Skipping TodoWrite updates | Mark steps completed immediately, keep ONE in_progress |
 
 **Red Flags - STOP and Fix:**
 - Skipped Step 0 (path detection)

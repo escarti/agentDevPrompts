@@ -25,6 +25,44 @@ description: Use after research (Z01 files exist) when you need to create implem
 
 **Workflow Position:** AFTER feature-research (Z01 files), BEFORE feature-implement
 
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
+    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Prerequisites Check: Verify Z01 files exist", status: "pending", activeForm: "Checking for research files"},
+    {content: "Load Research: Read ALL Z01 files", status: "pending", activeForm: "Loading research context"},
+    {content: "Invoke superpowers:writing-plans with full context", status: "pending", activeForm: "Creating implementation plan"},
+    {content: "After Planning: Verify Z02 outputs and report next steps", status: "pending", activeForm: "Validating plan output"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "completed"},
+    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Prerequisites Check: Verify Z01 files exist", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
+
 ## Step 0: Detect Repository Pattern
 
 **Detect paths before proceeding:**
@@ -157,7 +195,7 @@ When superpowers:writing-plans completes:
 | "Superpowers will figure out output structure" | Generic plans lack our research integration | MUST provide explicit Z02* structure instruction when loading skill |
 | "Read only Z01_research, skip Z01_CLARIFY" | Missing context = incomplete plan | Read ALL Z01* files, include clarifications in context |
 | "Create Z02_CLARIFY even if no questions" | Empty files clutter docs/ai/ongoing | Only create Z02_CLARIFY if NEW blocking questions discovered |
-| "Use SlashCommand /superpowers:write-plan" | That's a slash command, not a skill | Use Skill tool with "superpowers:writing-plans" (the skill name) |
+| "Use SlashCommand /superpowers:writing-plans" | That's a slash command, not a skill | Use Skill tool with "superpowers:writing-plans" (the skill name) |
 | "Just invoke superpowers:writing-plans directly" | Missing feature-workflow context (Z01 files, Z02 paths) | This skill (feature-plan) is a WRAPPER that loads Z01 context before invoking superpowers:writing-plans |
 
 ## Success Criteria
@@ -190,3 +228,13 @@ When superpowers:writing-plans completes:
 - Not reporting next steps to user
 
 **All of these mean:** Stop, use feature-plan wrapper skill instead. It automates the entire Z01→Z02 workflow.
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "Wrapper skill, no need to track steps" | **NO.** Wrapper has critical steps (context loading, invocation). Track with TodoWrite. |
+| "superpowers:writing-plans will track its own progress" | **NO.** Track THIS skill's steps. Superpowers tracks separately. |
+| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
+| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
+| "Planning is quick, skip tracking" | **NO.** Context loading is complex and error-prone. Track with TodoWrite. |

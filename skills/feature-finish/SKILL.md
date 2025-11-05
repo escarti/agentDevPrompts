@@ -9,9 +9,54 @@ description: Use after feature-implement completes - performs final quality chec
 
 **Performs final quality assessment after implementation, from fresh context (no prior conversation history).**
 
+**Workflow Position:** AFTER feature-workflow:feature-implement, BEFORE feature-workflow:feature-document
+
 **Core principle**: Don't assume implementation is correct. Use feature-research to find issues before merge.
 
 **Run this**: After feature-implement finishes, from a new conversation/context.
+
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
+    {content: "Step 1: Detect current branch and changes", status: "pending", activeForm: "Running git diff main"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 3: Load plan documentation (Z01/Z02)", status: "pending", activeForm: "Reading Z01 and Z02 files"},
+    {content: "Step 4: Assess implementation with feature-research", status: "pending", activeForm: "Invoking feature-research"},
+    {content: "Step 5: Compare implementation against plan", status: "pending", activeForm: "Analyzing deviations"},
+    {content: "Step 6: Present findings summary to user", status: "pending", activeForm: "Formatting findings"},
+    {content: "Step 7: User decision (Fix/Loop/Document)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 8: Execute user choice", status: "pending", activeForm: "Applying fixes or looping"},
+    {content: "Step 9: Create Z05 finish documentation", status: "pending", activeForm: "Writing Z05 file"},
+    {content: "Step 10: Ask about updating Z01/Z02", status: "pending", activeForm: "Checking if updates needed"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "completed"},
+    {content: "Step 1: Detect current branch and changes", status: "in_progress", activeForm: "Running git diff main"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
 
 ## Mandatory Workflow
 
@@ -405,6 +450,9 @@ Updated Assessment: Low severity - temporary technical debt with planned resolut
 | "Implementation looks good, skip assessment" | **NO. Always use feature-research. Fresh eyes find issues.** |
 | "I remember from feature-implement context" | **NO. This runs from FRESH context. Use feature-research.** |
 | "Z01/Z02 not found, skip reading" | **NO. Try to find them. If truly missing, note it and continue.** |
+| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
+| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
+| "Quality check is exploratory, no tracking needed" | **NO.** 11 mandatory steps with user decisions. MUST track with TodoWrite. |
 
 ## Error Handling
 

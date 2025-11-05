@@ -9,7 +9,50 @@ description: Use when addressing PR review comments - assesses comment validity 
 
 **Systematically assess PR review comments using feature-research skill, distinguish valid bugs from subjective preferences, and handle user choices about fixing vs refuting.**
 
+**Workflow Position:**: Flow agnostic
+
 **Core principle**: Don't blindly accept all reviewer comments. Verify claims with feature-research before fixing or refuting.
+
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
+    {content: "Step 1: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Detect PR (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
+    {content: "Step 3: Fetch review comments (gh pr view --comments)", status: "pending", activeForm: "Retrieving comments"},
+    {content: "Step 4: Assess each comment with feature-research", status: "pending", activeForm: "Analyzing comment validity"},
+    {content: "Step 5: Present assessments (valid/invalid/discuss)", status: "pending", activeForm: "Formatting findings"},
+    {content: "Step 6: User decision (AskUserQuestion: Auto/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 7: Execute user choice (fix/refute/loop)", status: "pending", activeForm: "Processing comments"},
+    {content: "Step 8: Create Z04 documentation", status: "pending", activeForm: "Writing Z04 file"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "completed"},
+    {content: "Step 1: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Detect PR (gh pr view)", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
 
 ## Mandatory Workflow
 
@@ -439,6 +482,9 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 | "It doesn't hurt to add" | Every line has maintenance cost. Redundant code hurts. |
 | "I can assess quickly without feature-research" | Quick assessments miss context. Use systematic research. |
 | "Reviewer waiting, need to respond fast" | Fast wrong responses waste more time. Take time to verify. |
+| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
+| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
+| "Loop makes tracking complex, skip it" | **NO.** TodoWrite handles loops. Update status as you process each comment. |
 
 ## Error Handling
 

@@ -9,7 +9,7 @@ description: Use after brainstorming is complete but before planning implementat
 
 Systematically research a feature request to produce a single directive specification with zero open questions. All ambiguities are extracted into a structured CLARIFY file for user resolution.
 
-**Workflow Position:** AFTER superpowers:brainstorming, BEFORE superpowers:writing-plans
+**Workflow Position:** AFTER superpowers:brainstorming, BEFORE feature-workflow:feature-plan
 
 ## When to Use
 
@@ -31,6 +31,44 @@ Feature Request → Research (docs first, then code) → 2 files:
   - Z01_CLARIFY_{feature}_research.md (questions only)
 → User answers CLARIFY → Update Z01_research.md → Hand to planning
 ```
+
+## Progress Tracking
+
+**MANDATORY:** Use TodoWrite tool to track workflow progress.
+
+**At skill start, create todos for all steps:**
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
+    {content: "Step 1: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project documentation"},
+    {content: "Step 2: Explore code (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
+    {content: "Step 3: Create Z01 research file (directive specification)", status: "pending", activeForm: "Writing research findings"},
+    {content: "Step 4: Create Z01_CLARIFY file (structured questions)", status: "pending", activeForm: "Extracting ambiguities"},
+    {content: "Step 5: Verify directive nature (no vague questions in research)", status: "pending", activeForm: "Validating specification quality"}
+  ]
+})
+```
+
+**After completing each step:**
+- Mark current step as `completed`
+- Move `in_progress` to next step
+- Update `activeForm` with current action
+
+**Example update after Step 0:**
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 0: Detect repository pattern", status: "completed"},
+    {content: "Step 1: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Explore code (glob, grep, read files)", status: "pending"},
+    // ... remaining steps
+  ]
+})
+```
+
+**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
 
 ## Research Output Format
 
@@ -258,6 +296,9 @@ Check Z01_research.md for vague questions:
 | "User requested deprecation, decision is final" | "Deprecate X" sounds directive but may be premature. Question premise in CLARIFY. |
 | "User suggested solution, proceed" | Still confirm via CLARIFY. No assumptions. |
 | "This alternative is better, skip primary" | Primary preserving patterns is REQUIRED. |
+| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
+| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
+| "Research is exploratory, no need to track" | **NO.** Research follows strict workflow. Track all steps with TodoWrite. |
 
 ## Example
 
