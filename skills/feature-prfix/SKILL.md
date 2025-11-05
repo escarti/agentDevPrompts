@@ -22,32 +22,32 @@ description: Use when addressing PR review comments - assesses comment validity 
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
-    {content: "Step 1: Extract PR number and switch to PR branch", status: "pending", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 1: Extract PR number and switch to PR branch", status: "in_progress", activeForm: "Detecting and switching to PR branch"},
     {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
     {content: "Step 4: Fetch review comments (gh pr view --comments)", status: "pending", activeForm: "Retrieving comments"},
     {content: "Step 5: Assess each comment with feature-research", status: "pending", activeForm: "Analyzing comment validity"},
     {content: "Step 6: Present assessments (valid/invalid/discuss)", status: "pending", activeForm: "Formatting findings"},
     {content: "Step 7: User decision (AskUserQuestion: Auto/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
-    {content: "Step 8: Execute user choice (fix/refute/loop)", status: "pending", activeForm: "Processing comments"},
-    {content: "Step 9: Create Z04 documentation", status: "pending", activeForm: "Writing Z04 file"}
+    {content: "Step 8: Execute user choice (fix/refute/loop)", status: "pending", activeForm: "Processing comments"}
   ]
 })
 ```
+
+**Note:** Path detection for Z04 documentation happens in Step 8 only if user chooses to document.
 
 **After completing each step:**
 - Mark current step as `completed`
 - Move `in_progress` to next step
 - Update `activeForm` with current action
 
-**Example update after Step 0:**
+**Example update after Step 1:**
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 0: Detect repository pattern", status: "completed"},
-    {content: "Step 1: Extract PR number and switch to PR branch", status: "in_progress", activeForm: "Detecting and switching to PR branch"},
-    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending"},
+    {content: "Step 1: Extract PR number and switch to PR branch", status: "completed"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 3: Verify PR details (gh pr view)", status: "pending"},
     // ... remaining steps
   ]
 })
@@ -58,35 +58,6 @@ TodoWrite({
 ## Mandatory Workflow
 
 **YOU MUST follow this exact sequence. No exceptions.**
-
-### 0. Detect Repository Pattern
-
-**Detect paths before proceeding:**
-
-Use Bash tool:
-```bash
-# Scan for existing Z01/Z02 files to find ongoing directory
-ONGOING_DIR=$(find . -name "Z0[12]_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
-
-# If not found, check common directories
-if [ -z "$ONGOING_DIR" ]; then
-  if [ -d "docs/ai/ongoing" ]; then
-    ONGOING_DIR="docs/ai/ongoing"
-  elif [ -d ".ai/ongoing" ]; then
-    ONGOING_DIR=".ai/ongoing"
-  elif [ -d "docs/ongoing" ]; then
-    ONGOING_DIR="docs/ongoing"
-  else
-    ONGOING_DIR="docs/ai/ongoing"
-    mkdir -p "$ONGOING_DIR"
-  fi
-fi
-
-echo "Using ONGOING_DIR: $ONGOING_DIR"
-```
-
-Set variable:
-- `ONGOING_DIR` - Where Z04 fix tracking file will be created
 
 ### 1. Extract PR Number and Switch to PR Branch
 
@@ -377,13 +348,37 @@ AskUserQuestion({
 - Stop processing, create Z04 documentation with what's been done so far
 
 **Document only**:
-Create Z04 file (see section 9)
+Create Z04 file (see section 8)
 
-### 9. Create Documentation (ALWAYS)
+### 8. Create Documentation (ALWAYS)
 
 **REGARDLESS of action choice, create Z04 file.**
 
-**Location**: `$ONGOING_DIR/Z04_{sanitized-pr-title}_fix.md` (use detected path)
+**First, detect repository pattern:**
+
+Use Bash tool:
+```bash
+# Scan for existing Z01/Z02 files to find ongoing directory
+ONGOING_DIR=$(find . -name "Z0[12]_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
+
+# If not found, check common directories
+if [ -z "$ONGOING_DIR" ]; then
+  if [ -d "docs/ai/ongoing" ]; then
+    ONGOING_DIR="docs/ai/ongoing"
+  elif [ -d ".ai/ongoing" ]; then
+    ONGOING_DIR=".ai/ongoing"
+  elif [ -d "docs/ongoing" ]; then
+    ONGOING_DIR="docs/ongoing"
+  else
+    ONGOING_DIR="docs/ai/ongoing"
+    mkdir -p "$ONGOING_DIR"
+  fi
+fi
+
+echo "Using ONGOING_DIR: $ONGOING_DIR"
+```
+
+**Location**: `$ONGOING_DIR/Z04_{sanitized-pr-title}_fix.md`
 
 **Sanitize PR title for filename:**
 - Use kebab-case: lowercase with hyphens
@@ -523,9 +518,9 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 
 ## Red Flags - STOP and Follow Workflow
 
-- Skipped Step 0 (path detection)
 - **Skipped Step 1 (branch detection and switching)**
 - **Reading CLAUDE.md BEFORE switching to PR branch (Step 2 before Step 1)**
+- **Detecting ONGOING_DIR path at start instead of in Step 8 (wastes time)**
 - **Reading Z01/Z02 files BEFORE switching to PR branch**
 - **Not on the correct PR branch when reading code to fix**
 - **Using gh pr view without PR number when user provided URL**
