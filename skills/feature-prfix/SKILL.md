@@ -153,12 +153,30 @@ AskUserQuestion({
 
 **If "Auto: fix valid, refute invalid":**
 
-For each VALID comment:
-- Use Edit tool to apply fix
-- Verify edit succeeded
+For each VALID comment, use Skill tool to invoke `superpowers:systematic-debugging`:
+
+```
+Fix this PR review comment using systematic debugging:
+
+CONTEXT:
+- PR: {pr_number}
+- File: {file}:{line}
+- Reviewer: @{username}
+- Comment: {comment_text}
+- Assessment: Valid (real bug/security issue)
+- CLAUDE.md constraints: {if exists}
+
+Follow the four phases:
+1. Root Cause Investigation: Why does this issue exist?
+2. Pattern Analysis: Similar issues elsewhere?
+3. Hypothesis: What will fix do?
+4. Implementation: Apply fix, verify
+
+Report back: Root cause, fix applied, verification result.
+```
 
 For each INVALID comment:
-- Draft refutation with technical reasoning
+- Draft refutation with technical reasoning from feature-research assessment
 - Post as reply to comment thread using:
   ```bash
   gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments/{COMMENT_ID}/replies \
@@ -167,6 +185,8 @@ For each INVALID comment:
   ```
 - **DO NOT use `gh pr comment`** (creates top-level, not reply)
 - Verify reply posted successfully
+
+---
 
 **If "Review per-comment":**
 
@@ -178,7 +198,7 @@ AskUserQuestion({
     header: "Action",
     multiSelect: false,
     options: [
-      {label: "Fix", description: "Apply fix using Edit tool"},
+      {label: "Fix", description: "Fix using superpowers:systematic-debugging"},
       {label: "Refute", description: "Post technical explanation as reply"},
       {label: "Explain", description: "User will provide additional context"},
       {label: "Skip", description: "Skip this comment"},
@@ -188,7 +208,17 @@ AskUserQuestion({
 })
 ```
 
-Execute based on user choice. If "Explain", user provides context → re-assess with new info → ask again.
+**If user chooses "Fix":**
+
+Use Skill tool to invoke `superpowers:systematic-debugging` for this comment (same prompt as "Auto" mode above).
+
+**If user chooses "Refute":**
+
+Post refutation as reply (same gh api command as "Auto" mode above).
+
+**If user chooses "Explain":**
+
+User provides context → re-invoke feature-research with new context → update assessment → ask again.
 
 **If "Document only":**
 
@@ -264,6 +294,7 @@ Does that sound reasonable, or is there planned reuse I'm not aware of?
 - **Skipped TodoWrite creation**
 - **Suggesting next steps instead of using AskUserQuestion**
 - **Using `gh pr comment` instead of `gh api .../replies`**
+- **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Drafting refutations but not posting them**
 - **Accepting all comments without verification**
 - **Not using feature-research to assess validity**
@@ -279,6 +310,8 @@ Does that sound reasonable, or is there planned reuse I'm not aware of?
 | **"Faster to fix than debate"** | **NO.** Blind fixes accumulate debt. Assess first. |
 | **"Don't want to seem difficult"** | **NO.** Technical discussion is normal. Respectful refutation is professional. |
 | **"Use gh pr comment to post reply"** | **NO.** Use `gh api .../replies` to reply in thread. |
+| **"I'll fix directly with Edit tool"** | **NO.** Invoke superpowers:systematic-debugging. Don't skip root cause analysis. |
+| **"Simple typo fix, don't need systematic-debugging"** | **NO.** Even typos have root causes (why was typo introduced?). Use the skill. |
 | "Assessments done, I can proceed" | **NO.** Step 6 requires AskUserQuestion. Use it NOW. |
 | "I drafted refutation, that's enough" | **NO.** Draft ≠ posted. Execute `gh api` command. |
 | "I can assess without feature-research" | **NO.** Quick assessments miss context. Use research. |
@@ -293,7 +326,8 @@ You followed the workflow if:
 - ✓ Used feature-research to assess ALL comments
 - ✓ Verified reviewer claims by reading code
 - ✓ Used AskUserQuestion (not prose suggestions)
+- ✓ Invoked superpowers:systematic-debugging for valid fixes (not Edit tool directly)
 - ✓ Posted refutations with `gh api .../replies` (not `gh pr comment`)
 - ✓ Verified replies posted in correct threads
-- ✓ Created Z04 documentation
+- ✓ Created Z04 documentation with systematic-debugging results
 - ✓ Resisted authority/agreeableness pressures

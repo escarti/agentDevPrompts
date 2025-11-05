@@ -31,6 +31,20 @@ TodoWrite({
 
 **After each step:** Mark completed, move `in_progress` to next step.
 
+## The Iron Law
+
+```
+NO RESEARCH WITHOUT READING CLAUDE.MD FIRST
+NO Z01_CLARIFY WITH 5+ QUESTIONS WITHOUT INVOKING BRAINSTORMING
+NO PLANNING WITHOUT FILE PATHS + LINE RANGES
+```
+
+**If you skip CLAUDE.md:** You'll violate project patterns. Delete Z01, start over.
+
+**If Z01_CLARIFY has 5+ questions:** Design is unclear. Stop research, invoke superpowers:brainstorming to clarify requirements first.
+
+**If Z01_research lacks file paths:** Planner can't proceed. Add exact files + line ranges or don't create Z01.
+
 ## Research Output Format
 
 **Single directive:** One clear approach (preserves existing patterns from CLAUDE.md/docs)
@@ -144,6 +158,18 @@ User response:
 
 **Critical**: Leave "User response:" blank. No explanations.
 
+**Phase Gate**: After creating Z01_CLARIFY, count the questions.
+
+**If 5+ questions:**
+1. STOP - don't proceed to Step 5
+2. Design is too unclear for research
+3. Delete both Z01_research.md and Z01_CLARIFY.md
+4. Announce: "Design unclear (5+ questions). Using superpowers:brainstorming to clarify requirements first."
+5. Use Skill tool to invoke `superpowers:brainstorming`
+6. After brainstorming completes, start feature-research again from Step 1
+
+**If < 5 questions:** Proceed to Step 5
+
 ---
 
 ### Step 5: Verify Directive Nature
@@ -162,6 +188,7 @@ Check Z01_research.md for vague questions:
 
 - **Did NOT read CLAUDE.md/README/docs FIRST**
 - **Primary approach violates CLAUDE.md patterns**
+- **Z01_CLARIFY has 5+ questions but didn't invoke brainstorming**
 - **More than 2 files created**
 - **No file paths or line ranges**
 - **Questions embedded in Z01_research.md**
@@ -181,6 +208,9 @@ Check Z01_research.md for vague questions:
 | **"File paths in planning step"** | **NO.** Research includes files + line ranges NOW. |
 | **"User suggested solution, proceed"** | **NO.** Still confirm via CLARIFY. No assumptions. |
 | **"This alternative is better, skip primary"** | **NO.** Primary preserving patterns is REQUIRED. |
+| **"6 questions but design seems clear"** | **NO.** 5+ questions = unclear design. Invoke brainstorming. Iron Law. |
+| **"I'll answer questions instead of brainstorming"** | **NO.** You don't have authority. User needs to clarify via brainstorming. |
+| **"Delete Z01s after brainstorming wastes work"** | **NO.** Bad research blocks planning. Delete and redo correctly. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
 | "Research is exploratory, no need to track" | **NO.** Research follows strict workflow. Track all steps with TodoWrite. |
 
@@ -190,7 +220,8 @@ You followed the workflow if:
 - ✓ Read CLAUDE.md/README/docs FIRST
 - ✓ "Existing Patterns" section in Z01_research.md
 - ✓ Primary approach preserves patterns from CLAUDE.md
-- ✓ Exactly 2 files: Z01_research.md + Z01_CLARIFY.md
+- ✓ If Z01_CLARIFY has 5+ questions: invoked superpowers:brainstorming and restarted
+- ✓ Exactly 2 files: Z01_research.md + Z01_CLARIFY.md (< 5 questions)
 - ✓ Z01_research.md is directive (single OR primary + 1 alternative)
 - ✓ If alternative: both have complete technical details
 - ✓ File paths + line ranges included

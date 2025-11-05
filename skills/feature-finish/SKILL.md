@@ -173,10 +173,34 @@ AskUserQuestion({
 
 **If "Fix all":**
 
-For each issue:
-- Use Edit tool to apply fix
-- Verify edit succeeded
-- Track fixes applied
+Use Skill tool to invoke `superpowers:systematic-debugging` with ALL findings:
+
+```
+You are fixing issues found in feature-finish quality check.
+
+CONTEXT:
+- Feature: {feature_name}
+- Branch: {branch}
+- Files changed: {list}
+- CLAUDE.md constraints: {if exists}
+
+FINDINGS TO FIX:
+{List all issues with file:line, severity, description}
+
+For EACH issue:
+1. Root Cause Investigation: Read code, understand why issue exists
+2. Pattern Analysis: Check if similar issues exist elsewhere
+3. Hypothesis: State what fix will do
+4. Implementation: Apply fix, verify it works
+
+CRITICAL: If 3+ fixes fail for SAME issue → STOP and report "architectural problem, not implementation bug"
+
+Report back: What was fixed, what failed, any architectural concerns discovered.
+```
+
+Track systematic-debugging's report for Z05 documentation.
+
+---
 
 **If "Loop issues":**
 
@@ -188,7 +212,7 @@ AskUserQuestion({
     header: "Action",
     multiSelect: false,
     options: [
-      {label: "Fix", description: "Apply the fix using Edit tool"},
+      {label: "Fix", description: "Fix using superpowers:systematic-debugging"},
       {label: "Skip", description: "Skip this issue, continue to next"},
       {label: "Explain", description: "Provide context to reassess this issue"},
       {label: "Stop", description: "Stop processing remaining issues"}
@@ -197,7 +221,34 @@ AskUserQuestion({
 })
 ```
 
-Execute based on choice. If "Explain", user provides context → re-assess → ask again.
+**If user chooses "Fix":**
+
+Use Skill tool to invoke `superpowers:systematic-debugging` for this specific issue:
+
+```
+Fix this issue using systematic debugging:
+
+CONTEXT:
+- Feature: {feature_name}
+- File: {file}:{line}
+- Severity: {severity}
+- Description: {issue_description}
+- CLAUDE.md constraints: {if exists}
+
+Follow the four phases:
+1. Root Cause Investigation
+2. Pattern Analysis
+3. Hypothesis and Testing
+4. Implementation
+
+Report back: Root cause found, fix applied, verification result.
+```
+
+**If user chooses "Explain":**
+
+User provides context → re-invoke feature-research with new context → update assessment → ask again.
+
+---
 
 **If "Document only":**
 
@@ -259,7 +310,7 @@ Skip to Step 9.
 - **Skipping CLAUDE.md** (exists but not read)
 - **Not reading Z01/Z02 files**
 - **Skipping feature-research assessment**
-- **Drafting fixes but not applying with Edit tool**
+- **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Documenting in Z05 instead of fixing when user chose 'Fix'**
 - **Asking "would you like me to..." in prose instead of AskUserQuestion**
 
@@ -271,8 +322,9 @@ Skip to Step 9.
 | **"User obviously wants fixes, no need to ask"** | **NO.** ALWAYS ask. User might want document-only. Use AskUserQuestion. |
 | **"I'll just start fixing, user can stop me"** | **NO.** Ask BEFORE any action. Use AskUserQuestion NOW. |
 | **"I can see what user wants, skip AskUserQuestion"** | **NO.** Use AskUserQuestion. Not optional. STOP and ask. |
-| **"I drafted fixes, that's enough"** | **NO.** Use Edit tool to APPLY fixes. Draft is not applied. |
-| **"I'll document in Z05, no need to fix"** | **NO.** User chose 'Fix' = apply changes. Use Edit tool. |
+| **"I'll fix directly with Edit tool"** | **NO.** Invoke superpowers:systematic-debugging. Don't skip root cause analysis. |
+| **"Issue is simple, don't need systematic-debugging"** | **NO.** Simple issues have root causes too. Use the skill. |
+| **"I'll document in Z05, no need to fix"** | **NO.** User chose 'Fix' = invoke systematic-debugging. |
 | "Implementation looks good, skip assessment" | **NO.** Always use feature-research. Fresh eyes find issues. |
 | "I remember from feature-implement context" | **NO.** This runs from FRESH context. Use feature-research. |
 | "Z01/Z02 not found, skip reading" | **NO.** Try to find them. If truly missing, note it and continue. |
@@ -307,8 +359,8 @@ You followed the workflow if:
 - ✓ Invoked feature-research on all changed files
 - ✓ Compared against plan (if exists)
 - ✓ Used AskUserQuestion (not prose suggestions)
-- ✓ Applied fixes with Edit tool (not drafts)
-- ✓ Created Z05 documentation
+- ✓ Invoked superpowers:systematic-debugging for fixes (not Edit tool directly)
+- ✓ Created Z05 documentation with systematic-debugging results
 - ✓ Resisted rationalization pressures
 
 ## When to Use
