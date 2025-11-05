@@ -24,13 +24,14 @@ TodoWrite({
   todos: [
     {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
     {content: "Step 1: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 2: Detect PR (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
-    {content: "Step 3: Fetch review comments (gh pr view --comments)", status: "pending", activeForm: "Retrieving comments"},
-    {content: "Step 4: Assess each comment with feature-research", status: "pending", activeForm: "Analyzing comment validity"},
-    {content: "Step 5: Present assessments (valid/invalid/discuss)", status: "pending", activeForm: "Formatting findings"},
-    {content: "Step 6: User decision (AskUserQuestion: Auto/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
-    {content: "Step 7: Execute user choice (fix/refute/loop)", status: "pending", activeForm: "Processing comments"},
-    {content: "Step 8: Create Z04 documentation", status: "pending", activeForm: "Writing Z04 file"}
+    {content: "Step 2: Extract PR number and switch to PR branch", status: "pending", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
+    {content: "Step 4: Fetch review comments (gh pr view --comments)", status: "pending", activeForm: "Retrieving comments"},
+    {content: "Step 5: Assess each comment with feature-research", status: "pending", activeForm: "Analyzing comment validity"},
+    {content: "Step 6: Present assessments (valid/invalid/discuss)", status: "pending", activeForm: "Formatting findings"},
+    {content: "Step 7: User decision (AskUserQuestion: Auto/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 8: Execute user choice (fix/refute/loop)", status: "pending", activeForm: "Processing comments"},
+    {content: "Step 9: Create Z04 documentation", status: "pending", activeForm: "Writing Z04 file"}
   ]
 })
 ```
@@ -46,7 +47,7 @@ TodoWrite({
   todos: [
     {content: "Step 0: Detect repository pattern", status: "completed"},
     {content: "Step 1: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 2: Detect PR (gh pr view)", status: "pending"},
+    {content: "Step 2: Extract PR number and switch to PR branch", status: "pending"},
     // ... remaining steps
   ]
 })
@@ -107,21 +108,90 @@ fi
 
 **This context helps validate whether reviewer comments are correct or based on misunderstanding of project patterns.**
 
-### 2. Detect PR
+### 2. Extract PR Number and Switch to PR Branch
 
+**CRITICAL: You must be on the correct branch before assessing PR comments.**
+
+**Handle three scenarios:**
+1. User provides PR URL (extract PR number)
+2. User provides PR number directly
+3. No PR specified (use current branch's PR)
+
+Use Bash tool:
 ```bash
-# Get PR for current branch
-gh pr view
+# Scenario 1 & 2: PR URL or number provided by user
+# Extract from user's input if they provided a URL like:
+# https://github.com/owner/repo/pull/123
 
-# Or for specific branch
-gh pr view [branch-name]
+# Check if user provided PR URL
+if [[ "$USER_INPUT" =~ github\.com/[^/]+/[^/]+/pull/([0-9]+) ]]; then
+  PR_NUM="${BASH_REMATCH[1]}"
+  echo "Detected PR #$PR_NUM from URL"
+elif [[ "$USER_INPUT" =~ ^[0-9]+$ ]]; then
+  # User provided just the PR number
+  PR_NUM="$USER_INPUT"
+  echo "Using PR #$PR_NUM"
+else
+  # Scenario 3: No PR specified, detect from current branch
+  PR_NUM=$(gh pr view --json number --jq .number 2>/dev/null || echo "")
+  if [ -z "$PR_NUM" ]; then
+    echo "ERROR: No PR found for current branch and no PR URL/number provided."
+    echo "Usage: Provide PR URL or ensure you're on a branch with an open PR."
+    exit 1
+  fi
+  echo "Detected PR #$PR_NUM for current branch"
+fi
+
+# Get PR branch name
+PR_BRANCH=$(gh pr view "$PR_NUM" --json headRefName --jq .headRefName)
+CURRENT_BRANCH=$(git branch --show-current)
+
+echo "PR branch: $PR_BRANCH"
+echo "Current branch: $CURRENT_BRANCH"
+
+# Switch to PR branch if needed
+if [ "$CURRENT_BRANCH" != "$PR_BRANCH" ]; then
+  echo "Switching to PR branch $PR_BRANCH..."
+
+  # Check if branch exists locally
+  if git show-ref --verify --quiet refs/heads/"$PR_BRANCH"; then
+    git checkout "$PR_BRANCH"
+  else
+    # Branch doesn't exist locally, use gh to fetch and checkout
+    echo "Branch not found locally, fetching from PR..."
+    gh pr checkout "$PR_NUM"
+  fi
+
+  # Verify switch succeeded
+  NEW_BRANCH=$(git branch --show-current)
+  if [ "$NEW_BRANCH" != "$PR_BRANCH" ]; then
+    echo "ERROR: Failed to switch to branch $PR_BRANCH"
+    exit 1
+  fi
+  echo "Successfully switched to $PR_BRANCH"
+else
+  echo "Already on correct branch: $PR_BRANCH"
+fi
 ```
 
-**If no PR found**: Error gracefully - "No PR found for current branch. Specify branch or create PR first."
+**Extract and save**:
+- `PR_NUM` - PR number for all subsequent gh commands
+- `PR_BRANCH` - Branch name (for documentation)
 
-**Extract**: PR number, title, author, branch name
+**If branch switch fails**: Error gracefully with clear instructions on how to manually checkout the branch.
 
-### 3. Fetch Review Comments
+### 3. Verify PR Details
+
+**Now that you're on the correct branch, verify PR details:**
+
+```bash
+# Use the PR_NUM from step 2
+gh pr view "$PR_NUM" --json number,title,author,headRefName
+```
+
+**Extract and display**: PR number, title, author, branch name
+
+### 4. Fetch Review Comments
 
 ```bash
 gh pr view --comments --json comments,reviews
@@ -138,7 +208,7 @@ gh pr view --comments --json comments,reviews
 
 **IMPORTANT**: Save the comment ID for each review comment. You need this to reply to comments in the correct thread.
 
-### 4. Assess Each Comment with feature-research
+### 5. Assess Each Comment with feature-research
 
 **REQUIRED**: For EACH comment, use Skill tool to invoke `feature-workflow:feature-research` on the specific code section.
 
@@ -154,7 +224,7 @@ gh pr view --comments --json comments,reviews
 - **Category**: bug / security / observability / style / subjective
 - **Technical reasoning**: Why valid or invalid
 
-### 5. Present Assessments
+### 6. Present Assessments
 
 Display all comments with AI assessment:
 
@@ -179,11 +249,17 @@ Summary:
 - Discuss (unclear): {count}
 ```
 
-### 6. User Decision Point (REQUIRED)
+**DO NOT suggest next steps. DO NOT ask "would you like me to...". DO NOT offer options in plain text.**
 
-**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 6 until user responds.**
+**YOU MUST IMMEDIATELY proceed to Step 7. Read Step 7 now. Do not skip to Step 8.**
+
+### 7. User Decision Point (REQUIRED)
+
+**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 8 until user responds.**
 
 **If you are reading this, you have NOT asked the user yet. STOP and use AskUserQuestion RIGHT NOW.**
+
+**DO NOT write "Next Steps" or "Would you like me to..." - use the AskUserQuestion tool IMMEDIATELY.**
 
 ```typescript
 AskUserQuestion({
@@ -211,7 +287,7 @@ AskUserQuestion({
 
 **After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
 
-### 7. Execute User Choice (ONLY AFTER USER RESPONDS)
+### 8. Execute User Choice (ONLY AFTER USER RESPONDS)
 
 **Auto: fix valid, refute invalid**:
 
@@ -299,9 +375,9 @@ AskUserQuestion({
 - Stop processing, create Z04 documentation with what's been done so far
 
 **Document only**:
-Create Z04 file (see section 7)
+Create Z04 file (see section 9)
 
-### 8. Create Documentation (ALWAYS)
+### 9. Create Documentation (ALWAYS)
 
 **REGARDLESS of action choice, create Z04 file.**
 
@@ -447,12 +523,18 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 
 - Skipped Step 0 (path detection)
 - Skipped Step 1 (CLAUDE.md loading)
+- **Skipped Step 2 (branch detection and switching)**
+- **Not on the correct PR branch when reading code to fix**
+- **Using gh pr view without PR number when user provided URL**
 - CLAUDE.md exists but was not read
 - Not passing CLAUDE.md constraints to feature-research
 - Accepting all comments without verification
 - Fixing code without reading it first to verify reviewer's claim
 - Not using feature-research to assess validity
 - Skipping user choice step (not using AskUserQuestion)
+- **Suggesting "next steps" in plain text after presenting assessments**
+- **Asking "would you like me to..." instead of using AskUserQuestion tool**
+- **Offering options in prose instead of AskUserQuestion structured format**
 - Not creating Z04 documentation
 - Refuting without technical reasoning
 - **Drafting refutation but not posting it with gh api**
@@ -466,10 +548,14 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 
 | Excuse | Reality |
 |--------|---------|
+| "I'll offer helpful next steps as plain text" | **NO. Use AskUserQuestion tool. NOT plain text suggestions.** |
+| "Let me ask 'would you like me to...' in prose" | **NO. That's NOT using AskUserQuestion. Use the TOOL.** |
+| "I'll give user options to choose from" | **NO. Use AskUserQuestion tool with structured options. NOT freeform text.** |
+| "Assessments presented, now suggest actions" | **NO. Do NOT suggest. Use AskUserQuestion tool IMMEDIATELY after presenting assessments.** |
 | "I can see what user wants, skip AskUserQuestion" | **NO. Use AskUserQuestion. Not optional. STOP and ask.** |
 | "User obviously wants fixes, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
 | "I'll just start fixing, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
-| "Assessments are done, I can proceed" | **NO. Step 5 requires AskUserQuestion. You have NOT done step 5 yet.** |
+| "Assessments are done, I can proceed" | **NO. Step 7 requires AskUserQuestion. You have NOT done step 7 yet.** |
 | "I drafted refutation, that's enough" | **NO. Use Bash tool to EXECUTE gh api with /replies endpoint. Draft is not posted.** |
 | "I'll document refutation in Z04, no need to post" | **NO. User chose 'Refute' = post to PR. Use gh api /replies command.** |
 | "I'll use gh pr comment to post refutation" | **NO. Use gh api .../comments/{ID}/replies to reply in thread, not top-level.** |
@@ -482,6 +568,9 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 | "It doesn't hurt to add" | Every line has maintenance cost. Redundant code hurts. |
 | "I can assess quickly without feature-research" | Quick assessments miss context. Use systematic research. |
 | "Reviewer waiting, need to respond fast" | Fast wrong responses waste more time. Take time to verify. |
+| "I'm on a branch, probably the right one" | **NO.** ALWAYS verify and switch to PR branch. User may be on wrong branch. |
+| "User provided URL, I can extract PR number in step 3" | **NO.** Extract in step 2 and switch branches FIRST. Code fixes require correct branch. |
+| "gh pr view will work without switching" | **NO.** gh pr view works, but code files won't match PR. Switch BEFORE fixing. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
 | "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
 | "Loop makes tracking complex, skip it" | **NO.** TodoWrite handles loops. Update status as you process each comment. |
@@ -522,7 +611,9 @@ Report which fixes failed, continue with others. Add to Z04 documentation with f
 ## Success Criteria
 
 You followed the workflow correctly if:
-- ✓ Used gh pr view and gh pr view --comments
+- ✓ **Extracted PR number from URL or user input**
+- ✓ **Verified current branch and switched to PR branch if needed**
+- ✓ Used gh pr view and gh pr view --comments on correct branch
 - ✓ Invoked feature-research skill for each comment
 - ✓ Verified reviewer claims by reading actual code
 - ✓ Categorized comments (bug/security/style/subjective)
@@ -531,7 +622,7 @@ You followed the workflow correctly if:
 - ✓ Applied fixes with Edit tool for valid comments
 - ✓ **Posted refutations with Bash tool executing `gh api .../comments/{ID}/replies` for invalid comments**
 - ✓ **Verified each reply posted successfully as a thread reply (not top-level comment)**
-- ✓ **Used comment ID from step 2 to reply in correct thread**
+- ✓ **Used comment ID from step 4 to reply in correct thread**
 - ✓ Created Z04 documentation file
 - ✓ Resisted authority and agreeableness pressures
 
