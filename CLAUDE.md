@@ -152,6 +152,37 @@ agentDevPrompts/
 - BEFORE creating the tag (not after)
 - Update BOTH version fields (metadata.version AND plugins[0].version)
 
+## Filename Sanitization Rules
+
+All skills must follow these standardized rules for creating temporary workflow files:
+
+### Feature Names (Code-Related)
+**Used by:** feature-research, feature-plan, feature-implement, feature-finish
+**Files:** Z01_*.md, Z02_*.md, Z05_*.md
+
+**Rules:**
+- Use snake_case: lowercase with underscores
+- Replace spaces and special chars with underscores
+- Remove quotes, slashes, colons
+- Truncate to 50 characters
+- **Example:** "OAuth 2.0 Authentication!" → "oauth_2_0_authentication"
+
+### PR Titles (User-Generated)
+**Used by:** feature-prreview, feature-prfix
+**Files:** Z03_*.md, Z04_*.md
+
+**Rules:**
+- Use kebab-case: lowercase with hyphens
+- Replace spaces and special chars with hyphens
+- Remove quotes, slashes, colons
+- Truncate to 50 characters
+- **Example:** "Fix: User Authentication Bug" → "fix-user-authentication-bug"
+
+### Why Two Patterns?
+
+- **snake_case** for feature names: Matches code conventions, flows through Z01→Z02→Z05
+- **kebab-case** for PR titles: Matches git branch conventions, handles user-generated text
+
 ## Skill Development
 
 ### Creating New Skills

@@ -94,6 +94,11 @@ ls $ONGOING_DIR/Z01_*_research.md
 ls $ONGOING_DIR/Z02_*_plan.md
 ```
 
+**Extract feature name:**
+- From Z02 filename: `Z02_{feature}_plan.md` → feature name (already in snake_case)
+- Example: `Z02_oauth_authentication_plan.md` → "oauth_authentication"
+- Use this exact feature name for Z05 filename (maintain snake_case consistency)
+
 **Use Read tool** to load both files.
 
 **Extract**:
@@ -249,9 +254,9 @@ Create Z05 file (see section 8)
 
 **REGARDLESS of action choice, create Z05 file.**
 
-**Location**: `$ONGOING_DIR/Z05_{sanitized-feature-name}_finish.md` (use detected path)
+**Location**: `$ONGOING_DIR/Z05_{feature}_finish.md` (use detected path)
 
-**Sanitization**: lowercase, replace spaces/special chars with hyphens, truncate to 50 chars
+**Use the exact feature name extracted from Z02_{feature}_plan.md** (already in snake_case from feature-research/feature-plan)
 
 **Format**:
 ```markdown

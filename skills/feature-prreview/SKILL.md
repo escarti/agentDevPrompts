@@ -271,7 +271,12 @@ Create Z03 file (see section 9)
 
 **Location**: `$ONGOING_DIR/Z03_{sanitized-pr-title}_review.md` (use detected path)
 
-**Sanitization**: lowercase, replace spaces/special chars with hyphens, truncate to 50 chars
+**Sanitize PR title for filename:**
+- Use kebab-case: lowercase with hyphens
+- Replace spaces and special chars with hyphens
+- Remove quotes, slashes, colons
+- Truncate to 50 characters
+- Example: "Fix: User Authentication Bug" → "fix-user-authentication-bug"
 
 **Format**:
 ```markdown

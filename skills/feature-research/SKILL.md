@@ -136,7 +136,14 @@ read path/to/relevant/file.ext
 
 ### Step 3: Create Research File
 
-**File**: `$ONGOING_DIR/Z01_{feature}_research.md` (use snake_case for feature name, use detected path)
+**File**: `$ONGOING_DIR/Z01_{feature}_research.md` (use detected path)
+
+**Sanitize feature name:**
+- Use snake_case: lowercase with underscores
+- Replace spaces and special chars with underscores
+- Remove quotes, slashes, colons
+- Truncate to 50 characters
+- Example: "OAuth 2.0 Authentication!" → "oauth_2_0_authentication"
 
 **Structure**:
 ```markdown

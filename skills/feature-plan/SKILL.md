@@ -89,6 +89,7 @@ MANDATORY: Check if research files exist first.
    - Read ALL Z01* files in $ONGOING_DIR/
    - Extract: feature name, technical research, integration points, clarifications
    - Note the feature name from filename (e.g., Z01_metrics_research.md → feature="metrics")
+   - Feature name should already be sanitized snake_case from feature-research
 
 3. **If NO Z01 files found:**
    - Ask user if they want to run feature-workflow:feature-research first

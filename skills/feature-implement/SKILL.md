@@ -118,6 +118,7 @@ ls $ONGOING_DIR/Z02_CLARIFY_*plan.md 2>/dev/null
 From `$ONGOING_DIR/Z02_{feature}_plan.md`:
 - Extract {feature} from filename
 - Example: `Z02_oauth_authentication_plan.md` → feature="oauth_authentication"
+- Feature name should already be sanitized snake_case from feature-research/feature-plan
 
 ## Load Context Files
 

@@ -264,7 +264,12 @@ Create Z04 file (see section 7)
 
 **Location**: `$ONGOING_DIR/Z04_{sanitized-pr-title}_fix.md` (use detected path)
 
-**Sanitization**: lowercase, replace spaces/special chars with hyphens, truncate to 50 chars
+**Sanitize PR title for filename:**
+- Use kebab-case: lowercase with hyphens
+- Replace spaces and special chars with hyphens
+- Remove quotes, slashes, colons
+- Truncate to 50 characters
+- Example: "Add OAuth Support" → "add-oauth-support"
 
 **Format**:
 ```markdown
