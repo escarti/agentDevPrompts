@@ -5,106 +5,49 @@ description: Use after research (Z01 files exist) when you need to create implem
 
 # Feature Workflow: Plan Implementation
 
-## Overview
+## YOU ARE READING THIS SKILL RIGHT NOW
 
-**feature-plan is a WRAPPER skill** that automates the feature-workflow planning phase.
+**STOP. Before doing ANYTHING else:**
 
-**What it does:**
-1. Loads ALL Z01_* research files (research + clarifications)
-2. Invokes `superpowers:writing-plans` with that context
-3. Saves output to Z02_{feature}_plan.md in docs/ai/ongoing/
-4. Checks if Z02_CLARIFY needed (new blocking questions)
-5. Reports next steps to user
+1. ☐ Create TodoWrite checklist (see below)
+2. ☐ Mark Step 1 as `in_progress`
+3. ☐ Read CLAUDE.md first (if exists)
 
-**Why use this instead of superpowers:writing-plans directly?**
+**This skill is a WRAPPER that loads Z01 context and invokes superpowers:writing-plans**
+
+## MANDATORY FIRST ACTION: Create TodoWrite
+
+```typescript
+TodoWrite({
+  todos: [
+    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Verify Z01 files exist", status: "pending", activeForm: "Checking research"},
+    {content: "Step 3: Read ALL Z01 files", status: "pending", activeForm: "Loading context"},
+    {content: "Step 4: Invoke superpowers:writing-plans", status: "pending", activeForm: "Creating plan"},
+    {content: "Step 5: Verify Z02 outputs", status: "pending", activeForm: "Validating output"}
+  ]
+})
+```
+
+**After each step:** Mark completed, move `in_progress` to next step.
+
+## Why Use This Wrapper?
+
 - Automates Z01 → Z02 file management
-- Integrates seamlessly with feature-workflow research phase
-- Maintains consistent file naming and structure
+- Loads CLAUDE.md constraints into planning context
 - Enforces feature-workflow naming conventions (Z02_{feature}_plan.md)
 - Integrates with clarification workflow (Z02_CLARIFY)
+- Maintains consistent file structure
 
-**Workflow Position:** AFTER feature-research (Z01 files), BEFORE feature-implement
+**Without this wrapper:** You'd manually load Z01 files, pass to superpowers:writing-plans, manage Z02 output paths, check for clarifications.
 
-## Progress Tracking
+## Workflow Steps
 
-**MANDATORY:** Use TodoWrite tool to track workflow progress.
+### Step 1: Load Project Context (MANDATORY FIRST)
 
-**At skill start, create todos for all steps:**
+**Read CLAUDE.md if it exists.**
 
-```typescript
-TodoWrite({
-  todos: [
-    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
-    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "pending", activeForm: "Reading CLAUDE.md"},
-    {content: "Prerequisites Check: Verify Z01 files exist", status: "pending", activeForm: "Checking for research files"},
-    {content: "Load Research: Read ALL Z01 files", status: "pending", activeForm: "Loading research context"},
-    {content: "Invoke superpowers:writing-plans with full context", status: "pending", activeForm: "Creating implementation plan"},
-    {content: "After Planning: Verify Z02 outputs and report next steps", status: "pending", activeForm: "Validating plan output"}
-  ]
-})
-```
-
-**After completing each step:**
-- Mark current step as `completed`
-- Move `in_progress` to next step
-- Update `activeForm` with current action
-
-**Example update after Step 0:**
-```typescript
-TodoWrite({
-  todos: [
-    {content: "Step 0: Detect repository pattern", status: "completed"},
-    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
-    {content: "Prerequisites Check: Verify Z01 files exist", status: "pending"},
-    // ... remaining steps
-  ]
-})
-```
-
-**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
-
-## Step 0: Detect Repository Pattern
-
-**Detect paths before proceeding:**
-
-Use Bash tool:
-```bash
-# Scan for existing Z01 files to find ongoing directory
-ONGOING_DIR=$(find . -name "Z01_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
-
-# If no Z01 files found, check common directories
-if [ -z "$ONGOING_DIR" ]; then
-  if [ -d "docs/ai/ongoing" ]; then
-    ONGOING_DIR="docs/ai/ongoing"
-  elif [ -d ".ai/ongoing" ]; then
-    ONGOING_DIR=".ai/ongoing"
-  elif [ -d "docs/ongoing" ]; then
-    ONGOING_DIR="docs/ongoing"
-  else
-    ONGOING_DIR="docs/ai/ongoing"
-    mkdir -p "$ONGOING_DIR"
-  fi
-fi
-
-echo "Using ONGOING_DIR: $ONGOING_DIR"
-```
-
-Set variable:
-- `ONGOING_DIR` - Where Z01 research files exist and Z02 plan files will be created
-
-## Step 1: Load Project Context (MANDATORY FIRST)
-
-**Read CLAUDE.md if it exists:**
-
-Use Read tool:
-```bash
-if [ -f CLAUDE.md ]; then
-  echo "Reading project guidelines..."
-  # Use Read tool to read CLAUDE.md
-fi
-```
-
-**Extract from CLAUDE.md (if exists):**
+Extract from CLAUDE.md (if exists):
 - Mandatory patterns that MUST be preserved
 - Forbidden approaches to AVOID
 - Project conventions (naming, structure, etc.)
@@ -112,51 +55,51 @@ fi
 
 **CRITICAL:** If CLAUDE.md exists and contains constraints, these MUST be passed to superpowers:writing-plans so the plan preserves project standards.
 
-**If CLAUDE.md doesn't exist:** Proceed to Prerequisites Check.
+---
 
-## Prerequisites Check
+### Step 2: Verify Z01 Files Exist
 
-MANDATORY: Check if research files exist first.
+Scan for existing Z01 files in common locations (docs/ai/ongoing, .ai/ongoing, docs/ongoing).
 
-1. **Look for Z01 research files:**
-   ```bash
-   ls $ONGOING_DIR/Z01_*
-   ```
+**If Z01 files found:**
+- Note the ONGOING_DIR location
+- Extract feature name from filename (e.g., Z01_metrics_research.md → "metrics")
+- Feature name should already be sanitized snake_case from feature-research
 
-2. **If Z01 files found:**
-   - Read ALL Z01* files in $ONGOING_DIR/
-   - Extract: feature name, technical research, integration points, clarifications
-   - Note the feature name from filename (e.g., Z01_metrics_research.md → feature="metrics")
-   - Feature name should already be sanitized snake_case from feature-research
+**If NO Z01 files found:**
+- Ask user if they want to run feature-workflow:feature-research first
+- Or proceed without research context (suboptimal)
 
-3. **If NO Z01 files found:**
-   - Ask user if they want to run feature-workflow:feature-research first
-   - Or proceed without research context (suboptimal)
+---
 
-## Invoke Superpowers Planning Skill
+### Step 3: Read ALL Z01 Files
 
-**CRITICAL**: This skill is a WRAPPER. Its primary job is to invoke superpowers:writing-plans with Z01 context. If you skip this invocation, the skill provides no value.
+Read all Z01 files in ONGOING_DIR:
+- Z01_{feature}_research.md (required)
+- Z01_CLARIFY_{feature}_research.md (if exists, with answers)
 
-Use Skill tool to load the planning skill:
+Extract:
+- Technical research and integration points
+- File paths and line ranges
+- Answered clarifications
+- Security and test requirements
 
-```
-superpowers:writing-plans
-```
+---
 
-**Before invoking, prepare context:**
-1. Read CLAUDE.md (if exists) for project constraints
-2. Read the full Z01_{feature}_research.md content
-3. Read all answered questions from Z01_CLARIFY_{feature}_research.md
-4. Extract the feature name (e.g., "audit_logging" from Z01_audit_logging_research.md)
+### Step 4: Invoke Superpowers Planning
 
-**When the skill loads, provide this instruction:**
+**CRITICAL**: This skill's primary job is to invoke superpowers:writing-plans with Z01 context. If you skip this invocation, the skill provides no value.
+
+**Use Skill tool** to invoke `superpowers:writing-plans`
+
+Provide this instruction:
 
 "Create an implementation plan for the {feature} feature based on the research in Z01_{feature}_research.md and clarifications in Z01_CLARIFY_{feature}_research.md.
 
 **MANDATORY CONSTRAINTS from CLAUDE.md:**
 [Include any constraints, patterns, or forbidden approaches from CLAUDE.md here if it exists]
 
-CRITICAL: Save the plan to $ONGOING_DIR/Z02_{feature}_plan.md (use the detected path, NOT hardcoded docs/plans/).
+CRITICAL: Save the plan to {ONGOING_DIR}/Z02_{feature}_plan.md (use the detected path, NOT hardcoded docs/plans/).
 
 The plan should be a DIRECTIVE document with:
 - Exact file paths from research
@@ -165,76 +108,73 @@ The plan should be a DIRECTIVE document with:
 - TDD structure (test-fail-implement-pass-commit)
 - Assumes engineer has minimal domain knowledge
 
-If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create $ONGOING_DIR/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file."
+If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create {ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file."
 
-## After Planning
+---
+
+### Step 5: Verify Outputs
 
 When superpowers:writing-plans completes:
 
-1. **Verify outputs created:**
-   ```bash
-   ls $ONGOING_DIR/Z02_*
-   ```
+**Check structure:**
+- Z02_{feature}_plan.md must exist in ONGOING_DIR (main directive plan)
+- Z02_CLARIFY_{feature}_plan.md only if NEW questions exist
 
-2. **Check structure:**
-   - $ONGOING_DIR/Z02_{feature}_plan.md must exist (main directive plan)
-   - $ONGOING_DIR/Z02_CLARIFY_{feature}_plan.md only if questions exist
+**Report to user:**
+- "Plan created: Z02_{feature}_plan.md"
+- If clarifications: "Blocking questions in Z02_CLARIFY_{feature}_plan.md"
+- Next step: "Review clarifications, then use feature-workflow:feature-implement"
 
-3. **Report to user:**
-   - "Plan created: [Z02_{feature}_plan.md]($ONGOING_DIR/Z02_{feature}_plan.md)"
-   - If clarifications: "Blocking questions in [Z02_CLARIFY_{feature}_plan.md]($ONGOING_DIR/Z02_CLARIFY_{feature}_plan.md)"
-   - Next step: "Review clarifications, then use feature-workflow:feature-implement or feature-workflow:feature-document"
+---
 
-## Rationalization Table
+## Red Flags - You're Failing If:
 
-| Excuse | Reality | Counter |
-|--------|---------|---------|
-| "Skip path detection, I know it's docs/ai/ongoing" | Path assumptions break in non-standard repos | MUST run Step 0 to detect ONGOING_DIR |
-| "No Z01 files, skip check" | Research context critical for quality plans | MUST check for Z01* files first, offer to run feature-workflow:feature-research |
-| "User can specify output paths manually" | Consistency breaks cross-skill workflow | MUST explicitly instruct $ONGOING_DIR/Z02* path in prompt to writing-plans skill |
-| "Superpowers will figure out output structure" | Generic plans lack our research integration | MUST provide explicit Z02* structure instruction when loading skill |
-| "Read only Z01_research, skip Z01_CLARIFY" | Missing context = incomplete plan | Read ALL Z01* files, include clarifications in context |
-| "Create Z02_CLARIFY even if no questions" | Empty files clutter docs/ai/ongoing | Only create Z02_CLARIFY if NEW blocking questions discovered |
-| "Use SlashCommand /superpowers:writing-plans" | That's a slash command, not a skill | Use Skill tool with "superpowers:writing-plans" (the skill name) |
-| "Just invoke superpowers:writing-plans directly" | Missing feature-workflow context (Z01 files, Z02 paths) | This skill (feature-plan) is a WRAPPER that loads Z01 context before invoking superpowers:writing-plans |
-
-## Success Criteria
-
-- [ ] Step 0 completed: ONGOING_DIR detected and set
-- [ ] Step 1 completed: CLAUDE.md read if exists
-- [ ] Using $ONGOING_DIR variable (not hardcoded paths)
-- [ ] Checked for Z01* files before proceeding
-- [ ] Read ALL Z01* files if they exist
-- [ ] Passed CLAUDE.md constraints to superpowers:writing-plans (if exists)
-- [ ] Invoked superpowers:writing-plans skill (NOT slash command)
-- [ ] Explicitly instructed $ONGOING_DIR/Z02* output path in prompt
-- [ ] Verified Z02_{feature}_plan.md was created in $ONGOING_DIR/
-- [ ] Reported next steps to user with clickable file links
-
-## Red Flags - STOP and Use This Skill
-
-- Skipped Step 0 (path detection)
-- Skipped Step 1 (CLAUDE.md loading)
-- CLAUDE.md exists but was not read or constraints not passed to planning
-- Using hardcoded paths (docs/ai/ongoing) instead of $ONGOING_DIR
-- Directly invoking superpowers:writing-plans without loading Z01 context first
-- Creating plan files with non-standard names (not Z02_{feature}_plan.md)
-- Saving plans to wrong directory (not $ONGOING_DIR/)
-- Did NOT check for Z01* files before proceeding
-- Used SlashCommand /superpowers:write-plan instead of Skill superpowers:writing-plans
-- Did NOT explicitly specify $ONGOING_DIR/Z02* output path in prompt
-- Skipped reading Z01_CLARIFY if it exists
-- Skipping Z02_CLARIFY decision
-- Not reporting next steps to user
-
-**All of these mean:** Stop, use feature-plan wrapper skill instead. It automates the entire Z01→Z02 workflow.
+- **Did NOT read CLAUDE.md first** (if exists)
+- **CLAUDE.md exists but constraints not passed to planning**
+- **Did NOT check for Z01* files**
+- **Directly invoked superpowers:writing-plans without loading Z01 context**
+- **Creating plan files with non-standard names** (not Z02_{feature}_plan.md)
+- **Saving plans to wrong directory**
+- **Used SlashCommand `/superpowers:write-plan`** (use Skill tool)
+- **Did NOT explicitly specify output path** in prompt to writing-plans
+- **Skipped reading Z01_CLARIFY** (if exists)
+- **Using hardcoded paths** (detect pattern instead)
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
+| **"Skip path detection, I know it's docs/ai/ongoing"** | **NO.** Path assumptions break in non-standard repos. Detect ONGOING_DIR. |
+| **"No Z01 files, skip check"** | **NO.** Research context critical for quality plans. Check first. |
+| **"Superpowers will figure out output structure"** | **NO.** Generic plans lack our research integration. Provide explicit Z02* instruction. |
+| **"Read only Z01_research, skip Z01_CLARIFY"** | **NO.** Missing context = incomplete plan. Read ALL Z01* files. |
+| **"Create Z02_CLARIFY even if no questions"** | **NO.** Empty files clutter directory. Only create if NEW questions. |
+| **"Just invoke superpowers:writing-plans directly"** | **NO.** This wrapper loads Z01 context. That's its value. |
 | "Wrapper skill, no need to track steps" | **NO.** Wrapper has critical steps (context loading, invocation). Track with TodoWrite. |
-| "superpowers:writing-plans will track its own progress" | **NO.** Track THIS skill's steps. Superpowers tracks separately. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
-| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
-| "Planning is quick, skip tracking" | **NO.** Context loading is complex and error-prone. Track with TodoWrite. |
+
+## Success Criteria
+
+You followed the workflow if:
+- ✓ Read CLAUDE.md if exists
+- ✓ Passed CLAUDE.md constraints to superpowers:writing-plans
+- ✓ Checked for Z01* files
+- ✓ Read ALL Z01* files if they exist
+- ✓ Invoked superpowers:writing-plans skill (NOT slash command)
+- ✓ Explicitly instructed output path in prompt
+- ✓ Verified Z02_{feature}_plan.md was created
+- ✓ Reported next steps to user
+
+## When to Use
+
+**Workflow Position:** AFTER feature-research (Z01 files), BEFORE feature-implement
+
+Use when:
+- Z01 research files exist
+- Need to create implementation plan
+- Want automated Z01 → Z02 workflow
+
+**Don't use when:**
+- No Z01 files exist → Use feature-research first
+- Already have complete plan
+- Simple single-step tasks
