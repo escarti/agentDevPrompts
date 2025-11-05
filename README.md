@@ -39,7 +39,7 @@ This repository is a Claude Code marketplace containing the feature-workflow plu
 /plugin marketplace add escarti/agentDevPrompts
 
 # Step 2: Install the plugin from the marketplace
-/plugin install feature-workflow@agentDevPrompts
+/plugin install feature-workflow@feature-workflow
 ```
 
 Verify installation:
