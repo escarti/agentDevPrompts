@@ -1,6 +1,6 @@
 {
   "name": "feature-workflow",
-  "version": "1.9.6",
+  "version": "1.9.7",
   "description": "Complete feature development workflow: research, planning, automated execution, and logging. Extends superpowers by obra with context-aware wrappers.",
   "author": {
     "name": "Eduardo Escarti",
