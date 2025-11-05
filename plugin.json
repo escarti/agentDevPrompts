@@ -8,12 +8,18 @@
     "feature-research": "skills/feature-research",
     "feature-plan": "skills/feature-plan",
     "feature-implement": "skills/feature-implement",
-    "feature-document": "skills/feature-document"
+    "feature-document": "skills/feature-document",
+    "feature-finish": "skills/feature-finish",
+    "feature-prreview": "skills/feature-prreview",
+    "feature-prfix": "skills/feature-prfix"
   },
   "commands": {
     "feature-research": "commands/feature-research.md",
     "feature-plan": "commands/feature-plan.md",
     "feature-implement": "commands/feature-implement.md",
-    "feature-document": "commands/feature-document.md"
+    "feature-document": "commands/feature-document.md",
+    "feature-finish": "commands/feature-finish.md",
+    "feature-prreview": "commands/feature-prreview.md",
+    "feature-prfix": "commands/feature-prfix.md"
   }
 }
