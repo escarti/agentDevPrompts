@@ -5,15 +5,15 @@ description: Use when addressing PR review comments - assesses comment validity 
 
 # feature-prfix: Address PR Review Comments with Research-Driven Assessment
 
-## YOU ARE READING THIS SKILL RIGHT NOW
+## The Iron Law
 
-**STOP. Before doing ANYTHING else:**
+```
+NO COMMANDS BEFORE TODOWRITE
+```
 
-1. ☐ Create TodoWrite checklist (see below)
-2. ☐ Mark Step 1 as `in_progress`
-3. ☐ Switch to PR branch
+If you ran ANY command before creating TodoWrite, you FAILED.
 
-**If you ran `gh pr view` before switching branches, you FAILED.**
+If you ran `gh pr view` before switching branches, you FAILED.
 
 ## MANDATORY FIRST ACTION: Create TodoWrite
 
