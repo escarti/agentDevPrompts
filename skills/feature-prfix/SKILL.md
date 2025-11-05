@@ -1,19 +1,34 @@
 ---
 name: feature-prfix
-description: Use when addressing PR review comments - assesses comment validity with feature-research, distinguishes bugs from style preferences, fixes valid issues or refutes invalid ones with evidence-based responses
+description: Use when addressing PR review comments - REQUIRES TodoWrite first (Iron Law), then follows structured 7-step workflow to assess comment validity with feature-research, distinguish bugs from style preferences, and fix valid issues or refute invalid ones with evidence
 ---
 
 # feature-prfix: Address PR Review Comments with Research-Driven Assessment
 
-## The Iron Law
+## ⚠️ STOP - READ THIS FIRST ⚠️
+
+**YOU ARE LOADING THIS SKILL RIGHT NOW.**
+
+Before taking ANY action:
+
+1. ☐ Create TodoWrite (exact template below)
+2. ☐ Mark Step 1 as `in_progress`
+3. ☐ Execute Step 1
+
+**If you ran `gh pr view`, `gh api`, or ANY command before TodoWrite: YOU FAILED THE IRON LAW.**
+
+## The Iron Law (Low Freedom - Exact Compliance Required)
 
 ```
 NO COMMANDS BEFORE TODOWRITE
+ZERO EXCEPTIONS
 ```
 
-If you ran ANY command before creating TodoWrite, you FAILED.
+This is not a guideline. This is not flexible. This is a fragile operation requiring exact sequence.
 
-If you ran `gh pr view` before switching branches, you FAILED.
+**Validation:** Did you create TodoWrite before running ANY bash command? Yes/No.
+
+If No → Stop, acknowledge failure, start over.
 
 ## MANDATORY FIRST ACTION: Create TodoWrite
 
@@ -316,6 +331,10 @@ Does that sound reasonable, or is there planned reuse I'm not aware of?
 | "I drafted refutation, that's enough" | **NO.** Draft ≠ posted. Execute `gh api` command. |
 | "I can assess without feature-research" | **NO.** Quick assessments miss context. Use research. |
 | "Reviewer waiting, respond fast" | **NO.** Fast wrong responses waste MORE time. Verify first. |
+| **"Feature-research skill not installed"** | **NO.** Don't rationalize around missing dependencies. Use manual research with same rigor. |
+| **"I'll simulate user choice"** | **NO.** Use AskUserQuestion tool. Don't assume what user wants. |
+| **"I'll check PR first to understand scope"** | **NO.** TodoWrite FIRST. No commands before TodoWrite. Zero exceptions. |
+| **"Need context before creating TodoWrite"** | **NO.** TodoWrite doesn't need context. Create it from skill steps, THEN gather context. |
 
 ## Success Criteria
 
