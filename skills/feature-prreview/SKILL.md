@@ -11,22 +11,22 @@ description: Use when reviewing pull request changes before providing feedback -
 
 **Workflow Position:** Flow agnostic
 
-**Core principle**: Follow the 9-step workflow exactly. Create TodoWrite list first. Switch to PR branch before reading any files. Track progress through each step. Don't skip steps or rationalize shortcuts.
+**Core principle**: Create TodoWrite list FIRST, then follow the 9-step workflow exactly. Switch to PR branch before reading any files. Track progress through each step. Don't skip steps or rationalize shortcuts.
 
 ## Progress Tracking
 
 **MANDATORY:** Use TodoWrite tool to track workflow progress.
 
-**At skill start, create todos for all steps:**
+**FIRST ACTION - Before doing anything else, create this TodoWrite checklist:**
 
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 1: Extract PR number and switch to PR branch", status: "in_progress", activeForm: "Detecting and switching to PR branch"},
-    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 1: Switch to PR branch (extract PR number, checkout)", status: "in_progress", activeForm: "Switching to PR branch"},
+    {content: "Step 2: Load project context from PR branch (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
     {content: "Step 4: Get changed files (gh pr diff --name-only)", status: "pending", activeForm: "Listing changed files"},
-    {content: "Step 5: Analyze changes (invoke feature-research skill)", status: "pending", activeForm: "Invoking feature-research for code analysis"},
+    {content: "Step 5: Analyze changes with research skill", status: "pending", activeForm: "Analyzing code changes"},
     {content: "Step 6: Present findings (security/quality/testing)", status: "pending", activeForm: "Formatting review findings"},
     {content: "Step 7: User decision (AskUserQuestion: Comment all/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
     {content: "Step 8: Comment format sub-choice (Separate/Single review)", status: "pending", activeForm: "Choosing comment format"},
@@ -37,6 +37,8 @@ TodoWrite({
 
 **Note:** Path detection for Z03 documentation happens in Step 9 only if user chooses to document.
 
+**THEN - Follow EVERY SINGLE step in the checklist rigorously. No skipping. No shortcuts. No rationalizations.**
+
 **After completing each step:**
 - Mark current step as `completed`
 - Move `in_progress` to next step
@@ -46,8 +48,8 @@ TodoWrite({
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 1: Extract PR number and switch to PR branch", status: "completed"},
-    {content: "Step 2: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 1: Switch to PR branch (extract PR number, checkout)", status: "completed"},
+    {content: "Step 2: Load project context from PR branch (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending"},
     // ... remaining steps
   ]
@@ -132,7 +134,7 @@ fi
 
 **If branch switch fails**: Error gracefully with clear instructions on how to manually checkout the branch.
 
-### 2. Load Project Context (MANDATORY)
+### 2. Load Project Context from PR Branch (MANDATORY)
 
 **CRITICAL: You are now on the correct PR branch. Read context from THIS branch.**
 
@@ -173,7 +175,7 @@ gh pr diff --name-only
 
 **Extract**: List of all changed file paths
 
-### 5. Analyze with feature-research
+### 5. Analyze Changes with Research Skill
 
 **REQUIRED**: Use Skill tool to invoke `feature-workflow:feature-research` on the changed files.
 
@@ -427,6 +429,8 @@ echo "Using ONGOING_DIR: $ONGOING_DIR"
 
 ## Red Flags - STOP and Follow Workflow
 
+- **Did NOT create TodoWrite checklist as FIRST action**
+- **Skipped directly to invoking feature-research without creating TodoWrite first**
 - **Skipped Step 1 (branch detection and switching)**
 - **Reading CLAUDE.md BEFORE switching to PR branch (Step 2 before Step 1)**
 - **Detecting ONGOING_DIR path at start instead of in Step 9 (wastes time)**
@@ -453,6 +457,10 @@ echo "Using ONGOING_DIR: $ONGOING_DIR"
 
 | Excuse | Reality |
 |--------|---------|
+| "I can see what needs to be done, skip TodoWrite" | **NO. TodoWrite is FIRST action. Creates visibility and prevents skipped steps.** |
+| "User asked me to use feature-research, do that first" | **NO. Create TodoWrite FIRST. Then Step 1 = switch branches. Then research in Step 5.** |
+| "Creating TodoWrite wastes time, just start reviewing" | **NO. TodoWrite prevents skipped steps and provides user visibility. MANDATORY.** |
+| "I'll track steps mentally and create TodoWrite later" | **NO. TodoWrite is FIRST action, not last. Create it NOW.** |
 | "I'll offer helpful next steps as plain text" | **NO. Use AskUserQuestion tool. NOT plain text suggestions.** |
 | "Let me ask 'would you like me to...' in prose" | **NO. That's NOT using AskUserQuestion. Use the TOOL.** |
 | "I'll give user options to choose from" | **NO. Use AskUserQuestion tool with structured options. NOT freeform text.** |
@@ -511,6 +519,7 @@ PR has no changed files. This may indicate:
 ## Success Criteria
 
 You followed the workflow correctly if:
+- ✓ **Created TodoWrite checklist as FIRST action**
 - ✓ **Extracted PR number from URL or user input**
 - ✓ **Verified current branch and switched to PR branch if needed**
 - ✓ Used gh pr view and gh pr diff on correct branch
