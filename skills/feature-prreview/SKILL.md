@@ -23,8 +23,8 @@ description: Use when reviewing pull request changes before providing feedback -
 TodoWrite({
   todos: [
     {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
-    {content: "Step 1: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 2: Extract PR number and switch to PR branch", status: "pending", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 1: Extract PR number and switch to PR branch", status: "pending", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
     {content: "Step 4: Get changed files (gh pr diff --name-only)", status: "pending", activeForm: "Listing changed files"},
     {content: "Step 5: Analyze with feature-research", status: "pending", activeForm: "Running deep code analysis"},
@@ -47,8 +47,8 @@ TodoWrite({
 TodoWrite({
   todos: [
     {content: "Step 0: Detect repository pattern", status: "completed"},
-    {content: "Step 1: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 2: Extract PR number and switch to PR branch", status: "pending"},
+    {content: "Step 1: Extract PR number and switch to PR branch", status: "in_progress", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending"},
     // ... remaining steps
   ]
 })
@@ -89,27 +89,7 @@ echo "Using ONGOING_DIR: $ONGOING_DIR"
 Set variable:
 - `ONGOING_DIR` - Where Z03 review file will be created
 
-### 1. Load Project Context (MANDATORY FIRST)
-
-**Read CLAUDE.md if it exists:**
-
-Use Read tool:
-```bash
-if [ -f CLAUDE.md ]; then
-  echo "Reading project guidelines..."
-  # Use Read tool to read CLAUDE.md
-fi
-```
-
-**Extract from CLAUDE.md (if exists):**
-- Mandatory patterns code should follow
-- Forbidden approaches to check for violations
-- Project conventions
-- Security and code quality standards
-
-**This context is critical for identifying violations and security issues during PR review.**
-
-### 2. Extract PR Number and Switch to PR Branch
+### 1. Extract PR Number and Switch to PR Branch
 
 **CRITICAL: You must be on the correct branch before reviewing the PR.**
 
@@ -181,9 +161,31 @@ fi
 
 **If branch switch fails**: Error gracefully with clear instructions on how to manually checkout the branch.
 
+### 2. Load Project Context (MANDATORY)
+
+**CRITICAL: You are now on the correct PR branch. Read context from THIS branch.**
+
+**Read CLAUDE.md if it exists:**
+
+Use Read tool:
+```bash
+if [ -f CLAUDE.md ]; then
+  echo "Reading project guidelines from PR branch..."
+  # Use Read tool to read CLAUDE.md
+fi
+```
+
+**Extract from CLAUDE.md (if exists):**
+- Mandatory patterns code should follow
+- Forbidden approaches to check for violations
+- Project conventions
+- Security and code quality standards
+
+**This context is critical for identifying violations and security issues during PR review.**
+
 ### 3. Verify PR Details
 
-**Now that you're on the correct branch, verify PR details:**
+**Verify PR details:**
 
 ```bash
 # Use the PR_NUM from step 2
@@ -431,8 +433,9 @@ Create Z03 file (see section 10)
 ## Red Flags - STOP and Follow Workflow
 
 - Skipped Step 0 (path detection)
-- Skipped Step 1 (CLAUDE.md loading)
-- **Skipped Step 2 (branch detection and switching)**
+- **Skipped Step 1 (branch detection and switching)**
+- **Reading CLAUDE.md BEFORE switching to PR branch (Step 2 before Step 1)**
+- **Reading Z01/Z02 files BEFORE switching to PR branch**
 - **Not on the correct PR branch when analyzing code**
 - **Using gh pr view without PR number when user provided URL**
 - CLAUDE.md exists but was not read
@@ -472,8 +475,10 @@ Create Z03 file (see section 10)
 | "Time pressure, skip systematic workflow" | Systematic workflow is FASTER than ad-hoc review. |
 | "Senior engineer approved, light review OK" | Independent review requires systematic approach. Use workflow. |
 | "Should I use gh api .../replies to thread comments?" | **NO.** This skill posts NEW review comments (top-level). Use `gh pr comment` or `gh pr review`. The `gh api .../replies` is ONLY for feature-prfix (replying to existing threads). |
+| "I'll read CLAUDE.md first, then switch branches" | **NO.** Switch to PR branch FIRST (Step 1). THEN read CLAUDE.md (Step 2). Wrong order = wrong context. |
+| "Context files probably same on all branches" | **NO.** PR branch may have different CLAUDE.md, Z01/Z02 files, or new files. Switch FIRST. |
 | "I'm on a branch, probably the right one" | **NO.** ALWAYS verify and switch to PR branch. User may be on wrong branch. |
-| "User provided URL, I can extract PR number in step 3" | **NO.** Extract in step 2 and switch branches FIRST. Code analysis requires correct branch. |
+| "User provided URL, I can extract PR number in step 3" | **NO.** Extract in step 1 and switch branches FIRST. Code analysis requires correct branch. |
 | "gh pr view will work without switching" | **NO.** gh pr view works, but code files won't match PR. Switch BEFORE analyzing. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
 | "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |

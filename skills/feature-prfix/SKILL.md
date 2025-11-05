@@ -23,8 +23,8 @@ description: Use when addressing PR review comments - assesses comment validity 
 TodoWrite({
   todos: [
     {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
-    {content: "Step 1: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 2: Extract PR number and switch to PR branch", status: "pending", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 1: Extract PR number and switch to PR branch", status: "pending", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
     {content: "Step 4: Fetch review comments (gh pr view --comments)", status: "pending", activeForm: "Retrieving comments"},
     {content: "Step 5: Assess each comment with feature-research", status: "pending", activeForm: "Analyzing comment validity"},
@@ -46,8 +46,8 @@ TodoWrite({
 TodoWrite({
   todos: [
     {content: "Step 0: Detect repository pattern", status: "completed"},
-    {content: "Step 1: Load project context (CLAUDE.md)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 2: Extract PR number and switch to PR branch", status: "pending"},
+    {content: "Step 1: Extract PR number and switch to PR branch", status: "in_progress", activeForm: "Detecting and switching to PR branch"},
+    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending"},
     // ... remaining steps
   ]
 })
@@ -88,27 +88,7 @@ echo "Using ONGOING_DIR: $ONGOING_DIR"
 Set variable:
 - `ONGOING_DIR` - Where Z04 fix tracking file will be created
 
-### 1. Load Project Context (MANDATORY FIRST)
-
-**Read CLAUDE.md if it exists:**
-
-Use Read tool:
-```bash
-if [ -f CLAUDE.md ]; then
-  echo "Reading project guidelines..."
-  # Use Read tool to read CLAUDE.md
-fi
-```
-
-**Extract from CLAUDE.md (if exists):**
-- Mandatory patterns that MUST be preserved
-- Forbidden approaches to avoid
-- Project conventions
-- Code quality standards
-
-**This context helps validate whether reviewer comments are correct or based on misunderstanding of project patterns.**
-
-### 2. Extract PR Number and Switch to PR Branch
+### 1. Extract PR Number and Switch to PR Branch
 
 **CRITICAL: You must be on the correct branch before assessing PR comments.**
 
@@ -180,9 +160,31 @@ fi
 
 **If branch switch fails**: Error gracefully with clear instructions on how to manually checkout the branch.
 
+### 2. Load Project Context (MANDATORY)
+
+**CRITICAL: You are now on the correct PR branch. Read context from THIS branch.**
+
+**Read CLAUDE.md if it exists:**
+
+Use Read tool:
+```bash
+if [ -f CLAUDE.md ]; then
+  echo "Reading project guidelines from PR branch..."
+  # Use Read tool to read CLAUDE.md
+fi
+```
+
+**Extract from CLAUDE.md (if exists):**
+- Mandatory patterns that MUST be preserved
+- Forbidden approaches to avoid
+- Project conventions
+- Code quality standards
+
+**This context helps validate whether reviewer comments are correct or based on misunderstanding of project patterns.**
+
 ### 3. Verify PR Details
 
-**Now that you're on the correct branch, verify PR details:**
+**Verify PR details:**
 
 ```bash
 # Use the PR_NUM from step 2
@@ -522,8 +524,9 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 ## Red Flags - STOP and Follow Workflow
 
 - Skipped Step 0 (path detection)
-- Skipped Step 1 (CLAUDE.md loading)
-- **Skipped Step 2 (branch detection and switching)**
+- **Skipped Step 1 (branch detection and switching)**
+- **Reading CLAUDE.md BEFORE switching to PR branch (Step 2 before Step 1)**
+- **Reading Z01/Z02 files BEFORE switching to PR branch**
 - **Not on the correct PR branch when reading code to fix**
 - **Using gh pr view without PR number when user provided URL**
 - CLAUDE.md exists but was not read
@@ -568,8 +571,10 @@ If we find a second use case for this logic, I'd be happy to extract it then. Do
 | "It doesn't hurt to add" | Every line has maintenance cost. Redundant code hurts. |
 | "I can assess quickly without feature-research" | Quick assessments miss context. Use systematic research. |
 | "Reviewer waiting, need to respond fast" | Fast wrong responses waste more time. Take time to verify. |
+| "I'll read CLAUDE.md first, then switch branches" | **NO.** Switch to PR branch FIRST (Step 1). THEN read CLAUDE.md (Step 2). Wrong order = wrong context. |
+| "Context files probably same on all branches" | **NO.** PR branch may have different CLAUDE.md, Z01/Z02 files, or new files. Switch FIRST. |
 | "I'm on a branch, probably the right one" | **NO.** ALWAYS verify and switch to PR branch. User may be on wrong branch. |
-| "User provided URL, I can extract PR number in step 3" | **NO.** Extract in step 2 and switch branches FIRST. Code fixes require correct branch. |
+| "User provided URL, I can extract PR number in step 3" | **NO.** Extract in step 1 and switch branches FIRST. Code fixes require correct branch. |
 | "gh pr view will work without switching" | **NO.** gh pr view works, but code files won't match PR. Switch BEFORE fixing. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
 | "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
