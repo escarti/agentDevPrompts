@@ -5,185 +5,116 @@ description: Use after feature-implement completes - performs final quality chec
 
 # feature-finish: Final Quality Check Before Merge
 
-## Overview
+## YOU ARE READING THIS SKILL RIGHT NOW
 
-**Performs final quality assessment after implementation, from fresh context (no prior conversation history).**
+**STOP. Before doing ANYTHING else:**
 
-**Workflow Position:** AFTER feature-workflow:feature-implement, BEFORE feature-workflow:feature-document
+1. ☐ Create TodoWrite checklist (see below)
+2. ☐ Mark Step 1 as `in_progress`
+3. ☐ Confirm you're on a feature branch (not main)
 
-**Core principle**: Don't assume implementation is correct. Use feature-research to find issues before merge.
+**This skill runs from FRESH context. If you have feature-implement conversation history, you're doing it wrong.**
 
-**Run this**: After feature-implement finishes, from a new conversation/context.
-
-## Progress Tracking
-
-**MANDATORY:** Use TodoWrite tool to track workflow progress.
-
-**At skill start, create todos for all steps:**
+## MANDATORY FIRST ACTION: Create TodoWrite
 
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 0: Detect repository pattern", status: "in_progress", activeForm: "Detecting ONGOING_DIR path"},
-    {content: "Step 1: Detect current branch and changes", status: "pending", activeForm: "Running git diff main"},
-    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 3: Load plan documentation (Z01/Z02)", status: "pending", activeForm: "Reading Z01 and Z02 files"},
-    {content: "Step 4: Assess implementation with feature-research", status: "pending", activeForm: "Invoking feature-research"},
-    {content: "Step 5: Compare implementation against plan", status: "pending", activeForm: "Analyzing deviations"},
-    {content: "Step 6: Present findings summary to user", status: "pending", activeForm: "Formatting findings"},
-    {content: "Step 7: User decision (Fix/Loop/Document)", status: "pending", activeForm: "Awaiting user choice"},
-    {content: "Step 8: Execute user choice", status: "pending", activeForm: "Applying fixes or looping"},
-    {content: "Step 9: Create Z05 finish documentation", status: "pending", activeForm: "Writing Z05 file"},
-    {content: "Step 10: Ask about updating Z01/Z02", status: "pending", activeForm: "Checking if updates needed"}
+    {content: "Step 1: Get current branch and changed files", status: "in_progress", activeForm: "Getting git status"},
+    {content: "Step 2: Read CLAUDE.md", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 3: Load Z01/Z02 plan files", status: "pending", activeForm: "Reading plan docs"},
+    {content: "Step 4: Assess implementation with feature-research", status: "pending", activeForm: "Running quality check"},
+    {content: "Step 5: Compare against plan", status: "pending", activeForm: "Checking deviations"},
+    {content: "Step 6: Present findings", status: "pending", activeForm: "Formatting summary"},
+    {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 8: Execute user choice", status: "pending", activeForm: "Applying fixes"},
+    {content: "Step 9: Create Z05 finish documentation", status: "pending", activeForm: "Writing Z05"}
   ]
 })
 ```
 
-**After completing each step:**
-- Mark current step as `completed`
-- Move `in_progress` to next step
-- Update `activeForm` with current action
+**After each step:** Mark completed, move `in_progress` to next step.
 
-**Example update after Step 0:**
-```typescript
-TodoWrite({
-  todos: [
-    {content: "Step 0: Detect repository pattern", status: "completed"},
-    {content: "Step 1: Detect current branch and changes", status: "in_progress", activeForm: "Running git diff main"},
-    {content: "Step 2: Load project context (CLAUDE.md)", status: "pending"},
-    // ... remaining steps
-  ]
-})
-```
+## Workflow Steps
 
-**CRITICAL:** Exactly ONE todo should be `in_progress` at any time. All others are `pending` or `completed`.
-
-## Mandatory Workflow
-
-**YOU MUST follow this exact sequence. No exceptions.**
-
-### 0. Detect Repository Pattern
-
-**Detect paths before proceeding:**
-
-Use Bash tool:
-```bash
-# Scan for existing Z01/Z02 files to find ongoing directory
-ONGOING_DIR=$(find . -name "Z0[12]_*.md" -type f 2>/dev/null | head -1 | xargs dirname)
-
-# If not found, check common directories
-if [ -z "$ONGOING_DIR" ]; then
-  if [ -d "docs/ai/ongoing" ]; then
-    ONGOING_DIR="docs/ai/ongoing"
-  elif [ -d ".ai/ongoing" ]; then
-    ONGOING_DIR=".ai/ongoing"
-  elif [ -d "docs/ongoing" ]; then
-    ONGOING_DIR="docs/ongoing"
-  else
-    ONGOING_DIR="docs/ai/ongoing"
-    mkdir -p "$ONGOING_DIR"
-  fi
-fi
-
-echo "Using ONGOING_DIR: $ONGOING_DIR"
-```
-
-Set variable:
-- `ONGOING_DIR` - Where Z01/Z02 files exist and Z05 finish file will be created
-
-### 1. Detect Current Branch and Changes
+### Step 1: Get Current Branch and Changed Files
 
 ```bash
-# Get current branch
 git branch --show-current
-
-# Get all changed files compared to main
 git diff main --name-only
 ```
 
-**Extract**:
+**Extract:**
 - Current branch name
-- List of all changed files
+- List of changed files
 
-**If on main branch**: Error - "Cannot run feature-finish from main branch. Switch to feature branch first."
+**If on main:** Error - "Cannot run from main. Switch to feature branch first."
 
-### 2. Load Project Context (MANDATORY)
+---
 
-**Read CLAUDE.md if it exists:**
+### Step 2: Read CLAUDE.md
 
-Use Read tool:
-```bash
-if [ -f CLAUDE.md ]; then
-  echo "Reading project guidelines..."
-  # Use Read tool to read CLAUDE.md
-fi
-```
+Read `CLAUDE.md` if it exists.
 
-**Extract from CLAUDE.md (if exists):**
-- Mandatory patterns implementation should follow
-- Forbidden approaches to check for violations
-- Project conventions to verify compliance
+Look for:
+- Mandatory patterns
+- Forbidden approaches
 - Code quality standards
 
-**This context is critical for assessing implementation quality in step 3.**
+You'll use these when assessing implementation.
 
-### 3. Load Plan Documentation
+---
 
-**Read Z01 and Z02 files** to understand what was planned:
+### Step 3: Load Z01/Z02 Plan Files
 
-```bash
-# Find Z01 research file (use detected path)
-ls $ONGOING_DIR/Z01_*_research.md
+**Find and read plan documentation:**
 
-# Find Z02 plan file (use detected path)
-ls $ONGOING_DIR/Z02_*_plan.md
-```
+Scan for Z01/Z02 files in common locations (docs/ai/ongoing, .ai/ongoing, etc.)
 
-**Extract feature name:**
-- From Z02 filename: `Z02_{feature}_plan.md` → feature name (already in snake_case)
-- Example: `Z02_oauth_authentication_plan.md` → "oauth_authentication"
-- Use this exact feature name for Z05 filename (maintain snake_case consistency)
-
-**Use Read tool** to load both files.
-
-**Extract**:
-- Feature name from filenames
+**Extract:**
+- Feature name from filenames (Z02_{feature}_plan.md)
 - Original requirements from Z01
 - Implementation plan from Z02
-- Key decisions and constraints
 
-**If Z01/Z02 not found**: Continue anyway, but note that no plan exists (ad-hoc implementation).
+**If not found:** Note "No plan found" and continue (ad-hoc implementation).
 
-### 4. Assess Implementation with feature-research
+**Save ONGOING_DIR location** - you'll create Z05 there.
 
-**REQUIRED**: Use Skill tool to invoke `feature-workflow:feature-research` on all changed files.
+---
 
-**Context to provide feature-research**:
+### Step 4: Assess Implementation with feature-research
+
+**Use Skill tool to invoke `feature-workflow:feature-research` on all changed files.**
+
+Give it:
 - List of changed files
 - Feature name from Z01/Z02
 - CLAUDE.md constraints (if exists)
 - Request: "Assess implementation quality: security issues, bugs, code quality problems, test gaps, deviations from plan, violations of CLAUDE.md patterns"
 
-**Parse research output** for structured findings:
+Parse research output for findings:
 - File path and line number
 - Issue type (security/bug/quality/test/deviation)
-- Description of issue
 - Severity (critical/high/medium/low)
 
-### 5. Compare Against Plan
+---
 
-**For each finding, assess**:
-- Is this a deviation from Z02 plan? (compare with plan steps)
-- Is this a legitimate improvement/adaptation?
-- Is this a mistake/oversight?
+### Step 5: Compare Against Plan
 
-**Track deviations**:
+For each finding, assess:
+- Is this a deviation from Z02 plan?
+- Is this a legitimate improvement?
+- Is this a mistake?
+
+Track:
 - Intentional changes (with reason)
 - Unintentional mistakes
 
-### 6. Present Findings Summary
+---
 
-Display in structured format:
+### Step 6: Present Findings
+
+Display summary:
 
 ```
 ## Feature Finish Assessment: {Feature Name}
@@ -193,11 +124,10 @@ Display in structured format:
 **Plan Status**: Found Z01/Z02 / No plan found
 
 ### Findings Summary
-- Critical issues: {count}
-- High priority: {count}
-- Medium priority: {count}
-- Low priority: {count}
-- Total: {count}
+- Critical: {count}
+- High: {count}
+- Medium: {count}
+- Low: {count}
 
 ### Issues by Type
 - Security: {count}
@@ -208,18 +138,17 @@ Display in structured format:
 
 ### Critical Issues (if any)
 1. {description} ({file}:{line})
-2. ...
-
-### Plan Deviations (if any)
-1. {description} - {intentional/mistake}
-2. ...
 ```
 
-### 7. User Decision Point (REQUIRED)
+**DO NOT suggest next steps. Proceed immediately to Step 7.**
 
-**STOP. YOU MUST use AskUserQuestion tool NOW. Do NOT proceed to step 7 until user responds.**
+---
 
-**If you are reading this, you have NOT asked the user yet. STOP and use AskUserQuestion RIGHT NOW.**
+### Step 7: Ask User What To Do
+
+**STOP. Use AskUserQuestion tool NOW.**
+
+**If you haven't asked the user yet, you are at Step 7. Ask NOW.**
 
 ```typescript
 AskUserQuestion({
@@ -228,35 +157,30 @@ AskUserQuestion({
     header: "Action",
     multiSelect: false,
     options: [
-      {
-        label: "Fix all",
-        description: "Automatically fix all issues using Edit tool"
-      },
-      {
-        label: "Loop issues",
-        description: "Go through each issue, decide fix/skip/explain individually"
-      },
-      {
-        label: "Document only",
-        description: "Save findings to Z05 file without making changes"
-      }
+      {label: "Fix all", description: "Automatically fix all issues using Edit tool"},
+      {label: "Loop issues", description: "Go through each issue, decide fix/skip/explain individually"},
+      {label: "Document only", description: "Save findings to Z05 file without making changes"}
     ]
   }]
 })
 ```
 
-**After calling AskUserQuestion, WAIT for user response. Do NOT continue reading this skill until user answers.**
+**Wait for user response before Step 8.**
 
-### 8. Execute User Choice (ONLY AFTER USER RESPONDS)
+---
 
-**Fix all**:
+### Step 8: Execute User Choice
+
+**If "Fix all":**
+
 For each issue:
 - Use Edit tool to apply fix
 - Verify edit succeeded
 - Track fixes applied
 
-**Loop issues**:
-Loop through each issue, ask user:
+**If "Loop issues":**
+
+For each issue, ask user:
 ```typescript
 AskUserQuestion({
   questions: [{
@@ -273,37 +197,23 @@ AskUserQuestion({
 })
 ```
 
-**If user chooses "Fix"**:
-- Use Edit tool to apply the fix
-- Verify edit succeeded
-- Continue to next issue
+Execute based on choice. If "Explain", user provides context → re-assess → ask again.
 
-**If user chooses "Skip"**:
-- Do nothing, continue to next issue
+**If "Document only":**
 
-**If user chooses "Explain"**:
-- User will provide additional context in their response
-- Re-read the code section with user's context
-- Re-invoke feature-research with the additional context
-- Present updated assessment incorporating user's context
-- Ask again: Fix / Skip / Explain / Stop (with updated reasoning)
-- Continue loop with new understanding
+Skip to Step 9.
 
-**If user chooses "Stop"**:
-- Stop processing, create Z05 documentation with what's been done so far
+---
 
-**Document only**:
-Create Z05 file (see section 8)
+### Step 9: Create Z05 Documentation
 
-### 9. Create Documentation (ALWAYS)
+**ALWAYS create Z05 file** (regardless of choice).
 
-**REGARDLESS of action choice, create Z05 file.**
+**Location:** `{ONGOING_DIR}/Z05_{feature}_finish.md`
 
-**Location**: `$ONGOING_DIR/Z05_{feature}_finish.md` (use detected path)
+**Use feature name from Z02 filename** (already in snake_case).
 
-**Use the exact feature name extracted from Z02_{feature}_plan.md** (already in snake_case from feature-research/feature-plan)
-
-**Format**:
+**Format:**
 ```markdown
 # Feature Finish: {Feature Name}
 
@@ -314,201 +224,96 @@ Create Z05 file (see section 8)
 
 ## Findings
 
-### Issue 1: {Issue Type} - {Description}
+### Issue 1: {Type} - {Description}
 - **File**: {file}:{line}
 - **Severity**: {severity}
-- **Description**: {detailed explanation}
-- **Plan Deviation**: Yes/No - {if yes, explain}
-- **User Context**: {if user provided explanation, include it here}
+- **Description**: {explanation}
+- **Plan Deviation**: Yes/No
+- **User Context**: {if provided}
 - **Action**: Fixed / Skipped / Explained
-- **Status**: ✓ Applied / ⊘ Skipped / ℹ User provided context
+- **Status**: ✓ Applied / ⊘ Skipped / ℹ Context
 
 ### Issue 2: ...
-[Continue for all issues]
 
 ## Summary
-- Total issues: {count}
+- Total: {count}
 - Fixed: {count}
-- Skipped: {count}
-- Explained (user context): {count}
-- By severity:
-  - Critical: {count}
-  - High: {count}
-  - Medium: {count}
-  - Low: {count}
-- By type:
-  - Security: {count}
-  - Bugs: {count}
-  - Code Quality: {count}
-  - Tests: {count}
-  - Plan Deviations: {count}
+- By severity: Critical {count}, High {count}, etc.
+- By type: Security {count}, Bugs {count}, etc.
 
 ## Plan Deviations
-{List intentional vs unintentional deviations}
+{List intentional vs unintentional}
 
 ## Recommendations
-{Any follow-up actions needed}
+{Follow-up actions}
 ```
 
-### 10. Update Z01/Z02 if Needed
+**If implementation deviated from plan:** Ask if user wants to update Z01/Z02 to reflect actual work.
 
-**If there were intentional plan deviations**:
+---
 
-**Check if updates needed**:
-- Did we add features not in Z01?
-- Did we change approach from Z02?
-- Did we skip planned features?
+## Red Flags - You're Failing If:
 
-**If yes, use AskUserQuestion**:
-```typescript
-AskUserQuestion({
-  questions: [{
-    question: "Implementation deviated from plan. Update Z01/Z02 documentation?",
-    header: "Update Docs",
-    multiSelect: false,
-    options: [
-      {
-        label: "Update both",
-        description: "Update Z01 requirements and Z02 plan to reflect actual implementation"
-      },
-      {
-        label: "Skip",
-        description: "Leave Z01/Z02 as-is (shows original plan vs actual)"
-      }
-    ]
-  }]
-})
-```
-
-**If user chooses "Update both"**:
-- Use Edit tool to update Z01 with actual features implemented
-- Use Edit tool to update Z02 with actual implementation approach
-- Add note: "Updated post-implementation on {date} to reflect actual work"
-
-## Using "Explain" to Provide Context
-
-When user chooses "Explain" during issue loop:
-
-**Purpose**: User has additional context about:
-- Why code was written this way (technical constraints)
-- Business requirements not visible in code
-- Future plans that justify current implementation
-- Trade-offs made intentionally
-
-**Workflow**:
-1. User provides context in their response (free text)
-2. Re-read the relevant code file with user's context
-3. Re-assess the issue with new information
-4. Present updated assessment incorporating user's context
-5. Ask user again: Fix / Skip / Explain / Stop (now with full picture)
-
-**Example**:
-```
-Issue: "Function has high complexity, should be refactored"
-Initial Assessment: Medium severity - code quality issue
-
-User chooses "Explain" and says:
-"This complexity is intentional - we're migrating from old system and need to handle
-5 different legacy formats during transition period. Will be cleaned up in Q2."
-
-Updated Assessment: Low severity - temporary technical debt with planned resolution
-→ Mark as Skip with context documented
-```
-
-**Document in Z05**:
-- Include user's context verbatim
-- Show how it changed the assessment
-- Mark with "ℹ User provided context" status
-
-## Red Flags - STOP and Follow Workflow
-
-- Skipped Step 0 (path detection)
-- Skipped Step 2 (CLAUDE.md loading)
-- CLAUDE.md exists but was not read
-- Running from same context as feature-implement (need fresh context)
-- Skipping feature-research assessment
-- Not reading Z01/Z02 files
-- Not passing CLAUDE.md constraints to feature-research
-- Skipping user choice step (not using AskUserQuestion)
-- Not creating Z05 documentation
-- **Drafting fixes but not applying them with Edit tool**
-- **Documenting issues in Z05 instead of fixing when user chose 'Fix'**
-- Making assumptions about what user wants
-
-**All of these mean**: Stop. Follow the workflow exactly.
+- **Presenting findings without using AskUserQuestion** ← MOST COMMON FAILURE
+- **Running from same context as feature-implement** (need fresh context)
+- **Skipping CLAUDE.md** (exists but not read)
+- **Not reading Z01/Z02 files**
+- **Skipping feature-research assessment**
+- **Drafting fixes but not applying with Edit tool**
+- **Documenting in Z05 instead of fixing when user chose 'Fix'**
+- **Asking "would you like me to..." in prose instead of AskUserQuestion**
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
-| "I can see what user wants, skip AskUserQuestion" | **NO. Use AskUserQuestion. Not optional. STOP and ask.** |
-| "User obviously wants fixes, no need to ask" | **NO. ALWAYS ask. User might want document-only. Use AskUserQuestion.** |
-| "I'll just start fixing, user can stop me" | **NO. Ask BEFORE any action. Use AskUserQuestion NOW.** |
-| "Assessment done, I can proceed" | **NO. Step 6 requires AskUserQuestion. You have NOT done step 6 yet.** |
-| "I drafted fixes, that's enough" | **NO. Use Edit tool to APPLY fixes. Draft is not applied.** |
-| "I'll document in Z05, no need to fix" | **NO. User chose 'Fix' = apply changes. Use Edit tool.** |
-| "Implementation looks good, skip assessment" | **NO. Always use feature-research. Fresh eyes find issues.** |
-| "I remember from feature-implement context" | **NO. This runs from FRESH context. Use feature-research.** |
-| "Z01/Z02 not found, skip reading" | **NO. Try to find them. If truly missing, note it and continue.** |
-| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
-| "I can track steps mentally" | **NO.** Mental tracking fails under pressure. Use TodoWrite tool NOW. |
-| "Quality check is exploratory, no tracking needed" | **NO.** 11 mandatory steps with user decisions. MUST track with TodoWrite. |
+| **"Assessment done, I can proceed"** | **NO.** Step 7 requires AskUserQuestion. You have NOT done Step 7 yet. |
+| **"User obviously wants fixes, no need to ask"** | **NO.** ALWAYS ask. User might want document-only. Use AskUserQuestion. |
+| **"I'll just start fixing, user can stop me"** | **NO.** Ask BEFORE any action. Use AskUserQuestion NOW. |
+| **"I can see what user wants, skip AskUserQuestion"** | **NO.** Use AskUserQuestion. Not optional. STOP and ask. |
+| **"I drafted fixes, that's enough"** | **NO.** Use Edit tool to APPLY fixes. Draft is not applied. |
+| **"I'll document in Z05, no need to fix"** | **NO.** User chose 'Fix' = apply changes. Use Edit tool. |
+| "Implementation looks good, skip assessment" | **NO.** Always use feature-research. Fresh eyes find issues. |
+| "I remember from feature-implement context" | **NO.** This runs from FRESH context. Use feature-research. |
+| "Z01/Z02 not found, skip reading" | **NO.** Try to find them. If truly missing, note it and continue. |
+| "Quality check is exploratory, no tracking" | **NO.** 9 mandatory steps with decisions. MUST use TodoWrite. |
 
-## Error Handling
+## Using "Explain" Option
 
-**On main branch**:
-```
-Cannot run feature-finish from main branch.
-Switch to feature branch: git checkout <feature-branch>
-```
+When user chooses "Explain" during issue loop:
 
-**No changed files**:
-```
-No files changed compared to main.
-Either:
-- Already merged and on main
-- No work done on this branch
-- Wrong branch checked out
-```
+**Purpose:** User provides context about:
+- Why code was written this way
+- Business requirements not visible in code
+- Future plans justifying implementation
 
-**Z01/Z02 not found**:
-```
-No Z01/Z02 files found for this feature.
-Continuing with assessment, but cannot compare against original plan.
-This may be an ad-hoc implementation without formal planning.
-```
+**Workflow:**
+1. User provides context
+2. Re-read code with new context
+3. Re-assess issue
+4. Present updated assessment
+5. Ask again with new understanding
 
-**feature-research unavailable**:
-Fallback to Read tool for basic code context (less systematic, but workable)
+**Document in Z05** with user's context verbatim.
 
-**Edit tool failures**:
-Report which fixes failed, continue with others. Add to Z05 documentation with failure note.
+---
 
 ## Success Criteria
 
-You followed the workflow correctly if:
+You followed the workflow if:
 - ✓ Ran from fresh context (no feature-implement history)
 - ✓ Used git diff to get changed files
-- ✓ Attempted to read Z01/Z02 files
-- ✓ Invoked feature-research skill on all changed files
-- ✓ Compared implementation against plan (if plan exists)
-- ✓ Presented findings summary by severity and type
-- ✓ Used AskUserQuestion for user choice
-- ✓ **Applied fixes with Edit tool (not just drafts)**
-- ✓ **Verified each edit succeeded**
-- ✓ Created Z05 documentation file
-- ✓ Asked about updating Z01/Z02 if deviations found
-- ✓ Resisted all rationalization pressures
+- ✓ Read Z01/Z02 files (or noted missing)
+- ✓ Invoked feature-research on all changed files
+- ✓ Compared against plan (if exists)
+- ✓ Used AskUserQuestion (not prose suggestions)
+- ✓ Applied fixes with Edit tool (not drafts)
+- ✓ Created Z05 documentation
+- ✓ Resisted rationalization pressures
 
-## When to Use This Skill
+## When to Use
 
-- **After feature-implement completes** (before creating PR)
-- **Before merging to main** (final quality gate)
-- **When revisiting old feature branch** (assess current state)
-- **After manual coding without feature-implement** (quality check)
-
-## When NOT to Use This Skill
-
-- During active implementation (use feature-implement instead)
-- For reviewing someone else's PR (use feature-prreview instead)
-- For fixing PR review comments (use feature-prfix instead)
+- After feature-implement completes (before PR)
+- Before merging to main (final quality gate)
+- When revisiting old feature branch
+- After manual coding without feature-implement
