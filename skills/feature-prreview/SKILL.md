@@ -7,11 +7,11 @@ description: Use when reviewing pull request changes before providing feedback -
 
 ## Overview
 
-**Systematically review PR changes using feature-research skill, present findings, and handle user choices about commenting vs documentation.**
+**Systematically review PR changes following a step-by-step workflow with mandatory TodoWrite tracking. Analyze code in context, present findings, and handle user choices about commenting vs documentation.**
 
-**Workflow Position:**: Flow agnostic
+**Workflow Position:** Flow agnostic
 
-**Core principle**: Don't review code ad-hoc. Use gh CLI + feature-research + structured workflow.
+**Core principle**: Follow the 9-step workflow exactly. Create TodoWrite list first. Switch to PR branch before reading any files. Track progress through each step. Don't skip steps or rationalize shortcuts.
 
 ## Progress Tracking
 
@@ -26,7 +26,7 @@ TodoWrite({
     {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
     {content: "Step 4: Get changed files (gh pr diff --name-only)", status: "pending", activeForm: "Listing changed files"},
-    {content: "Step 5: Analyze with feature-research", status: "pending", activeForm: "Running deep code analysis"},
+    {content: "Step 5: Analyze changes (invoke feature-research skill)", status: "pending", activeForm: "Invoking feature-research for code analysis"},
     {content: "Step 6: Present findings (security/quality/testing)", status: "pending", activeForm: "Formatting review findings"},
     {content: "Step 7: User decision (AskUserQuestion: Comment all/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
     {content: "Step 8: Comment format sub-choice (Separate/Single review)", status: "pending", activeForm: "Choosing comment format"},

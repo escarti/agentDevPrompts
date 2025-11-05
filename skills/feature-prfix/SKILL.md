@@ -7,11 +7,11 @@ description: Use when addressing PR review comments - assesses comment validity 
 
 ## Overview
 
-**Systematically assess PR review comments using feature-research skill, distinguish valid bugs from subjective preferences, and handle user choices about fixing vs refuting.**
+**Systematically assess PR review comments following a step-by-step workflow with mandatory TodoWrite tracking. Verify comment validity, distinguish real bugs from style preferences, and handle user choices about fixing vs refuting.**
 
-**Workflow Position:**: Flow agnostic
+**Workflow Position:** Flow agnostic
 
-**Core principle**: Don't blindly accept all reviewer comments. Verify claims with feature-research before fixing or refuting.
+**Core principle**: Follow the 8-step workflow exactly. Create TodoWrite list first. Switch to PR branch before reading any files. Assess each comment's validity before acting. Track progress through each step. Don't skip steps or rationalize shortcuts.
 
 ## Progress Tracking
 
@@ -26,7 +26,7 @@ TodoWrite({
     {content: "Step 2: Load project context (CLAUDE.md)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Verify PR details (gh pr view)", status: "pending", activeForm: "Fetching PR details"},
     {content: "Step 4: Fetch review comments (gh pr view --comments)", status: "pending", activeForm: "Retrieving comments"},
-    {content: "Step 5: Assess each comment with feature-research", status: "pending", activeForm: "Analyzing comment validity"},
+    {content: "Step 5: Assess all comments (invoke feature-research once)", status: "pending", activeForm: "Invoking feature-research to validate all claims"},
     {content: "Step 6: Present assessments (valid/invalid/discuss)", status: "pending", activeForm: "Formatting findings"},
     {content: "Step 7: User decision (AskUserQuestion: Auto/Review/Document)", status: "pending", activeForm: "Awaiting user choice"},
     {content: "Step 8: Execute user choice (fix/refute/loop)", status: "pending", activeForm: "Processing comments"}
@@ -181,17 +181,17 @@ gh pr view --comments --json comments,reviews
 
 **IMPORTANT**: Save the comment ID for each review comment. You need this to reply to comments in the correct thread.
 
-### 5. Assess Each Comment with feature-research
+### 5. Assess All Comments with feature-research
 
-**REQUIRED**: For EACH comment, use Skill tool to invoke `feature-workflow:feature-research` on the specific code section.
+**REQUIRED**: Use Skill tool to invoke `feature-workflow:feature-research` ONCE with all comments together.
 
 **Context to provide feature-research**:
-- File path and line number from comment
-- Comment text from reviewer
+- List of ALL review comments with their file paths and line numbers
+- Full comment text from each reviewer
 - CLAUDE.md constraints (if exists) to validate against project patterns
-- Request: "Assess if this comment identifies a real bug/security issue or is a subjective style preference. Consider CLAUDE.md patterns when evaluating. Provide technical reasoning."
+- Request: "Assess each of these PR review comments. For each comment, determine if it identifies a real bug/security issue or is a subjective style preference. Consider CLAUDE.md patterns when evaluating. Provide technical reasoning for each assessment."
 
-**Parse research output** to generate assessment:
+**Parse research output** to generate assessment for each comment:
 - **Is claim valid?** (identifies real bug/security issue vs subjective preference)
 - **Is it actionable?** (can be fixed programmatically)
 - **Category**: bug / security / observability / style / subjective

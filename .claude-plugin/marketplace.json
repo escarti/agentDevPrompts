@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Complete feature development workflow: research, planning, automated execution, logging, final quality check, and PR workflows. Includes finish, review, and fix skills. Extends superpowers by obra with context-aware wrappers.",
-    "version": "1.6.3",
+    "version": "1.6.4",
     "license": "MIT"
   },
   "plugins": [
@@ -14,7 +14,7 @@
       "name": "feature-workflow",
       "source": "./",
       "description": "Complete feature development workflow: research, planning, automated execution with code review checkpoints, development logging, final quality check, and PR workflows (review/fix). Extends superpowers by obra with context-aware wrappers.",
-      "version": "1.6.3",
+      "version": "1.6.4",
       "author": {
         "name": "Eduardo Escarti"
       }
