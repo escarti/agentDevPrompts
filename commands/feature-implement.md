@@ -1,1 +1,5 @@
+---
+description: Execute plan in batches with review checkpoints, automatically loads context
+---
+
 Use the feature-workflow:feature-implement skill to execute an implementation plan from Z02 plan files with automatic context loading from Z01 research, Z02 plan, and CLAUDE.md files. After successful execution, automatically invokes feature-workflow:feature-document to consolidate artifacts and clean up Z0* files.
