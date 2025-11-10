@@ -1,5 +1,5 @@
 ---
-description: Address PR review comments - assess validity, fix bugs, or refute with evidence
+description: Address PR review comments using structured workflow
 ---
 
-Use the feature-workflow:feature-prfix skill to systematically address PR review comments using feature-research, assess comment validity, distinguish bugs from style preferences, and fix valid issues or refute invalid ones with evidence-based responses.
+Use the feature-workflow:feature-pr-fixing skill exactly as written

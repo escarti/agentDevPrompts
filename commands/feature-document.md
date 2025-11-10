@@ -1,5 +1,5 @@
 ---
-description: Consolidate research/plan/implementation into timestamped dev log after completion
+description: Consolidate artifacts into dev log using structured workflow with custom patterns
 ---
 
-Use and follow the feature-workflow:feature-document skill exactly as written
+Use the feature-workflow:feature-documenting skill exactly as written

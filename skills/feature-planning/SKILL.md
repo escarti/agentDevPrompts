@@ -1,6 +1,6 @@
 ---
-name: feature-plan
-description: Use after research (Z01 files exist) when you need to create implementation plan - wrapper that loads Z01 research context, invokes superpowers:writing-plans, and saves to Z02_{feature}_plan.md in docs/ai/ongoing/
+name: feature-planning
+description: Use after research (Z01 files exist) to create implementation plan - follow structured workflow
 ---
 
 # Feature Workflow: Plan Implementation
@@ -67,7 +67,7 @@ Scan for existing Z01 files in common locations (docs/ai/ongoing, .ai/ongoing, d
 - Feature name should already be sanitized snake_case from feature-research
 
 **If NO Z01 files found:**
-- Ask user if they want to run feature-workflow:feature-research first
+- Ask user if they want to run feature-workflow:feature-researching first
 - Or proceed without research context (suboptimal)
 
 ---
@@ -123,7 +123,7 @@ When superpowers:writing-plans completes:
 **Report to user:**
 - "Plan created: Z02_{feature}_plan.md"
 - If clarifications: "Blocking questions in Z02_CLARIFY_{feature}_plan.md"
-- Next step: "Review clarifications, then use feature-workflow:feature-implement"
+- Next step: "Review clarifications, then use feature-workflow:feature-implementing"
 
 ---
 

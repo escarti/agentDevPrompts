@@ -1,6 +1,6 @@
 ---
-name: feature-implement
-description: Execute plan in batches with review checkpoints - automatically loads context from Z01 research, Z02 plan, and CLAUDE.md files
+name: feature-implementing
+description: Use to execute implementation plan (Z02 files) in batches - follow structured workflow
 category: Implementation
 ---
 
@@ -44,7 +44,7 @@ Scan for Z02 plan files in common locations (docs/ai/ongoing, .ai/ongoing, docs/
 - Otherwise → ask which plan to execute
 
 **If NO Z02 plan exists:**
-- Ask: "No plan found. Should I run feature-workflow:feature-plan first?"
+- Ask: "No plan found. Should I run feature-workflow:feature-planning first?"
 - Do NOT proceed without a plan
 
 **Extract feature name from filename:**
@@ -136,14 +136,14 @@ Run project tests (pytest, npm test, etc.)
 
 ### Step 6: Invoke Development Logging
 
-**MANDATORY:** Automatically invoke `feature-workflow:feature-document`
+**MANDATORY:** Automatically invoke `feature-workflow:feature-documenting`
 
 Use Skill tool:
 ```
-feature-workflow:feature-document
+feature-workflow:feature-documenting
 ```
 
-feature-document will:
+feature-documenting will:
 1. Create consolidated dev log with all Z01/Z02 files
 2. Update README/docs if needed
 3. Remove ALL Z01-Z05 files from ongoing directory

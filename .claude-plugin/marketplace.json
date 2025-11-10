@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Complete feature development workflow: research, planning, automated execution, logging, final quality check, and PR workflows. Includes finish, review, and fix skills. Extends superpowers by obra with context-aware wrappers.",
-    "version": "1.9.8",
+    "version": "1.10.0",
     "license": "MIT"
   },
   "plugins": [
@@ -17,7 +17,7 @@
         "url": "https://github.com/escarti/agentDevPrompts.git"
       },
       "description": "Complete feature development workflow: research, planning, automated execution with code review checkpoints, development logging, final quality check, and PR workflows (review/fix). Extends superpowers by obra with context-aware wrappers.",
-      "version": "1.9.8",
+      "version": "1.10.0",
       "author": {
         "name": "Eduardo Escarti"
       }

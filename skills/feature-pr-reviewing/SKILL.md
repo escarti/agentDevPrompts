@@ -1,6 +1,6 @@
 ---
-name: feature-prreview
-description: Use when reviewing pull request changes before providing feedback - analyzes PR with feature-research, presents structured findings, offers user choices for commenting or documentation
+name: feature-pr-reviewing
+description: Use when reviewing pull request changes - follow structured workflow
 ---
 
 # feature-prreview: PR Review with Research-Driven Analysis
@@ -81,7 +81,7 @@ You need:
 
 ### Step 4: Analyze with feature-research
 
-**Use Skill tool to invoke `feature-workflow:feature-research`**
+**Use Skill tool to invoke `feature-workflow:feature-researching`**
 
 Give it:
 - Changed files list

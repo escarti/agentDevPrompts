@@ -1,6 +1,6 @@
 ---
-name: feature-document
-description: Use when implementation is complete and tests pass - consolidates research, plan, implementation, and PR workflow (Z01-Z05) into timestamped dev log, cleans up all temporary files, and generates PR description
+name: feature-documenting
+description: Use when implementation complete and tests pass - follow structured workflow with custom patterns
 category: Documentation
 ---
 

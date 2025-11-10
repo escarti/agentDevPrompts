@@ -5,7 +5,7 @@
 This repository is a **Claude Code marketplace** containing the **feature-workflow plugin**.
 
 **Repository**: `escarti/agentDevPrompts`
-**Plugin**: `feature-workflow` (feature-research, feature-plan, feature-implement, feature-document skills)
+**Plugin**: `feature-workflow` (feature-researching, feature-planning, feature-implementing, feature-documenting, feature-finishing, feature-pr-reviewing, feature-pr-fixing skills)
 
 ## Release Workflow
 
@@ -113,13 +113,19 @@ agentDevPrompts/
 │   └── marketplace.json        # VERSION MUST MATCH GIT TAG
 ├── plugin.json                 # Plugin manifest
 ├── skills/                     # Skills directory
-│   ├── feature-research/
+│   ├── feature-researching/
 │   │   └── SKILL.md
-│   ├── feature-plan/
+│   ├── feature-planning/
 │   │   └── SKILL.md
-│   ├── feature-implement/
+│   ├── feature-implementing/
 │   │   └── SKILL.md
-│   └── feature-document/
+│   ├── feature-documenting/
+│   │   └── SKILL.md
+│   ├── feature-finishing/
+│   │   └── SKILL.md
+│   ├── feature-pr-reviewing/
+│   │   └── SKILL.md
+│   └── feature-pr-fixing/
 │       └── SKILL.md
 ├── CLAUDE.md                   # This file (development guidelines)
 ├── PUBLISHING.md               # Detailed publishing guide
@@ -157,7 +163,7 @@ agentDevPrompts/
 All skills must follow these standardized rules for creating temporary workflow files:
 
 ### Feature Names (Code-Related)
-**Used by:** feature-research, feature-plan, feature-implement, feature-finish
+**Used by:** feature-researching, feature-planning, feature-implementing, feature-finishing
 **Files:** Z01_*.md, Z02_*.md, Z05_*.md
 
 **Rules:**
@@ -168,7 +174,7 @@ All skills must follow these standardized rules for creating temporary workflow 
 - **Example:** "OAuth 2.0 Authentication!" → "oauth_2_0_authentication"
 
 ### PR Titles (User-Generated)
-**Used by:** feature-prreview, feature-prfix
+**Used by:** feature-pr-reviewing, feature-pr-fixing
 **Files:** Z03_*.md, Z04_*.md
 
 **Rules:**
@@ -275,10 +281,13 @@ When releasing a version:
 **Local Testing:**
 ```bash
 # Use symlinks for development
-ln -s ~/Projects/Personal/prompts/skills/feature-research ~/.claude/skills/feature-research
-ln -s ~/Projects/Personal/prompts/skills/feature-plan ~/.claude/skills/feature-plan
-ln -s ~/Projects/Personal/prompts/skills/feature-implement ~/.claude/skills/feature-implement
-ln -s ~/Projects/Personal/prompts/skills/feature-document ~/.claude/skills/feature-document
+ln -s ~/Projects/Personal/prompts/skills/feature-researching ~/.claude/skills/feature-researching
+ln -s ~/Projects/Personal/prompts/skills/feature-planning ~/.claude/skills/feature-planning
+ln -s ~/Projects/Personal/prompts/skills/feature-implementing ~/.claude/skills/feature-implementing
+ln -s ~/Projects/Personal/prompts/skills/feature-documenting ~/.claude/skills/feature-documenting
+ln -s ~/Projects/Personal/prompts/skills/feature-finishing ~/.claude/skills/feature-finishing
+ln -s ~/Projects/Personal/prompts/skills/feature-pr-reviewing ~/.claude/skills/feature-pr-reviewing
+ln -s ~/Projects/Personal/prompts/skills/feature-pr-fixing ~/.claude/skills/feature-pr-fixing
 
 # Test skills in Claude Code
 # Verify changes work as expected

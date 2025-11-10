@@ -1,5 +1,5 @@
 ---
-description: Research codebase before planning/coding to produce thorough directive specification
+description: Research codebase using structured workflow with custom patterns
 ---
 
-Use and follow the feature-workflow:feature-research skill exactly as written
+Use the feature-workflow:feature-researching skill exactly as written

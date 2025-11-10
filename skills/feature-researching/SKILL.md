@@ -1,6 +1,6 @@
 ---
-name: feature-research
-description: Use after brainstorming is complete but before planning implementation, when you need technical details about integration points, APIs, data shapes, or existing patterns - produces directive specification with all ambiguities extracted to structured clarification file
+name: feature-researching
+description: Use after brainstorming but before planning implementation - produces directive specification
 ---
 
 # Feature Research

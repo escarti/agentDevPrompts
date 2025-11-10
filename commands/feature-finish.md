@@ -1,5 +1,5 @@
 ---
-description: Final quality check with feature-research from fresh context before merge
+description: Perform final quality check using structured workflow with custom patterns
 ---
 
-Use the feature-workflow:feature-finish skill to perform final quality check after feature-implement. Run from fresh context. Assesses implementation with feature-research, identifies issues, offers fix/loop/document choices, and updates Z01/Z02 if implementation deviated from plan.
+Use the feature-workflow:feature-finishing skill exactly as written

@@ -1,6 +1,6 @@
 ---
-name: feature-prfix
-description: Use when addressing PR review comments - REQUIRES TodoWrite first (Iron Law), then follows structured 7-step workflow to assess comment validity with feature-research, distinguish bugs from style preferences, and fix valid issues or refute invalid ones with evidence
+name: feature-pr-fixing
+description: Use when addressing PR review comments - follow structured workflow
 ---
 
 # feature-prfix: Address PR Review Comments with Research-Driven Assessment
@@ -99,7 +99,7 @@ You need:
 
 ### Step 4: Assess ALL Comments with feature-research
 
-**Use Skill tool to invoke `feature-workflow:feature-research` ONCE with ALL comments.**
+**Use Skill tool to invoke `feature-workflow:feature-researching` ONCE with ALL comments.**
 
 Give it:
 - List of ALL review comments with file paths/lines

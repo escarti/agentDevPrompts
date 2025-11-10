@@ -12,11 +12,17 @@ This repository is a **marketplace** that contains the **feature-workflow plugin
 ```
 agentDevPrompts/
 ├── .claude-plugin/
-│   └── marketplace.json    # Marketplace catalog (required)
-├── plugin.json             # Plugin manifest
-├── skills/                 # Plugin skills
-│   ├── feature-research/
-│   └── development-logging/
+│   ├── marketplace.json    # Marketplace catalog (required)
+│   └── plugin.json        # Plugin manifest
+├── commands/              # Slash commands
+├── skills/                # Plugin skills (gerund form)
+│   ├── feature-researching/
+│   ├── feature-planning/
+│   ├── feature-implementing/
+│   ├── feature-documenting/
+│   ├── feature-finishing/
+│   ├── feature-pr-reviewing/
+│   └── feature-pr-fixing/
 └── ...
 ```
 
@@ -44,7 +50,7 @@ git push origin v1.0.0
 # Create GitHub release via gh CLI
 gh release create v1.0.0 \
   --title "v1.0.0 - Initial Release" \
-  --notes "Initial release with feature-research and development-logging skills"
+  --notes "Release v{VERSION} with feature-workflow skills"
 ```
 
 ### 3. Test Installation
@@ -85,7 +91,7 @@ Always test locally first:
 
 ```bash
 # Manual installation for testing
-ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-research ~/.claude/skills/feature-research
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-researching ~/.claude/skills/feature-researching
 ln -s ~/Projects/Personal/agentDevPrompts/skills/development-logging ~/.claude/skills/development-logging
 
 # Verify skills work in Claude Code

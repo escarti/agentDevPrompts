@@ -1,6 +1,6 @@
 ---
-name: feature-finish
-description: Use after feature-implement completes - performs final quality check with feature-research from fresh context, identifies issues, offers fix/loop/document choices, updates Z01/Z02 if implementation deviated from plan
+name: feature-finishing
+description: Use after feature-implementing completes - performs final quality check from fresh context
 ---
 
 # feature-finish: Final Quality Check Before Merge
@@ -84,7 +84,7 @@ Scan for Z01/Z02 files in common locations (docs/ai/ongoing, .ai/ongoing, etc.)
 
 ### Step 4: Assess Implementation with feature-research
 
-**Use Skill tool to invoke `feature-workflow:feature-research` on all changed files.**
+**Use Skill tool to invoke `feature-workflow:feature-researching` on all changed files.**
 
 Give it:
 - List of changed files
