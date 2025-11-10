@@ -191,6 +191,34 @@ All skills must follow these standardized rules for creating temporary workflow 
 
 ## Skill Development
 
+### CRITICAL: Naming and Description Guidelines
+
+**NEVER name commands and skills identically.** This causes name collision where agents load command descriptions instead of skills.
+
+**Naming Convention:**
+- **Skills** use gerund form: `feature-researching`, `feature-planning` (describes the capability)
+- **Commands** use imperative form: `/feature-research`, `/feature-plan` (describes the action)
+
+**Description Guidelines:**
+
+**DO:**
+- Keep descriptions deliberately vague and minimal
+- Force agents to read the full skill/command to understand the workflow
+- Use pattern: "Use when [trigger] - [minimal outcome]"
+- Example: "Use when reviewing pull request changes - follow structured workflow"
+
+**DON'T:**
+- Provide step-by-step details in descriptions
+- Explain HOW the workflow works
+- Give enough information for agents to "jump to conclusions"
+- Example (BAD): "Use when reviewing PRs - analyzes with feature-researching, presents findings, offers user choices for commenting or documentation"
+
+**Why:** Detailed descriptions allow agents to think they understand without reading the skill, leading to violations of the actual workflow. Vague descriptions force thorough reading.
+
+**Command Files:**
+- Should simply state: "Use the [plugin]:[skill-name] skill exactly as written"
+- No additional explanation or workflow details
+
 ### Creating New Skills
 
 Follow superpowers:writing-skills methodology:
