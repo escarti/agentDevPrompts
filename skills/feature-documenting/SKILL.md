@@ -27,7 +27,7 @@ TodoWrite({
     {content: "Step 4: Update README/docs if needed", status: "pending", activeForm: "Updating docs"},
     {content: "Step 5: Clean up ALL Z01-Z05 files", status: "pending", activeForm: "Removing temp files"},
     {content: "Step 6: Generate PR description", status: "pending", activeForm: "Creating PR description"},
-    {content: "Step 7: Ask about PR creation (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"}
+    {content: "Step 7: Check for existing PR and ask next steps", status: "pending", activeForm: "Checking PR status"}
   ]
 })
 ```
@@ -209,10 +209,46 @@ One sentence: what this PR does.
 
 ---
 
-### Step 7: Ask About PR Creation
+### Step 7: Check for Existing PR and Ask About Next Steps
 
-**Use AskUserQuestion tool:**
+**First, check if PR already exists:**
+```bash
+gh pr view --json number,title,url
+```
 
+**If PR exists:**
+
+Use AskUserQuestion:
+```typescript
+AskUserQuestion({
+  questions: [{
+    question: "PR already exists. How should I proceed?",
+    header: "Update PR",
+    multiSelect: false,
+    options: [
+      {label: "Update existing PR", description: "Commit and push to update the PR"},
+      {label: "Manual commit", description: "I'll commit and push manually"}
+    ]
+  }]
+})
+```
+
+**If "Update existing PR":**
+- Stage the dev log file
+- Stage the Z-file deletions
+- Stage any documentation updates
+- Commit with descriptive message
+- Push to remote (updates existing PR automatically)
+- Return PR URL
+
+**If "Manual commit":**
+- Remind user what needs to be staged and committed
+
+---
+
+**If NO PR exists:**
+
+Use AskUserQuestion:
 ```typescript
 AskUserQuestion({
   questions: [{
@@ -228,14 +264,20 @@ AskUserQuestion({
 ```
 
 **If Yes:**
-- Commit changes
+- Stage the dev log file
+- Stage the Z-file deletions
+- Stage any documentation updates
+- Commit with descriptive message
 - Push to remote
-- Run `gh pr create` with generated description
+- Create PR with `gh pr create` using generated description
 - Return PR URL
 
 **If No:**
 - Confirm completion
-- Remind user to commit/push/create PR manually
+- Remind user what needs to be staged and committed:
+  - Dev log file
+  - Z-file deletions
+  - Documentation updates
 
 ---
 
@@ -246,8 +288,11 @@ AskUserQuestion({
 - **Only removing Z01/Z02 (must remove ALL Z01-Z05)**
 - **Not checking for Z03/Z04/Z05 files**
 - **Z03/Z04/Z05 exist but not included in dev log**
-- **Not asking about PR creation with AskUserQuestion**
+- **Not checking for existing PR before asking about creation**
+- **Not asking about PR creation/update with AskUserQuestion**
 - **Asking "would you like me to..." in prose instead of tool**
+- **Committing without staging dev log and Z-file deletions**
+- **Staging only some changes (must stage dev log + deletions + docs)**
 
 ## Common Rationalizations
 
@@ -261,6 +306,7 @@ AskUserQuestion({
 | "Dev log is documentation, skip TodoWrite" | **NO.** 7 steps with cleanup = MUST track. |
 | "Implementation is simple, skip docs update" | **NO.** Check README/CHANGELOG. Feature needs docs. |
 | "I'll suggest next steps in prose" | **NO.** Use AskUserQuestion tool for PR creation. |
+| "git commit -a stages everything" | **NO.** Explicitly stage dev log, deletions, and docs. Verify with git status. |
 
 ## Success Criteria
 
@@ -273,5 +319,7 @@ You followed the workflow if:
 - ✓ Removed ALL Z01-Z05 files (not just Z01/Z02)
 - ✓ Verified no Z0*.md files remain
 - ✓ Generated PR description
-- ✓ Used AskUserQuestion for PR creation (not prose)
-- ✓ Created PR if user chose Yes
+- ✓ Checked for existing PR with `gh pr view`
+- ✓ Used AskUserQuestion for PR creation/update (not prose)
+- ✓ Staged dev log, Z-file deletions, and docs before committing
+- ✓ Created/updated PR if user chose Yes
