@@ -1,6 +1,6 @@
 ---
 name: feature-researching
-description: Use after brainstorming but before planning implementation - produces directive specification
+description: Use when change proposal presented - follow structured research workflow to produce directive specification
 ---
 
 # Feature Research
