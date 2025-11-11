@@ -192,14 +192,16 @@ Report back: Root cause, fix applied, verification result.
 
 For each INVALID comment:
 - Draft refutation with technical reasoning from feature-research assessment
-- Post as reply to comment thread using:
+- Post as reply to comment thread (CRITICAL: must include PR_NUM in path):
   ```bash
   gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments/{COMMENT_ID}/replies \
     -X POST \
     -f body="{refutation text}"
   ```
 - **DO NOT use `gh pr comment`** (creates top-level, not reply)
-- Verify reply posted successfully
+- **DO NOT omit PR_NUM from path** (will get 404)
+- **See "Replying to Review Comments" section below for detailed format**
+- Verify reply posted successfully (should return 201 Created)
 
 ---
 
@@ -235,11 +237,23 @@ Post refutation as reply (same gh api command as "Auto" mode above).
 
 User provides context → re-invoke feature-research with new context → update assessment → ask again.
 
+---
+
+**Z04 File Creation (Conditional):**
+
+**If "Auto: fix valid, refute invalid":**
+- All comments fixed or refuted → **NO Z04 file**
+
+**If "Review per-comment":**
+- If user stops before completing: **CREATE Z04** with remaining unhandled comments
+- If all comments fixed/refuted/skipped: **NO Z04 file**
+
 **If "Document only":**
+- **CREATE Z04 file** with all assessments (nothing fixed/refuted)
 
-Skip to creating Z04 file.
-
-**ALWAYS create Z04 documentation** with assessments summary, regardless of choice.
+**Z04 conditional creation:**
+- Only create if comments exist that were NOT fixed or refuted
+- If all comments handled → no Z04 needed
 
 **Z04 location:** Scan for existing `Z0[12]_*.md` files to find ongoing directory. Default to `docs/ai/ongoing/`.
 
@@ -251,21 +265,41 @@ Skip to creating Z04 file.
 
 **DO NOT use `gh pr comment` for replies.** That creates top-level comments.
 
-**Correct way to reply:**
+**❌ WRONG format (missing PR_NUM):**
+```bash
+# This will return 404 Not Found
+gh api repos/{OWNER}/{REPO}/pulls/comments/{COMMENT_ID}/replies
+```
+
+**✅ CORRECT format:**
 ```bash
 gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments/{COMMENT_ID}/replies \
   -X POST \
   -f body="Your reply text here"
 ```
 
+**Key difference:** Must include `pulls/{PR_NUM}/` before `comments/{COMMENT_ID}`
+
+**Example (real working format):**
+```bash
+gh api repos/new-work/insights-etl/pulls/279/comments/2514655196/replies \
+  -X POST \
+  -f body="Your reply text here"
+```
+
+Result: 201 Created ✅
+
 **Get required values:**
 - OWNER/REPO: `gh repo view --json nameWithOwner --jq .nameWithOwner`
-- PR_NUM: From Step 1
+- PR_NUM: From Step 1 (the PR number you're working on)
 - COMMENT_ID: From Step 3 (saved when parsing comments)
 
 **Why this matters:**
 - `gh pr comment` → Top-level comment (loses context)
 - `gh api .../replies` → Reply in thread (maintains context)
+
+**If command fails, verify endpoint format against official docs:**
+https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
 
 ---
 

@@ -140,17 +140,45 @@ AskUserQuestion({
 
 ### Step 7: Execute User Choice
 
-**If "Comment all":** Ask format (separate comments vs single review), then post using `gh pr comment` or `gh pr review`.
+**If "Comment all":**
+- Ask format (separate comments vs single review)
+- Post using `gh pr comment` or `gh pr review`
+- **NO Z03 file** (all findings posted)
 
-**If "Review per-finding":** Loop through each finding, ask user (Comment/Skip/Stop), execute accordingly.
+**If "Review per-finding":**
+- Loop through each finding, ask user (Comment/Skip/Stop)
+- If user stops before completing: **CREATE Z03** with remaining unposted findings
+- If all findings posted/skipped: **NO Z03 file**
 
-**If "Document only":** Skip to creating Z03 file.
+**If "Document only":**
+- **CREATE Z03 file** with all findings (nothing posted)
 
-**ALWAYS create Z03 documentation file** with findings summary, regardless of choice.
+**Z03 conditional creation:**
+- Only create if findings exist that were NOT posted as comments
+- If all findings posted → no Z03 needed
 
 **Z03 location:** Scan for existing `Z0[12]_*.md` files to find ongoing directory. Default to `docs/ai/ongoing/`.
 
 **Z03 filename:** `Z03_{kebab-case-pr-title}_review.md`
+
+---
+
+## Posting Review Comments (Reference)
+
+**For NEW review comments** (findings from this review):
+- Use `gh pr comment {PR_NUM}` for individual comments
+- Use `gh pr review {PR_NUM}` for batch review submission
+- Both are correct - choose based on user preference
+
+**For REPLYING to existing comments** (not applicable in this skill):
+- **CRITICAL:** Must include PR_NUM in path
+- ❌ WRONG: `gh api repos/{OWNER}/{REPO}/pulls/comments/{COMMENT_ID}/replies` (404)
+- ✅ CORRECT: `gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments/{COMMENT_ID}/replies` (201)
+- See feature-pr-fixing skill for full reply workflow
+
+**If commands fail, reference official docs:**
+- Review comments: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28
+- Review replies: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
 
 ---
 
