@@ -76,7 +76,13 @@ Scan for existing Z01 files in common locations (docs/ai/ongoing, .ai/ongoing, d
 
 Read all Z01 files in ONGOING_DIR:
 - Z01_{feature}_research.md (required)
-- Z01_CLARIFY_{feature}_research.md (if exists, with answers)
+- Z01_CLARIFY_{feature}_research.md (if exists)
+
+**BLOCKING CHECK - If Z01_CLARIFY exists:**
+- Read the file
+- Check if "User response:" fields are empty
+- **If ANY empty → STOP, report:** "Cannot plan with unanswered questions. Please answer all questions in Z01_CLARIFY_{feature}_research.md first."
+- If all answered → proceed
 
 Extract:
 - Technical research and integration points
@@ -108,7 +114,9 @@ The plan should be a DIRECTIVE document with:
 - TDD structure (test-fail-implement-pass-commit)
 - Assumes engineer has minimal domain knowledge
 
-If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create {ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file."
+If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create {ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file.
+
+**When incorporating answered questions:** Delete fully-answered CLARIFY files or remove incorporated Q&A pairs if only some were answered."
 
 ---
 
@@ -129,6 +137,7 @@ When superpowers:writing-plans completes:
 
 ## Red Flags - You're Failing If:
 
+- **Proceeded with unanswered questions in Z01_CLARIFY** (BLOCKING - must stop)
 - **Did NOT read CLAUDE.md first** (if exists)
 - **CLAUDE.md exists but constraints not passed to planning**
 - **Did NOT check for Z01* files**

@@ -158,6 +158,8 @@ User response:
 
 **Critical**: Leave "User response:" blank. No explanations.
 
+**When incorporating answered questions:** Delete fully-answered CLARIFY files or remove incorporated Q&A pairs if only some were answered.
+
 **Phase Gate**: After creating Z01_CLARIFY, count the questions.
 
 **If 5+ questions:**

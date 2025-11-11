@@ -198,6 +198,12 @@ All skills must follow these standardized rules for creating temporary workflow 
 **Naming Convention:**
 - **Skills** use gerund form: `feature-researching`, `feature-planning` (describes the capability)
 - **Commands** use imperative form: `/feature-research`, `/feature-plan` (describes the action)
+- **Why:** Prevents name collision, makes the relationship clear (command invokes skill)
+
+**Relationship:**
+- Commands reference and invoke skills
+- Skills contain the actual workflow logic
+- Commands should be thin wrappers that just invoke the skill
 
 **Description Guidelines:**
 
@@ -218,6 +224,22 @@ All skills must follow these standardized rules for creating temporary workflow 
 **Command Files:**
 - Should simply state: "Use the [plugin]:[skill-name] skill exactly as written"
 - No additional explanation or workflow details
+
+**Skill Writing Philosophy:**
+
+Unless instructed otherwise, give agents freedom when writing skills:
+- **Default to WHAT, not HOW:** Tell agents what needs to be accomplished, not how to do it
+- **Trust agent judgment:** Let agents choose implementation approaches unless specific constraints are needed
+- **Only prescribe HOW when necessary:** Use rigid steps/checklists only when:
+  - Preventing known failure modes
+  - Enforcing critical project patterns
+  - Maintaining consistency across the workflow
+- **Example WHAT:** "Create a comprehensive test suite covering edge cases"
+- **Example HOW:** "Run pytest, fix failures, commit with message format X"
+
+**When to use prescriptive (HOW) vs declarative (WHAT):**
+- **Prescriptive (HOW):** File naming, git operations, workflow steps, integration points
+- **Declarative (WHAT):** Code quality, architecture decisions, testing approaches, implementation details
 
 ### Creating New Skills
 

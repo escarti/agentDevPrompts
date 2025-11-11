@@ -55,15 +55,25 @@ Scan for Z02 plan files in common locations (docs/ai/ongoing, .ai/ongoing, docs/
 
 ---
 
-### Step 2: Check for Unresolved Clarifications
+### Step 2: Check for Unresolved Clarifications (BLOCKING)
 
-Check if `Z02_CLARIFY_{feature}_plan.md` exists in ONGOING_DIR.
+**CRITICAL:** Check for ANY unanswered clarification questions before proceeding.
+
+Check if clarification files exist in ONGOING_DIR:
+- `Z01_CLARIFY_{feature}_research.md`
+- `Z02_CLARIFY_{feature}_plan.md`
+
+**If Z01_CLARIFY exists:**
+- Read the file
+- Check if "User response:" fields are empty
+- **If ANY empty → STOP, report:** "Cannot implement with unanswered research questions. Please answer all questions in Z01_CLARIFY_{feature}_research.md first."
 
 **If Z02_CLARIFY exists:**
 - Read the file
 - Check if "User response:" fields are empty
-- If ANY empty → STOP, report: "Please answer questions in Z02_CLARIFY before execution"
-- If all answered → proceed
+- **If ANY empty → STOP, report:** "Cannot implement with unanswered plan questions. Please answer all questions in Z02_CLARIFY_{feature}_plan.md first."
+
+**If all answered or no CLARIFY files exist:** Proceed to Step 3.
 
 ---
 
@@ -72,8 +82,8 @@ Check if `Z02_CLARIFY_{feature}_plan.md` exists in ONGOING_DIR.
 Read ALL available context in this order:
 
 1. **Project Patterns** (if exists): `CLAUDE.md`
-2. **Research Context** (if exists): `Z01_{feature}_research.md`, `Z01_CLARIFY_{feature}_research.md`
-3. **Plan Context** (required): `Z02_{feature}_plan.md`, `Z02_CLARIFY_{feature}_plan.md` (if answered)
+2. **Research Context** (if exists): `Z01_{feature}_research.md`, `Z01_CLARIFY_{feature}_research.md` (with answers)
+3. **Plan Context** (required): `Z02_{feature}_plan.md`, `Z02_CLARIFY_{feature}_plan.md` (with answers if exists)
 
 **Critical:** You'll pass FULL CONTENT of these files to superpowers:executing-plans.
 
@@ -156,8 +166,9 @@ feature-documenting will:
 
 ## Red Flags - You're Failing If:
 
+- **Proceeded with unanswered questions in Z01_CLARIFY or Z02_CLARIFY** (BLOCKING - must stop)
 - **Did NOT check if Z02_plan.md exists**
-- **Proceeded with unanswered clarifications in Z02_CLARIFY**
+- **Did NOT check for CLARIFY files before starting execution**
 - **Used SlashCommand `/superpowers:execute-plan`** (use Skill tool instead)
 - **Passed file paths instead of FULL CONTENT to superpowers**
 - **Skipped CLAUDE.md when it exists**
