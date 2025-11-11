@@ -11,12 +11,19 @@ This repository is a **Claude Code marketplace** containing the **feature-workfl
 
 ### CRITICAL: Version Synchronization
 
-**When releasing a new version, you MUST update BOTH:**
+**When releasing a new version, you MUST update ALL THREE:**
 
 1. **Git tag** (e.g., `v1.2.0`)
-2. **marketplace.json version fields** (both `metadata.version` and `plugins[0].version`)
+2. **plugin.json version field** (`version`)
+3. **marketplace.json version fields** (both `metadata.version` and `plugins[0].version`)
 
 **If these don't match, the marketplace distribution will be broken.**
+
+**All four version locations must be synchronized:**
+- Git tag: `v1.2.0`
+- `.claude-plugin/plugin.json` → `version: "1.2.0"`
+- `.claude-plugin/marketplace.json` → `metadata.version: "1.2.0"`
+- `.claude-plugin/marketplace.json` → `plugins[0].version: "1.2.0"`
 
 ### Release Checklist
 
@@ -27,10 +34,11 @@ Use TodoWrite to track EVERY step:
 - [ ] Changes documented in commit message
 - [ ] No sensitive data in files
 
-**Version Update (MANDATORY - both files):**
+**Version Update (MANDATORY - all three files):**
+- [ ] Update `.claude-plugin/plugin.json` → `version`
 - [ ] Update `.claude-plugin/marketplace.json` → `metadata.version`
 - [ ] Update `.claude-plugin/marketplace.json` → `plugins[0].version`
-- [ ] Verify both version numbers match the target release version
+- [ ] Verify all four version locations match the target release version
 
 **Git Operations:**
 - [ ] Stage all changes: `git add .`
@@ -40,8 +48,9 @@ Use TodoWrite to track EVERY step:
 - [ ] Push tag: `git push origin v{VERSION}`
 
 **Verification:**
-- [ ] Verify tag on GitHub points to commit with marketplace.json
-- [ ] Check marketplace.json in tagged commit has correct version
+- [ ] Verify tag on GitHub points to commit with all version files
+- [ ] Check plugin.json in tagged commit has correct version
+- [ ] Check marketplace.json in tagged commit has correct versions (both fields)
 - [ ] Test installation: `/plugin update feature-workflow`
 
 ### Version Numbering
@@ -62,9 +71,12 @@ Follow semantic versioning:
 ```bash
 # Example for v1.2.0 release
 
-# 1. Update marketplace.json versions (manually edit file)
+# 1. Update ALL version files (manually edit)
+#    - .claude-plugin/plugin.json → version
+#    - .claude-plugin/marketplace.json → metadata.version
+#    - .claude-plugin/marketplace.json → plugins[0].version
 # 2. Stage and commit
-git add .claude-plugin/marketplace.json skills/
+git add .claude-plugin/plugin.json .claude-plugin/marketplace.json skills/
 git commit -m "v1.2.0: Description of changes
 
 - Change 1
@@ -85,22 +97,24 @@ git push origin v1.2.0
 
 ### Fixing Mismatched Versions
 
-If you forget to update marketplace.json before tagging:
+If you forget to update version files before tagging:
 
 ```bash
 # 1. Delete the tag locally and remotely
 git tag -d v{VERSION}
 git push origin :refs/tags/v{VERSION}
 
-# 2. Update marketplace.json
-# Edit .claude-plugin/marketplace.json
+# 2. Update ALL version files
+# Edit .claude-plugin/plugin.json → version
+# Edit .claude-plugin/marketplace.json → metadata.version
+# Edit .claude-plugin/marketplace.json → plugins[0].version
 
 # 3. Commit the fix
-git add .claude-plugin/marketplace.json
-git commit -m "Bump marketplace.json to version {VERSION}"
+git add .claude-plugin/plugin.json .claude-plugin/marketplace.json
+git commit -m "Fix version sync: Update all version files to {VERSION}"
 git push
 
-# 4. Recreate the tag (now points to commit with marketplace.json)
+# 4. Recreate the tag (now points to commit with correct versions)
 git tag v{VERSION} -m "v{VERSION}: Description"
 git push origin v{VERSION}
 ```
@@ -110,8 +124,8 @@ git push origin v{VERSION}
 ```
 agentDevPrompts/
 ├── .claude-plugin/
-│   └── marketplace.json        # VERSION MUST MATCH GIT TAG
-├── plugin.json                 # Plugin manifest
+│   ├── plugin.json             # VERSION MUST MATCH GIT TAG
+│   └── marketplace.json        # BOTH VERSION FIELDS MUST MATCH GIT TAG
 ├── skills/                     # Skills directory
 │   ├── feature-researching/
 │   │   └── SKILL.md
@@ -132,10 +146,20 @@ agentDevPrompts/
 └── README.md                   # User-facing documentation
 ```
 
-## marketplace.json Structure
+## Version File Structure
 
-**CRITICAL**: Two version fields must be synchronized:
+**CRITICAL**: Three version fields across two files must be synchronized:
 
+**plugin.json:**
+```json
+{
+  "name": "feature-workflow",
+  "version": "1.2.0",  // ← MUST match git tag
+  ...
+}
+```
+
+**marketplace.json:**
 ```json
 {
   "name": "feature-workflow",
@@ -156,7 +180,10 @@ agentDevPrompts/
 **When to update:**
 - EVERY time you create a new git tag
 - BEFORE creating the tag (not after)
-- Update BOTH version fields (metadata.version AND plugins[0].version)
+- Update ALL THREE version fields:
+  - plugin.json → version
+  - marketplace.json → metadata.version
+  - marketplace.json → plugins[0].version
 
 ## Filename Sanitization Rules
 
@@ -278,8 +305,8 @@ Same RED-GREEN-REFACTOR cycle:
 ### Mandatory Patterns
 
 **Release Process:**
-- ALWAYS update marketplace.json before tagging
-- ALWAYS verify version synchronization
+- ALWAYS update ALL version files (plugin.json + marketplace.json) before tagging
+- ALWAYS verify version synchronization across all three fields
 - ALWAYS test skills before releasing
 - NEVER skip the release checklist
 
@@ -298,8 +325,8 @@ Same RED-GREEN-REFACTOR cycle:
 ## Forbidden Patterns
 
 **DO NOT:**
-- Tag a release without updating marketplace.json first
-- Update only one version field in marketplace.json (must update both)
+- Tag a release without updating ALL version files first (plugin.json + marketplace.json)
+- Update only some version fields (must update all three: plugin.json + both marketplace.json fields)
 - Edit skills without running RED-GREEN-REFACTOR testing
 - Create hypothetical rationalization tables (must come from real agent testing)
 - Skip release checklist steps
@@ -310,19 +337,20 @@ Same RED-GREEN-REFACTOR cycle:
 | Excuse | Reality |
 |--------|---------|
 | "Just a version bump, skip checklist" | Version sync is CRITICAL. Follow checklist. |
+| "I'll update plugin.json in the next commit" | Tag will point to wrong commit. Update ALL files BEFORE tagging. |
 | "Marketplace.json can be updated later" | Tag will point to wrong commit. Update BEFORE tagging. |
 | "Minor doc fix, no need to test" | Untested changes break in production. ALWAYS test. |
-| "I'll remember the version sync next time" | You'll forget under pressure. Use TodoWrite checklist. |
+| "I'll remember all three version fields next time" | You'll forget under pressure. Use TodoWrite checklist. |
 | "Users can wait for v1.2.1 to fix version" | Broken releases damage trust. Get it right first time. |
 
 ## Red Flags - STOP and Fix
 
 When releasing a version:
-- Did NOT update marketplace.json before creating tag
-- Updated only one version field in marketplace.json
+- Did NOT update ALL version files (plugin.json + marketplace.json) before creating tag
+- Updated only some version fields (missing plugin.json or one of the marketplace.json fields)
 - Skipped testing skills before release
 - No TodoWrite checklist for release steps
-- Git tag version doesn't match marketplace.json versions
+- Git tag version doesn't match all three version fields
 
 **All of these mean:** Stop, fix synchronization, recreate tag correctly.
 
@@ -362,12 +390,15 @@ Until automated, follow the release checklist religiously.
 
 **The Two Critical Rules:**
 
-1. **Version Synchronization**: Git tag MUST match marketplace.json (both fields)
+1. **Version Synchronization**: Git tag MUST match ALL THREE version fields:
+   - `.claude-plugin/plugin.json` → `version`
+   - `.claude-plugin/marketplace.json` → `metadata.version`
+   - `.claude-plugin/marketplace.json` → `plugins[0].version`
 2. **Testing Before Release**: Skills MUST be tested with RED-GREEN-REFACTOR
 
 **When releasing:**
 - Use TodoWrite for release checklist
-- Update marketplace.json BEFORE creating tag
+- Update ALL THREE version fields BEFORE creating tag
 - Verify synchronization before pushing
 - Test skills before committing
 
