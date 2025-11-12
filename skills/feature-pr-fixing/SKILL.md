@@ -105,7 +105,7 @@ Get PR metadata and **UNRESOLVED, CURRENT** review comments with:
 
 ---
 
-### Step 5: Assess ALL Comments Using Repo Context
+### Step 5: Assess ALL UNANSWERED OR UNFIXED Comments Using Repo Context
 
 **For each comment, determine:**
 
