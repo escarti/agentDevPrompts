@@ -92,7 +92,7 @@ Always test locally first:
 ```bash
 # Manual installation for testing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-researching ~/.claude/skills/feature-researching
-ln -s ~/Projects/Personal/agentDevPrompts/skills/development-logging ~/.claude/skills/development-logging
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-documenting ~/.claude/skills/feature-documenting
 
 # Verify skills work in Claude Code
 # Then remove symlinks and test plugin installation

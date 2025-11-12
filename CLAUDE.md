@@ -19,11 +19,11 @@ This repository is a **Claude Code marketplace** containing the **feature-workfl
 
 **If these don't match, the marketplace distribution will be broken.**
 
-**All four version locations must be synchronized:**
-- Git tag: `v1.2.0`
-- `.claude-plugin/plugin.json` → `version: "1.2.0"`
-- `.claude-plugin/marketplace.json` → `metadata.version: "1.2.0"`
-- `.claude-plugin/marketplace.json` → `plugins[0].version: "1.2.0"`
+**All version locations must be synchronized (3 fields + 1 tag):**
+- Git tag: `v1.2.0` (used for release)
+- `.claude-plugin/plugin.json` → `version: "1.2.0"` (field 1)
+- `.claude-plugin/marketplace.json` → `metadata.version: "1.2.0"` (field 2)
+- `.claude-plugin/marketplace.json` → `plugins[0].version: "1.2.0"` (field 3)
 
 ### Release Checklist
 
@@ -34,11 +34,11 @@ Use TodoWrite to track EVERY step:
 - [ ] Changes documented in commit message
 - [ ] No sensitive data in files
 
-**Version Update (MANDATORY - all three files):**
+**Version Update (MANDATORY - 3 fields across 2 files):**
 - [ ] Update `.claude-plugin/plugin.json` → `version`
 - [ ] Update `.claude-plugin/marketplace.json` → `metadata.version`
 - [ ] Update `.claude-plugin/marketplace.json` → `plugins[0].version`
-- [ ] Verify all four version locations match the target release version
+- [ ] Verify all 3 version fields match the target release version
 
 **Git Operations:**
 - [ ] Stage all changes: `git add .`

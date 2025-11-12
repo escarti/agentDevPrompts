@@ -105,42 +105,64 @@ You need:
 
 ---
 
-### Step 5: Analyze Changes Using Repo Context
+### Step 5: Hunt for Bugs (Adversarial Review)
 
-**You now have full context:** Documentation + codebase patterns + changed files.
+**CRITICAL MINDSET: ASSUME BUGS EXIST. Your goal is to FIND them.**
 
-**Analyze the PR changes for:**
+You now have full context (docs + codebase patterns + changed files). Use it to hunt adversarially.
 
-1. **Security Issues:**
-   - Input validation missing
-   - Authentication/authorization bypasses
-   - Injection vulnerabilities (SQL, XSS, command)
-   - Secrets in code
+**You are a security auditor reviewing code before production.** Don't ask "is this acceptable?" Ask "how will this break in production?"
 
-2. **Code Quality Problems:**
-   - Violates patterns from CLAUDE.md
-   - Inconsistent with existing conventions (from Step 3)
-   - Missing error handling
-   - Poor naming/structure
+**For EACH changed file, actively hunt for:**
 
-3. **Architecture Violations:**
-   - Breaks component boundaries
-   - Bypasses established abstractions
-   - Introduces unwanted dependencies
-   - Contradicts ARCHITECTURE.md design
+**1. Security Vulnerabilities:**
+- Input validation missing → Can I inject code? (SQL, XSS, command injection)
+- Authentication bypasses → Can I access endpoints without auth?
+- Authorization flaws → Can I access data beyond my permissions?
+- Secrets exposed → Are API keys/credentials committed?
+- Resource exhaustion → Can I DoS with large inputs/loops?
+- Information disclosure → Do error messages leak sensitive data?
 
-4. **Test Gaps:**
-   - Missing test coverage for new features
-   - No error case testing
-   - Integration points untested
+**2. Logic Bugs:**
+- Edge cases → What happens with null/empty/max/negative values?
+- Off-by-one errors → Array bounds, loop conditions, pagination
+- Race conditions → Async operations without proper locking
+- State management → Can state become inconsistent?
+- Error handling → What breaks when dependencies fail?
+- Incorrect assumptions → Does code assume happy path only?
 
-**For each finding, capture:**
+**3. Code Quality Issues:**
+- CLAUDE.md violations → Does this break mandatory patterns?
+- Inconsistent with codebase → Different from existing approaches (Step 3)?
+- Missing error handling → Silent failures, unhandled rejections?
+- Poor naming/structure → Confusing, misleading, or unclear?
+- Copy-paste bugs → Duplicated code with slight variations?
+
+**4. Architecture Violations:**
+- Component boundaries → Does this break separation of concerns?
+- Abstraction bypasses → Does this reach through layers?
+- Dependency direction → Does this introduce circular dependencies?
+- ARCHITECTURE.md design → Does this contradict documented design?
+
+**5. Test Gaps:**
+- Untested code paths → What has NO test coverage?
+- Missing negative tests → Are error cases tested?
+- Integration gaps → Are component boundaries tested?
+- Mock overuse → Are tests testing real behavior or mock behavior?
+
+**HOW to hunt:**
+- Read each changed line asking "what breaks here?"
+- Trace data flow: user input → validation → processing → storage → output
+- Check every conditional: what if the opposite happens?
+- Check every function call: what if it returns error/null/unexpected?
+- Look for what's NOT there: missing validation, missing tests, missing error handling
+- Compare to existing code: is this consistent with established patterns?
+
+**For each finding, document:**
 - File path and line number
 - Issue type and severity (critical/high/medium/low)
-- Description with technical reasoning
-- How it violates project patterns (reference docs/code from Steps 2-3)
-
-**Use your judgment.** You have the context. Apply it.
+- Description: WHY this is a bug, HOW to exploit/trigger it
+- How it violates project patterns (reference CLAUDE.md/ARCHITECTURE.md/existing code)
 
 ---
 
@@ -241,6 +263,8 @@ AskUserQuestion({
 - **Suggesting next steps instead of using AskUserQuestion**
 - **Asking "would you like me to..." in prose**
 - **Drafting comments but not posting them**
+- **Passive review instead of adversarial bug hunting**
+- **Not finding ANY bugs** (means you didn't look hard enough)
 
 ## Common Rationalizations
 
@@ -263,6 +287,9 @@ AskUserQuestion({
 | "Findings presented, I can proceed" | **NO.** Step 7 requires AskUserQuestion. Use it NOW. |
 | "User obviously wants comments" | **NO.** ALWAYS ask. User might want document-only. |
 | "I drafted comments, that's enough" | **NO.** Draft ≠ posted. Execute `gh pr comment`. |
+| "Code looks correct, just confirm it" | **NO.** Don't confirm. ATTACK it. Find how to break it. |
+| "PR seems well-written, validate quality" | **NO.** ASSUME BUGS EXIST. Hunt for them adversarially. |
+| "Changes are simple, quick review" | **NO.** Simple code hides subtle bugs. Hunt line-by-line. |
 | "PR is simple, review directly" | **NO.** Context reveals issues you'll miss. Architecture awareness matters. |
 | "Time pressure, skip systematic approach" | **NO.** Systematic is FASTER. Shortcuts cause rework. |
 | "I know this codebase, skip exploration" | **NO.** Memory fades. Refresh context every time. Patterns evolve. |
@@ -274,6 +301,8 @@ You followed the workflow if:
 - ✓ Switched to PR branch BEFORE any analysis
 - ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
 - ✓ Explored codebase to understand patterns
+- ✓ Hunted for bugs adversarially (not passive validation)
+- ✓ Assumed bugs exist, found them
 - ✓ Analyzed changes with full repo context awareness
 - ✓ Used AskUserQuestion (not prose suggestions)
 - ✓ Posted comments with actual commands (not drafts)

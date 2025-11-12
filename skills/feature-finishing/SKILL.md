@@ -82,20 +82,57 @@ Scan for Z01/Z02 files in common locations (docs/ai/ongoing, .ai/ongoing, etc.)
 
 ---
 
-### Step 4: Assess Implementation with feature-research
+### Step 4: Hunt for Bugs (Adversarial Assessment)
 
-**Use Skill tool to invoke `feature-workflow:feature-researching` on all changed files.**
+**CRITICAL MINDSET: ASSUME BUGS EXIST. Your job is to FIND them.**
 
-Give it:
-- List of changed files
-- Feature name from Z01/Z02
-- CLAUDE.md constraints (if exists)
-- Request: "Assess implementation quality: security issues, bugs, code quality problems, test gaps, deviations from plan, violations of CLAUDE.md patterns"
+You are a security auditor, QA engineer, and attacker combined. Don't ask "is this correct?" Ask "how can I break this?"
 
-Parse research output for findings:
+**Read each changed file with adversarial intent:**
+
+For EACH file, actively hunt for:
+
+**1. Security Vulnerabilities:**
+- Input validation missing → Can I inject code? (SQL, XSS, command injection)
+- Authentication bypasses → Can I access without credentials?
+- Authorization flaws → Can I access data I shouldn't?
+- Secrets exposed → Are credentials/keys in code?
+- Resource exhaustion → Can I cause DoS with large inputs?
+
+**2. Logic Bugs:**
+- Edge cases → What happens with null/empty/max values?
+- Off-by-one errors → Array bounds, loop conditions
+- Race conditions → Async operations, state changes
+- Error handling → What breaks when dependencies fail?
+- Incorrect assumptions → Does code assume happy path only?
+
+**3. Code Quality Issues:**
+- CLAUDE.md violations → Does this break mandatory patterns?
+- Inconsistent with codebase → Different from existing approaches?
+- Missing error handling → Silent failures?
+- Poor naming/structure → Confusing or misleading?
+
+**4. Test Gaps:**
+- Untested paths → What code has NO test coverage?
+- Missing negative tests → Error cases tested?
+- Integration gaps → Are component boundaries tested?
+
+**5. Plan Deviations:**
+- Compare against Z02 → Did implementation diverge?
+- Unintentional changes → Scope creep or mistakes?
+
+**HOW to hunt:**
+- Read code line-by-line, ask "what breaks here?"
+- Trace data flow: user input → processing → output
+- Check every conditional: what if the opposite happens?
+- Check every function call: what if it returns error/null?
+- Look for what's NOT there: missing validation, missing tests
+
+**Document findings:**
 - File path and line number
 - Issue type (security/bug/quality/test/deviation)
 - Severity (critical/high/medium/low)
+- Explanation: WHY this is a bug, HOW to exploit/trigger it
 
 ---
 
@@ -309,7 +346,8 @@ Skip to Step 9.
 - **Running from same context as feature-implement** (need fresh context)
 - **Skipping CLAUDE.md** (exists but not read)
 - **Not reading Z01/Z02 files**
-- **Skipping feature-research assessment**
+- **Passive validation instead of adversarial bug hunting**
+- **Not finding ANY bugs** (means you didn't look hard enough)
 - **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Documenting in Z05 instead of fixing when user chose 'Fix'**
 - **Asking "would you like me to..." in prose instead of AskUserQuestion**
@@ -325,8 +363,9 @@ Skip to Step 9.
 | **"I'll fix directly with Edit tool"** | **NO.** Invoke superpowers:systematic-debugging. Don't skip root cause analysis. |
 | **"Issue is simple, don't need systematic-debugging"** | **NO.** Simple issues have root causes too. Use the skill. |
 | **"I'll document in Z05, no need to fix"** | **NO.** User chose 'Fix' = invoke systematic-debugging. |
-| "Implementation looks good, skip assessment" | **NO.** Always use feature-research. Fresh eyes find issues. |
-| "I remember from feature-implement context" | **NO.** This runs from FRESH context. Use feature-research. |
+| "Implementation looks good, skip assessment" | **NO.** ASSUME BUGS EXIST. Hunt for them adversarially. |
+| "Code seems correct, just validate it" | **NO.** Don't validate. ATTACK it. Find how to break it. |
+| "I remember from feature-implement context" | **NO.** This runs from FRESH context. Hunt for bugs with fresh eyes. |
 | "Z01/Z02 not found, skip reading" | **NO.** Try to find them. If truly missing, note it and continue. |
 | "Quality check is exploratory, no tracking" | **NO.** 9 mandatory steps with decisions. MUST use TodoWrite. |
 
@@ -356,7 +395,8 @@ You followed the workflow if:
 - ✓ Ran from fresh context (no feature-implement history)
 - ✓ Used git diff to get changed files
 - ✓ Read Z01/Z02 files (or noted missing)
-- ✓ Invoked feature-research on all changed files
+- ✓ Hunted for bugs adversarially (not passive validation)
+- ✓ Assumed bugs exist, found them
 - ✓ Compared against plan (if exists)
 - ✓ Used AskUserQuestion (not prose suggestions)
 - ✓ Invoked superpowers:systematic-debugging for fixes (not Edit tool directly)
