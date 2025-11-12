@@ -35,17 +35,11 @@ These skills extend superpowers' battle-tested `writing-plans` and `executing-pl
 /plugin install superpowers@obra/superpowers
 ```
 
-### Option 1: Via Plugin Marketplace (Recommended)
-
-This repository is a Claude Code marketplace containing the feature-workflow plugin.
+### Install feature-workflow Plugin
 
 ```bash
-# In Claude Code
-# Step 1: Add the marketplace
-/plugin marketplace add escarti/agentDevPrompts
-
-# Step 2: Install the plugin from the marketplace
-/plugin install feature-workflow@feature-workflow
+# In Claude Code - Install directly from GitHub
+/plugin install https://github.com/escarti/agentDevPrompts.git
 ```
 
 Verify installation:
@@ -62,7 +56,7 @@ Verify installation:
 # /feature-prfix - Address PR review comments using structured workflow
 ```
 
-### Option 2: Manual Installation (Development)
+### Manual Installation (Development)
 
 Clone this repository and symlink to Claude Code:
 
@@ -87,7 +81,6 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-fixing ~/.claude/ski
 ```
 agentDevPrompts/
 ├── .claude-plugin/
-│   ├── marketplace.json           # Marketplace catalog
 │   └── plugin.json               # Plugin manifest
 ├── commands/                      # Slash commands
 │   ├── feature-research.md
@@ -109,8 +102,6 @@ agentDevPrompts/
 ├── PUBLISHING.md                  # Release workflow
 └── README.md                      # This file
 ```
-
-**Note**: The `.claude-plugin/marketplace.json` file makes this repository installable as a marketplace. It contains a catalog that references the feature-workflow plugin in the same repository.
 
 ## Workflow
 
@@ -175,11 +166,12 @@ To contribute improvements:
 ### For Plugin Maintainers
 
 To release a new version:
-1. Update `plugin.json` version number
+1. Update `plugin.json` version number (MUST match git tag!)
 2. Test changes with manual installation
 3. Commit and push to main branch
-4. Create a GitHub release with version tag
-5. Users will get updates via `/plugin update feature-workflow`
+4. Create git tag matching the version: `git tag v1.2.0 -m "v1.2.0: Description"`
+5. Push tag: `git push origin v1.2.0`
+6. Users will get updates via `/plugin update feature-workflow`
 
 ## Development
 

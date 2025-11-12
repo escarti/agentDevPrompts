@@ -3,17 +3,16 @@
 ## Prerequisites
 
 1. **GitHub Repository**: `git@github.com:escarti/agentDevPrompts.git`
-2. **Repository Name**: `agentDevPrompts` (matches the marketplace identifier)
+2. **Repository Name**: `agentDevPrompts`
 
 ## Repository Structure
 
-This repository is a **marketplace** that contains the **feature-workflow plugin**:
+This repository is a **Claude Code plugin** containing the **feature-workflow plugin**:
 
 ```
 agentDevPrompts/
 ├── .claude-plugin/
-│   ├── marketplace.json    # Marketplace catalog (required)
-│   └── plugin.json        # Plugin manifest
+│   └── plugin.json        # Plugin manifest (required)
 ├── commands/              # Slash commands
 ├── skills/                # Plugin skills (gerund form)
 │   ├── feature-researching/
@@ -31,9 +30,9 @@ agentDevPrompts/
 ### 1. Push to GitHub
 
 ```bash
-# Add all files including marketplace.json
+# Add all files
 git add .
-git commit -m "Add marketplace.json and plugin files"
+git commit -m "Add plugin files"
 
 # Add remote and push (if not already done)
 git remote add origin git@github.com:escarti/agentDevPrompts.git
@@ -43,47 +42,44 @@ git push -u origin main
 ### 2. Create Initial Release
 
 ```bash
-# Tag the release
+# Tag the release (make sure plugin.json version matches!)
 git tag -a v1.0.0 -m "Release v1.0.0: Initial release"
 git push origin v1.0.0
 
-# Create GitHub release via gh CLI
+# Create GitHub release via gh CLI (optional)
 gh release create v1.0.0 \
   --title "v1.0.0 - Initial Release" \
-  --notes "Release v{VERSION} with feature-workflow skills"
+  --notes "Release v1.0.0 with feature-workflow skills"
 ```
 
 ### 3. Test Installation
 
-Users can now install via:
+Users can now install directly from the repository:
 
 ```bash
-# In Claude Code - Add the marketplace
-/plugin marketplace add escarti/agentDevPrompts
-
-# Install the plugin from the marketplace
-/plugin install feature-workflow@agentDevPrompts
+# In Claude Code - Install plugin directly from GitHub
+/plugin install https://github.com/escarti/agentDevPrompts.git
 ```
 
 ### 4. Future Updates
 
 When releasing new versions:
 
-1. Update `plugin.json` version number
+1. Update `plugin.json` version number (MUST match git tag!)
 2. Commit changes
-3. Create new git tag and GitHub release
-4. Users update with: `/plugin update feature-workflow`
+3. Create new git tag matching the version
+4. Push tag to GitHub
+5. Users update with: `/plugin update feature-workflow`
 
 ## Repository Requirements
 
 Your repository must contain:
-- ✅ `.claude-plugin/marketplace.json` - Marketplace catalog (required for `/plugin marketplace add`)
-- ✅ `plugin.json` - Plugin manifest
+- ✅ `.claude-plugin/plugin.json` - Plugin manifest (required)
 - ✅ `skills/` directory - Skills directory structure
 - ✅ `README.md` - Installation and usage instructions
 - ✅ Valid SKILL.md files with proper YAML frontmatter
 
-**Key distinction**: The `.claude-plugin/marketplace.json` file makes this a marketplace that can be added via `/plugin marketplace add`. It references the plugin in the same repository.
+**Installation method**: Users install directly from the git repository URL. No marketplace.json needed for single plugins.
 
 ## Testing Before Publishing
 
@@ -110,8 +106,22 @@ Follow semantic versioning:
 Before publishing:
 - [ ] All skills tested and working
 - [ ] `plugin.json` has correct version
+- [ ] `plugin.json` version MATCHES git tag
 - [ ] README.md has accurate installation instructions
 - [ ] No sensitive data in repository
 - [ ] .gitignore properly configured
-- [ ] Git tags match plugin.json version
-- [ ] GitHub release created
+- [ ] Git tag created and pushed
+
+## Quick Release Reference
+
+```bash
+# 1. Update version in plugin.json (e.g., "1.2.0")
+# 2. Commit and push
+git add .claude-plugin/plugin.json
+git commit -m "v1.2.0: Description of changes"
+git push
+
+# 3. Tag and push (MUST match plugin.json!)
+git tag v1.2.0 -m "v1.2.0: Short description"
+git push origin v1.2.0
+```
