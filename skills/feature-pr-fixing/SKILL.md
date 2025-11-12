@@ -235,18 +235,33 @@ After all comments processed (or user chooses "Stop"):
 
 ## Replying to Review Comments
 
-**CRITICAL:** Use `gh api` for replies, NOT `gh pr comment`:
+**CRITICAL:** Use `gh api` for replies, NOT `gh pr comment`.
 
+**Post reply to existing comment:**
 ```bash
-gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments/{COMMENT_ID}/replies \
+gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments \
   -X POST \
-  -f body="Your reply text here"
+  -f body="Your reply text here" \
+  -F in_reply_to={COMMENT_ID}
 ```
 
 **Get values:**
-- OWNER/REPO: `gh repo view --json nameWithOwner --jq .nameWithOwner`
-- PR_NUM: From Step 1
-- COMMENT_ID: From Step 4
+- OWNER/REPO: `gh repo view --json nameWithOwner --jq .nameWithOwner` → returns "owner/repo"
+- PR_NUM: From Step 1 (e.g., 281)
+- COMMENT_ID: From Step 4 (e.g., 2519198568)
+
+**Example:**
+```bash
+gh api repos/new-work/insights-etl/pulls/281/comments \
+  -X POST \
+  -f body="Thank you for the feedback. Current approach is better because..." \
+  -F in_reply_to=2519198568
+```
+
+**Key points:**
+- Endpoint: `/pulls/{PR_NUM}/comments` (PR number in path)
+- Use `-F in_reply_to=` for integer comment ID (NOT in URL)
+- Use `-f body=` for string reply text
 
 **Refutation template:**
 ```
