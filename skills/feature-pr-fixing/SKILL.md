@@ -36,12 +36,13 @@ If No → Stop, acknowledge failure, start over.
 TodoWrite({
   todos: [
     {content: "Step 1: Switch to PR branch", status: "in_progress", activeForm: "Switching to PR branch"},
-    {content: "Step 2: Read CLAUDE.md from PR branch", status: "pending", activeForm: "Reading CLAUDE.md"},
-    {content: "Step 3: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
-    {content: "Step 4: Assess ALL comments with feature-research (once)", status: "pending", activeForm: "Assessing validity"},
-    {content: "Step 5: Present assessments", status: "pending", activeForm: "Presenting findings"},
-    {content: "Step 6: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
-    {content: "Step 7: Execute user choice", status: "pending", activeForm: "Executing action"}
+    {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
+    {content: "Step 3: Explore codebase (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
+    {content: "Step 4: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
+    {content: "Step 5: Assess ALL comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
+    {content: "Step 6: Present assessments", status: "pending", activeForm: "Presenting findings"},
+    {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 8: Execute user choice", status: "pending", activeForm: "Executing action"}
   ]
 })
 ```
@@ -66,55 +67,111 @@ gh pr checkout 258
 
 ---
 
-### Step 2: Read CLAUDE.md
+### Step 2: Read Documentation FIRST
 
-**You're now on the PR branch.** Read `CLAUDE.md` if it exists.
+**You're now on the PR branch.** Establish full context BEFORE reading review comments.
 
-Look for:
-- Mandatory patterns that MUST be preserved
-- Forbidden approaches
-- Project conventions
+**Read in order:**
+1. `CLAUDE.md` (mandatory patterns, forbidden approaches, quality standards)
+2. `README.md` (project overview, setup, conventions)
+3. `ARCHITECTURE.md` or `docs/architecture/` (system design, component relationships)
 
-You'll use this to validate whether reviewer comments align with project standards.
+**Goal:** Understand project patterns so you can detect when review comments conflict with established architecture.
 
 ---
 
-### Step 3: Get PR Details and Comments
+### Step 3: Explore Codebase
+
+**Build mental model of codebase structure** using exploration tools:
+
+**Use Task tool with subagent_type=Explore:**
+```
+Explore the codebase to understand:
+- Project structure and organization
+- Key architectural patterns
+- Common coding conventions
+- Testing patterns
+- Security practices
+
+Focus on changed areas related to PR files.
+```
+
+**Alternative (if Explore agent not available):** Manual exploration:
+- `glob` to find related files by pattern
+- `grep` to search for similar implementations
+- `Read` files to understand existing approaches
+
+**Goal:** Know how things are SUPPOSED to be done, so you can identify when review comments suggest anti-patterns or violate project architecture.
+
+---
+
+### Step 4: Get PR Details and Comments
 
 Get PR metadata and review comments however you want (`gh pr view`, `gh pr view --comments`, etc.)
 
 You need:
 - PR title, author, branch
-- **All review comments** with:
+- **All UNRESOLVED review comments** with:
   - Comment ID (CRITICAL - needed for replies)
   - File path and line number
   - Comment body text
   - Reviewer username
+  - **Resolution status** (resolved/unresolved)
+  - **Outdated status** (outdated/current)
 
-**If no comments**: "No review comments. Nothing to address."
+**CRITICAL FILTERING:**
+- **ONLY include UNRESOLVED comments** (not marked as resolved by reviewer)
+- **ONLY include CURRENT comments** (not marked as outdated by GitHub after force-push)
+- **SKIP any comment with state "RESOLVED" or marked outdated**
+
+**If no unresolved comments**: "No unresolved review comments. Nothing to address."
 
 **Save comment IDs** - you need them to reply in the correct thread.
 
----
-
-### Step 4: Assess ALL Comments with feature-research
-
-**Use Skill tool to invoke `feature-workflow:feature-researching` ONCE with ALL comments.**
-
-Give it:
-- List of ALL review comments with file paths/lines
-- Full comment text from each reviewer
-- CLAUDE.md constraints (if exists)
-- Request: "Assess each PR review comment. Determine if it identifies a real bug/security issue or is subjective style preference. Consider CLAUDE.md patterns. Provide technical reasoning for each."
-
-Parse research output to generate for each comment:
-- Is claim valid? (real bug vs subjective)
-- Category (bug/security/style/subjective)
-- Technical reasoning
+**Example gh command to check resolution status:**
+```bash
+gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments \
+  --jq '.[] | select(.in_reply_to_id == null) | {id, body, path, line, user: .user.login, resolved: (.pull_request_review_id != null)}'
+```
 
 ---
 
-### Step 5: Present Assessments
+### Step 5: Assess ALL Comments Using Repo Context
+
+**You now have full context:** Documentation + codebase patterns + review comments.
+
+**For each review comment, assess:**
+
+1. **Is the claim valid?**
+   - Real bug/security issue → **VALID (must fix)**
+   - Violates CLAUDE.md patterns → **VALID (must fix)**
+   - Violates established architecture (from Step 3) → **VALID (must fix)**
+   - Style preference without technical justification → **INVALID (can refute)**
+   - Conflicts with project conventions (from Steps 2-3) → **INVALID (can refute)**
+
+2. **Category:**
+   - Bug: Logic error, incorrect behavior
+   - Security: Vulnerability, exposure, attack vector
+   - Architecture: Violates design patterns, breaks boundaries
+   - Style: Subjective preference without technical merit
+   - Convention: Conflicts with or aligns with project standards
+
+3. **Technical reasoning:**
+   - Reference docs from Step 2 (CLAUDE.md, ARCHITECTURE.md)
+   - Reference code patterns from Step 3 (existing implementations)
+   - Explain WHY valid or invalid
+   - For invalid comments: explain why reviewer suggestion conflicts with project patterns
+
+4. **Suggested action:**
+   - Fix: Valid issue, should be addressed
+   - Refute: Invalid, conflicts with project patterns
+   - Discuss: Ambiguous, needs clarification
+
+**Use your judgment.** You have the context. Apply it rigorously.
+
+---
+
+### Step 6: Present Assessments
 
 Display all comments with AI assessment:
 
@@ -137,11 +194,11 @@ Summary:
 - Discuss: {count}
 ```
 
-**DO NOT suggest next steps. Proceed immediately to Step 6.**
+**DO NOT suggest next steps. Proceed immediately to Step 7.**
 
 ---
 
-### Step 6: Ask User What To Do
+### Step 7: Ask User What To Do
 
 **STOP. Use AskUserQuestion tool NOW.**
 
@@ -160,11 +217,11 @@ AskUserQuestion({
 })
 ```
 
-**Wait for user response before Step 7.**
+**Wait for user response before Step 8.**
 
 ---
 
-### Step 7: Execute User Choice
+### Step 8: Execute User Choice
 
 **If "Auto: fix valid, refute invalid":**
 
@@ -341,12 +398,17 @@ Does that sound reasonable, or is there planned reuse I'm not aware of?
 - **Ran commands before switching to PR branch**
 - **Still on different branch when fixing code**
 - **Skipped TodoWrite creation**
+- **Skipped reading documentation (CLAUDE.md, README, ARCHITECTURE)**
+- **Skipped codebase exploration**
+- **Processing resolved or outdated comments**
+- **Not filtering comments by resolution status**
+- **Re-fixing already addressed issues from previous rounds**
 - **Suggesting next steps instead of using AskUserQuestion**
 - **Using `gh pr comment` instead of `gh api .../replies`**
 - **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Drafting refutations but not posting them**
-- **Accepting all comments without verification**
-- **Not using feature-research to assess validity**
+- **Accepting all comments without verifying against project patterns**
+- **Assessing comments without understanding codebase context**
 
 ## Common Rationalizations
 
@@ -354,18 +416,24 @@ Does that sound reasonable, or is there planned reuse I'm not aware of?
 |--------|---------|
 | **"I'm already on PR branch, skip verification"** | **NO.** VERIFY FIRST. You might be wrong. Run `git branch --show-current`. |
 | **"Get PR details first to know which branch"** | **NO.** PR number in USER INPUT. Extract, switch NOW. |
+| **"Process all comments, including resolved ones"** | **NO.** ONLY unresolved. Filter resolved/outdated FIRST. |
+| **"Reviewer might unresolve later, fix now"** | **NO.** Resolved = done. Don't waste time on closed discussions. |
+| **"Outdated comments might still be valid"** | **NO.** Outdated = code changed. Re-review if needed, don't refix old code. |
 | **"Senior engineer knows best, just fix all"** | **NO.** Senior engineers make mistakes too. Verify claims. |
+| **"Skip README/ARCHITECTURE, just check CLAUDE.md"** | **NO.** Full context prevents accepting anti-patterns from reviewers. |
+| **"Skip codebase exploration, I know the patterns"** | **NO.** Memory fades. Verify actual patterns before assessment. |
 | **"Not worth arguing about style"** | **NO.** Style changes have maintenance cost. Require justification. |
-| **"Faster to fix than debate"** | **NO.** Blind fixes accumulate debt. Assess first. |
+| **"Faster to fix than debate"** | **NO.** Blind fixes accumulate debt. Assess with full context first. |
 | **"Don't want to seem difficult"** | **NO.** Technical discussion is normal. Respectful refutation is professional. |
+| **"Reviewer is senior, must be right"** | **NO.** Senior engineers miss project-specific patterns. Verify against docs. |
 | **"Use gh pr comment to post reply"** | **NO.** Use `gh api .../replies` to reply in thread. |
 | **"I'll fix directly with Edit tool"** | **NO.** Invoke superpowers:systematic-debugging. Don't skip root cause analysis. |
 | **"Simple typo fix, don't need systematic-debugging"** | **NO.** Even typos have root causes (why was typo introduced?). Use the skill. |
-| "Assessments done, I can proceed" | **NO.** Step 6 requires AskUserQuestion. Use it NOW. |
+| "Assessments done, I can proceed" | **NO.** Step 7 requires AskUserQuestion. Use it NOW. |
 | "I drafted refutation, that's enough" | **NO.** Draft ≠ posted. Execute `gh api` command. |
-| "I can assess without feature-research" | **NO.** Quick assessments miss context. Use research. |
+| "I can assess without exploration" | **NO.** Quick assessments miss patterns. Need full context. |
 | "Reviewer waiting, respond fast" | **NO.** Fast wrong responses waste MORE time. Verify first. |
-| **"Feature-research skill not installed"** | **NO.** Don't rationalize around missing dependencies. Use manual research with same rigor. |
+| **"I already read docs in another session"** | **NO.** Context expires. Read docs EVERY time from PR branch. |
 | **"I'll simulate user choice"** | **NO.** Use AskUserQuestion tool. Don't assume what user wants. |
 | **"I'll check PR first to understand scope"** | **NO.** TodoWrite FIRST. No commands before TodoWrite. Zero exceptions. |
 | **"Need context before creating TodoWrite"** | **NO.** TodoWrite doesn't need context. Create it from skill steps, THEN gather context. |
@@ -375,12 +443,13 @@ Does that sound reasonable, or is there planned reuse I'm not aware of?
 You followed the workflow if:
 - ✓ Created TodoWrite as FIRST action
 - ✓ Switched to PR branch BEFORE any analysis
-- ✓ Read CLAUDE.md from PR branch
-- ✓ Used feature-research to assess ALL comments
-- ✓ Verified reviewer claims by reading code
+- ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
+- ✓ Explored codebase to understand patterns
+- ✓ Assessed ALL comments using full repo context
+- ✓ Verified reviewer claims against project patterns
 - ✓ Used AskUserQuestion (not prose suggestions)
 - ✓ Invoked superpowers:systematic-debugging for valid fixes (not Edit tool directly)
 - ✓ Posted refutations with `gh api .../replies` (not `gh pr comment`)
 - ✓ Verified replies posted in correct threads
-- ✓ Created Z04 documentation with systematic-debugging results
+- ✓ Created Z04 documentation (if needed)
 - ✓ Resisted authority/agreeableness pressures
