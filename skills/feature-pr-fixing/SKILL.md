@@ -39,7 +39,7 @@ TodoWrite({
     {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Explore codebase (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
     {content: "Step 4: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
-    {content: "Step 5: Assess ALL comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
+    {content: "Step 5: Assess ALL UNANSWERED OR UNFIXED comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
     {content: "Step 6: Present assessments", status: "pending", activeForm: "Presenting findings"},
     {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
     {content: "Step 8: Execute user choice", status: "pending", activeForm: "Executing action"}
