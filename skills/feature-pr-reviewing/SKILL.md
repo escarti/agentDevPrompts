@@ -107,62 +107,27 @@ You need:
 
 ### Step 5: Hunt for Bugs (Adversarial Review)
 
-**CRITICAL MINDSET: ASSUME BUGS EXIST. Your goal is to FIND them.**
+**ASSUME BUGS EXIST. Your goal: FIND them.**
 
-You now have full context (docs + codebase patterns + changed files). Use it to hunt adversarially.
+**Hunt for:**
 
-**You are a security auditor reviewing code before production.** Don't ask "is this acceptable?" Ask "how will this break in production?"
+| Category | Look For |
+|----------|----------|
+| **Security** | Injection (SQL/XSS/command), auth/authz bypasses, exposed secrets, resource exhaustion, info disclosure |
+| **Logic** | Edge cases (null/empty/max), off-by-one, race conditions, state inconsistency, error handling gaps |
+| **Quality** | CLAUDE.md violations, inconsistent with codebase patterns (Step 3), silent failures, poor naming |
+| **Architecture** | Broken boundaries, layer bypasses, circular deps, contradicts ARCHITECTURE.md |
+| **Tests** | Missing coverage, no negative tests, integration gaps, mock overuse |
 
-**For EACH changed file, actively hunt for:**
+**How:**
+- Ask "what breaks here?" for each line
+- Trace data flow: input → validation → processing → output
+- Check conditionals: what if opposite?
+- Check calls: what if error/null/unexpected?
+- Look for what's NOT there: validation, tests, error handling
+- Compare to existing patterns (Step 3)
 
-**1. Security Vulnerabilities:**
-- Input validation missing → Can I inject code? (SQL, XSS, command injection)
-- Authentication bypasses → Can I access endpoints without auth?
-- Authorization flaws → Can I access data beyond my permissions?
-- Secrets exposed → Are API keys/credentials committed?
-- Resource exhaustion → Can I DoS with large inputs/loops?
-- Information disclosure → Do error messages leak sensitive data?
-
-**2. Logic Bugs:**
-- Edge cases → What happens with null/empty/max/negative values?
-- Off-by-one errors → Array bounds, loop conditions, pagination
-- Race conditions → Async operations without proper locking
-- State management → Can state become inconsistent?
-- Error handling → What breaks when dependencies fail?
-- Incorrect assumptions → Does code assume happy path only?
-
-**3. Code Quality Issues:**
-- CLAUDE.md violations → Does this break mandatory patterns?
-- Inconsistent with codebase → Different from existing approaches (Step 3)?
-- Missing error handling → Silent failures, unhandled rejections?
-- Poor naming/structure → Confusing, misleading, or unclear?
-- Copy-paste bugs → Duplicated code with slight variations?
-
-**4. Architecture Violations:**
-- Component boundaries → Does this break separation of concerns?
-- Abstraction bypasses → Does this reach through layers?
-- Dependency direction → Does this introduce circular dependencies?
-- ARCHITECTURE.md design → Does this contradict documented design?
-
-**5. Test Gaps:**
-- Untested code paths → What has NO test coverage?
-- Missing negative tests → Are error cases tested?
-- Integration gaps → Are component boundaries tested?
-- Mock overuse → Are tests testing real behavior or mock behavior?
-
-**HOW to hunt:**
-- Read each changed line asking "what breaks here?"
-- Trace data flow: user input → validation → processing → storage → output
-- Check every conditional: what if the opposite happens?
-- Check every function call: what if it returns error/null/unexpected?
-- Look for what's NOT there: missing validation, missing tests, missing error handling
-- Compare to existing code: is this consistent with established patterns?
-
-**For each finding, document:**
-- File path and line number
-- Issue type and severity (critical/high/medium/low)
-- Description: WHY this is a bug, HOW to exploit/trigger it
-- How it violates project patterns (reference CLAUDE.md/ARCHITECTURE.md/existing code)
+**Document:** file:line, type, severity, WHY bug, HOW to trigger, pattern violations
 
 ---
 
@@ -234,24 +199,6 @@ AskUserQuestion({
 
 ---
 
-## Posting Review Comments (Reference)
-
-**For NEW review comments** (findings from this review):
-- Use `gh pr comment {PR_NUM}` for individual comments
-- Use `gh pr review {PR_NUM}` for batch review submission
-- Both are correct - choose based on user preference
-
-**For REPLYING to existing comments** (not applicable in this skill):
-- **CRITICAL:** Must include PR_NUM in path
-- ❌ WRONG: `gh api repos/{OWNER}/{REPO}/pulls/comments/{COMMENT_ID}/replies` (404)
-- ✅ CORRECT: `gh api repos/{OWNER}/{REPO}/pulls/{PR_NUM}/comments/{COMMENT_ID}/replies` (201)
-- See feature-pr-fixing skill for full reply workflow
-
-**If commands fail, reference official docs:**
-- Review comments: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28
-- Review replies: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
-
----
 
 ## Red Flags - You're Failing If:
 
@@ -270,29 +217,18 @@ AskUserQuestion({
 
 | Excuse | Reality |
 |--------|---------|
-| **"I'm already on PR branch, skip verification"** | **NO.** VERIFY FIRST. You might be wrong. Run `git branch --show-current`. |
-| **"Get PR details first to know which branch"** | **NO.** PR number is in USER INPUT. Extract it, switch NOW. No gh commands first. |
-| **"Run gh pr view to find branch name"** | **NO.** `gh pr checkout {number}` does that automatically. Switch NOW. |
-| **"Gather metadata first, then switch"** | **NO.** Switch FIRST. Metadata from wrong branch = wrong context. |
-| **"Quick overview before diving in"** | **NO.** Overview from wrong branch is useless. Switch FIRST. |
+| **"Get PR details first to know branch"** | **NO.** PR number in USER INPUT. Extract, switch NOW. |
+| **"I'm already on PR branch, skip verification"** | **NO.** VERIFY FIRST. Run `git branch --show-current`. |
+| **"Run gh pr view to find branch name"** | **NO.** `gh pr checkout {number}` does that. Switch NOW. |
+| **"Skip docs/exploration, I can see changes"** | **NO.** Need patterns to detect violations. |
 | **"Time pressure = skip workflow"** | **NO.** Workflow is FASTER than ad-hoc. Follow it. |
-| **"Not spend time switching branches"** | **NO.** Switching takes 5 seconds. Wrong branch wastes 15 minutes. |
-| **"Trust PR description, skip CLAUDE.md"** | **NO.** PR description doesn't replace project guidelines. |
-| **"Skip README/ARCHITECTURE, just check CLAUDE.md"** | **NO.** Full context prevents missing architecture violations. |
-| **"Skip codebase exploration, I can see the changes"** | **NO.** Need to know existing patterns to detect violations. |
-| **"15 minutes too tight for workflow"** | **NO.** TodoWrite + context + analysis is faster than rework. |
-| "I can see what needs doing, skip TodoWrite" | **NO.** TodoWrite is MANDATORY. Creates visibility, prevents skips. |
-| "Creating TodoWrite wastes time" | **NO.** TodoWrite prevents mistakes that waste MORE time. |
+| "TodoWrite wastes time" | **NO.** TodoWrite prevents mistakes that waste MORE time. |
 | "I'll offer helpful next steps in text" | **NO.** Use AskUserQuestion tool. NOT prose. |
 | "Findings presented, I can proceed" | **NO.** Step 7 requires AskUserQuestion. Use it NOW. |
-| "User obviously wants comments" | **NO.** ALWAYS ask. User might want document-only. |
 | "I drafted comments, that's enough" | **NO.** Draft ≠ posted. Execute `gh pr comment`. |
 | "Code looks correct, just confirm it" | **NO.** Don't confirm. ATTACK it. Find how to break it. |
-| "PR seems well-written, validate quality" | **NO.** ASSUME BUGS EXIST. Hunt for them adversarially. |
+| "ASSUME BUGS EXIST. Hunt adversarially" | **NO.** ASSUME BUGS EXIST. Hunt for them adversarially. |
 | "Changes are simple, quick review" | **NO.** Simple code hides subtle bugs. Hunt line-by-line. |
-| "PR is simple, review directly" | **NO.** Context reveals issues you'll miss. Architecture awareness matters. |
-| "Time pressure, skip systematic approach" | **NO.** Systematic is FASTER. Shortcuts cause rework. |
-| "I know this codebase, skip exploration" | **NO.** Memory fades. Refresh context every time. Patterns evolve. |
 
 ## Success Criteria
 

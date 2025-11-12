@@ -84,55 +84,28 @@ Scan for Z01/Z02 files in common locations (docs/ai/ongoing, .ai/ongoing, etc.)
 
 ### Step 4: Hunt for Bugs (Adversarial Assessment)
 
-**CRITICAL MINDSET: ASSUME BUGS EXIST. Your job is to FIND them.**
+**ASSUME BUGS EXIST. Your job: FIND them.**
 
-You are a security auditor, QA engineer, and attacker combined. Don't ask "is this correct?" Ask "how can I break this?"
+Don't ask "is this correct?" Ask "how can I break this?"
 
-**Read each changed file with adversarial intent:**
+**Hunt for:**
 
-For EACH file, actively hunt for:
+| Category | Look For |
+|----------|----------|
+| **Security** | Injection (SQL/XSS/command), auth/authz bypasses, exposed secrets, resource exhaustion |
+| **Logic** | Edge cases (null/empty/max), off-by-one, race conditions, error handling gaps, happy-path assumptions |
+| **Quality** | CLAUDE.md violations, inconsistent with codebase, silent failures, poor naming |
+| **Tests** | Untested paths, missing negative tests, integration gaps |
+| **Plan** | Z02 deviations, scope creep, unintentional changes |
 
-**1. Security Vulnerabilities:**
-- Input validation missing → Can I inject code? (SQL, XSS, command injection)
-- Authentication bypasses → Can I access without credentials?
-- Authorization flaws → Can I access data I shouldn't?
-- Secrets exposed → Are credentials/keys in code?
-- Resource exhaustion → Can I cause DoS with large inputs?
+**How:**
+- Ask "what breaks here?" for each line
+- Trace: input → processing → output
+- Check conditionals: what if opposite?
+- Check calls: what if error/null?
+- Look for what's NOT there: validation, tests, error handling
 
-**2. Logic Bugs:**
-- Edge cases → What happens with null/empty/max values?
-- Off-by-one errors → Array bounds, loop conditions
-- Race conditions → Async operations, state changes
-- Error handling → What breaks when dependencies fail?
-- Incorrect assumptions → Does code assume happy path only?
-
-**3. Code Quality Issues:**
-- CLAUDE.md violations → Does this break mandatory patterns?
-- Inconsistent with codebase → Different from existing approaches?
-- Missing error handling → Silent failures?
-- Poor naming/structure → Confusing or misleading?
-
-**4. Test Gaps:**
-- Untested paths → What code has NO test coverage?
-- Missing negative tests → Error cases tested?
-- Integration gaps → Are component boundaries tested?
-
-**5. Plan Deviations:**
-- Compare against Z02 → Did implementation diverge?
-- Unintentional changes → Scope creep or mistakes?
-
-**HOW to hunt:**
-- Read code line-by-line, ask "what breaks here?"
-- Trace data flow: user input → processing → output
-- Check every conditional: what if the opposite happens?
-- Check every function call: what if it returns error/null?
-- Look for what's NOT there: missing validation, missing tests
-
-**Document findings:**
-- File path and line number
-- Issue type (security/bug/quality/test/deviation)
-- Severity (critical/high/medium/low)
-- Explanation: WHY this is a bug, HOW to exploit/trigger it
+**Document:** file:line, type, severity, WHY bug, HOW to trigger
 
 ---
 
@@ -210,80 +183,16 @@ AskUserQuestion({
 
 **If "Fix all":**
 
-Use Skill tool to invoke `superpowers:systematic-debugging` with ALL findings:
-
-```
-You are fixing issues found in feature-finish quality check.
-
-CONTEXT:
-- Feature: {feature_name}
-- Branch: {branch}
-- Files changed: {list}
-- CLAUDE.md constraints: {if exists}
-
-FINDINGS TO FIX:
-{List all issues with file:line, severity, description}
-
-For EACH issue:
-1. Root Cause Investigation: Read code, understand why issue exists
-2. Pattern Analysis: Check if similar issues exist elsewhere
-3. Hypothesis: State what fix will do
-4. Implementation: Apply fix, verify it works
-
-CRITICAL: If 3+ fixes fail for SAME issue → STOP and report "architectural problem, not implementation bug"
-
-Report back: What was fixed, what failed, any architectural concerns discovered.
-```
-
-Track systematic-debugging's report for Z05 documentation.
+Invoke `superpowers:systematic-debugging` with ALL findings. Track report for Z05.
 
 ---
 
 **If "Loop issues":**
 
-For each issue, ask user:
-```typescript
-AskUserQuestion({
-  questions: [{
-    question: "Issue {n}/{total}: {description} ({file}:{line}). Severity: {severity}. What action?",
-    header: "Action",
-    multiSelect: false,
-    options: [
-      {label: "Fix", description: "Fix using superpowers:systematic-debugging"},
-      {label: "Skip", description: "Skip this issue, continue to next"},
-      {label: "Explain", description: "Provide context to reassess this issue"},
-      {label: "Stop", description: "Stop processing remaining issues"}
-    ]
-  }]
-})
-```
+For each issue, ask with AskUserQuestion: Fix / Skip / Explain / Stop.
 
-**If user chooses "Fix":**
-
-Use Skill tool to invoke `superpowers:systematic-debugging` for this specific issue:
-
-```
-Fix this issue using systematic debugging:
-
-CONTEXT:
-- Feature: {feature_name}
-- File: {file}:{line}
-- Severity: {severity}
-- Description: {issue_description}
-- CLAUDE.md constraints: {if exists}
-
-Follow the four phases:
-1. Root Cause Investigation
-2. Pattern Analysis
-3. Hypothesis and Testing
-4. Implementation
-
-Report back: Root cause found, fix applied, verification result.
-```
-
-**If user chooses "Explain":**
-
-User provides context → re-invoke feature-research with new context → update assessment → ask again.
+- **Fix**: Invoke `superpowers:systematic-debugging` for this issue
+- **Explain**: User provides context → update assessment → ask again
 
 ---
 
@@ -369,25 +278,6 @@ Skip to Step 9.
 | "Z01/Z02 not found, skip reading" | **NO.** Try to find them. If truly missing, note it and continue. |
 | "Quality check is exploratory, no tracking" | **NO.** 9 mandatory steps with decisions. MUST use TodoWrite. |
 
-## Using "Explain" Option
-
-When user chooses "Explain" during issue loop:
-
-**Purpose:** User provides context about:
-- Why code was written this way
-- Business requirements not visible in code
-- Future plans justifying implementation
-
-**Workflow:**
-1. User provides context
-2. Re-read code with new context
-3. Re-assess issue
-4. Present updated assessment
-5. Ask again with new understanding
-
-**Document in Z05** with user's context verbatim.
-
----
 
 ## Success Criteria
 
