@@ -177,20 +177,38 @@ AskUserQuestion({
 
 **If "Auto: fix valid, refute invalid":**
 
-For VALID comments: Invoke `superpowers:systematic-debugging` with context (PR, file, comment, assessment).
+For EACH VALID (Fix) comment:
+1. Invoke `superpowers:systematic-debugging` with context (PR, file, comment, assessment)
+2. Test the fix (run relevant tests, verify behavior)
+3. Commit with descriptive message: `git commit -m "Fix: [comment summary] - [what changed]"`
+4. Move to next VALID comment
 
-For INVALID comments: Post refutation using `gh api` (see "Replying to Review Comments" section).
+For EACH INVALID (refute) comment:
+1. Post refutation using `gh api` (see "Replying to Review Comments" section)
+2. Move to next INVALID comment
 
+After all comments processed:
+1. Push all commits: `git push`
 ---
 
 **If "Review per-comment":**
 
 Loop through comments with AskUserQuestion offering: Fix / Refute / Explain / Skip / Stop.
 
-- **Fix**: Invoke `superpowers:systematic-debugging`
-- **Refute**: Post via `gh api`
-- **Explain**: User provides context → update assessment → ask again
+- **Fix**:
+1. Invoke `superpowers:systematic-debugging` with context (PR, file, comment, assessment)
+2. Test the fix (run relevant tests, verify behavior)
+3. Commit with descriptive message: `git commit -m "Fix: [comment summary] - [what changed]"`
+4. Only then move to next comment
+- **Refute**:
+1. Post refutation using `gh api` (see "Replying to Review Comments" section)
+2. Move to next comment
+- **Explain**:
+1. User provides context → update assessment → ask again
+2. Reassess if comment needs fixing or refuting
 
+After all comments processed (or user chooses "Stop"):
+1. Push all commits: `git push`
 ---
 
 **Z04 File Creation (Conditional):**
@@ -259,6 +277,9 @@ Happy to discuss further if there's context I'm missing.
 - **Drafting refutations but not posting them**
 - **Accepting all comments without verifying against project patterns**
 - **Assessing comments without understanding codebase context**
+- **Applied fixes but didn't commit changes**
+- **Applied fixes but didn't push to remote branch**
+- **Committed all fixes in one batch instead of after each fix**
 
 ## Common Rationalizations
 
@@ -278,6 +299,9 @@ Happy to discuss further if there's context I'm missing.
 | "Assessments done, I can proceed" | **NO.** Step 7 requires AskUserQuestion. Use it NOW. |
 | "I drafted refutation, that's enough" | **NO.** Draft ≠ posted. Execute `gh api` command. |
 | **"I'll simulate user choice"** | **NO.** Use AskUserQuestion tool. Don't assume what user wants. |
+| **"systematic-debugging handles commits"** | **NO.** You must explicitly commit after each fix is tested. |
+| **"I'll commit all fixes at once at the end"** | **NO.** Commit after testing each individual fix for atomic history. |
+| **"I'll push after each commit"** | **NO.** Batch push once at end of Step 8 for efficiency. |
 
 ## Success Criteria
 
@@ -290,6 +314,8 @@ You followed the workflow if:
 - ✓ Verified reviewer claims against project patterns
 - ✓ Used AskUserQuestion (not prose suggestions)
 - ✓ Invoked superpowers:systematic-debugging for valid fixes (not Edit tool directly)
+- ✓ Committed each fix individually after testing
+- ✓ Pushed all commits to PR branch at end of Step 8
 - ✓ Posted refutations with `gh api .../replies` (not `gh pr comment`)
 - ✓ Verified replies posted in correct threads
 - ✓ Created Z04 documentation (if needed)
