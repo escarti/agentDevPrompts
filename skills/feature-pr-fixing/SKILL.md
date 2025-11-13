@@ -37,8 +37,8 @@ TodoWrite({
   todos: [
     {content: "Step 1: Switch to PR branch", status: "in_progress", activeForm: "Switching to PR branch"},
     {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
-    {content: "Step 3: Explore codebase (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
-    {content: "Step 4: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
+    {content: "Step 3: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
+    {content: "Step 4: Explore affected areas only (glob, grep, read files)", status: "pending", activeForm: "Analyzing affected code"},
     {content: "Step 5: Assess ALL UNANSWERED OR UNFIXED comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
     {content: "Step 6: Present assessments", status: "pending", activeForm: "Presenting findings"},
     {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
@@ -80,21 +80,11 @@ gh pr checkout 258
 
 ---
 
-### Step 3: Explore Codebase
-
-**Follow Steps 2-3 from feature-pr-reviewing** to build mental model:
-- Use Task tool with subagent_type=Explore
-- Focus on changed areas related to PR files
-- Alternative: Manual exploration with glob/grep/Read
-
-**Goal:** Know how things are SUPPOSED to be done, so you can identify when review comments suggest anti-patterns or violate project architecture.
-
----
-
-### Step 4: Get PR Details and Comments
+### Step 3: Get PR Details and Comments
 
 Get PR metadata and **UNRESOLVED, CURRENT** review comments with:
 - Comment ID (needed for replies), file:line, comment text, reviewer
+- **List of changed files** (critical for Step 4)
 
 **CRITICAL FILTERING:**
 - **ONLY UNRESOLVED** (not marked resolved by reviewer)
@@ -102,6 +92,33 @@ Get PR metadata and **UNRESOLVED, CURRENT** review comments with:
 - **SKIP resolved or outdated**
 
 **If no unresolved comments**: "No unresolved review comments. Nothing to address."
+
+---
+
+### Step 4: Explore Affected Areas Only
+
+**NOW you know what files changed and which areas have review comments.** Explore ONLY the affected areas, not the entire codebase.
+
+**Use Task tool with subagent_type=Explore:**
+```
+Explore the codebase areas affected by PR changes and review comments in:
+- {list changed files from Step 3}
+- {list files mentioned in review comments}
+
+Understand:
+- How these files fit into the architecture
+- Related files/modules that interact with changes
+- Existing patterns in these areas
+- Testing patterns for these components
+- Security considerations for these areas
+```
+
+**Alternative (if Explore agent not available):** Manual targeted exploration:
+- `glob` to find files related to changed areas
+- `grep` to search for similar implementations in affected modules
+- `Read` files that interact with changed code
+
+**Goal:** Know how things are SUPPOSED to be done in the AFFECTED areas, so you can identify when review comments suggest anti-patterns or violate project architecture.
 
 ---
 
@@ -282,7 +299,8 @@ Happy to discuss further if there's context I'm missing.
 - **Still on different branch when fixing code**
 - **Skipped TodoWrite creation**
 - **Skipped reading documentation (CLAUDE.md, README, ARCHITECTURE)**
-- **Skipped codebase exploration**
+- **Exploring entire codebase before getting PR details** (Step 3 MUST come before Step 4)
+- **Using Task/Explore agent without providing changed file list** (get PR details first)
 - **Processing resolved or outdated comments**
 - **Not filtering comments by resolution status**
 - **Re-fixing already addressed issues from previous rounds**
@@ -306,6 +324,7 @@ Happy to discuss further if there's context I'm missing.
 | **"Process all comments, including resolved"** | **NO.** ONLY unresolved. Filter resolved/outdated FIRST. |
 | **"Senior engineer knows best, just fix all"** | **NO.** Senior engineers miss project patterns. Verify against docs. |
 | **"Skip docs/exploration, I know patterns"** | **NO.** Memory fades. Verify actual patterns before assessment. |
+| **"Explore whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then explore affected areas ONLY (Step 4). |
 | **"Not worth arguing about style"** | **NO.** Style changes have cost. Require justification. |
 | **"Faster to fix than debate"** | **NO.** Blind fixes accumulate debt. Assess with full context first. |
 | **"Don't want to seem difficult"** | **NO.** Technical discussion is normal. Respectful refutation is professional. |
@@ -324,7 +343,8 @@ You followed the workflow if:
 - ✓ Created TodoWrite as FIRST action
 - ✓ Switched to PR branch BEFORE any analysis
 - ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
-- ✓ Explored codebase to understand patterns
+- ✓ Got PR details and review comments BEFORE exploring
+- ✓ Explored ONLY affected areas (not entire codebase)
 - ✓ Assessed ALL comments using full repo context
 - ✓ Verified reviewer claims against project patterns
 - ✓ Used AskUserQuestion (not prose suggestions)
