@@ -24,7 +24,7 @@ TodoWrite({
     {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Explore codebase (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
     {content: "Step 4: Get PR details and changed files", status: "pending", activeForm: "Getting PR info"},
-    {content: "Step 5: Analyze changes using repo context and pattern awareness", status: "pending", activeForm: "Analyzing changes"},
+    {content: "Step 5: Hunt for bugs (adversarial review)", status: "pending", activeForm: "Hunting for bugs"},
     {content: "Step 6: Present findings", status: "pending", activeForm: "Presenting findings"},
     {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
     {content: "Step 8: Execute user choice", status: "pending", activeForm: "Executing action"}

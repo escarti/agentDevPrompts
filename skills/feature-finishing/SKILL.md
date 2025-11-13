@@ -23,7 +23,7 @@ TodoWrite({
     {content: "Step 1: Get current branch and changed files", status: "in_progress", activeForm: "Getting git status"},
     {content: "Step 2: Read CLAUDE.md", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Load Z01/Z02 plan files", status: "pending", activeForm: "Reading plan docs"},
-    {content: "Step 4: Assess implementation with feature-research", status: "pending", activeForm: "Running quality check"},
+    {content: "Step 4: Hunt for bugs (adversarial assessment)", status: "pending", activeForm: "Hunting for bugs"},
     {content: "Step 5: Compare against plan", status: "pending", activeForm: "Checking deviations"},
     {content: "Step 6: Present findings", status: "pending", activeForm: "Formatting summary"},
     {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
