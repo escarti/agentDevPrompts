@@ -38,7 +38,7 @@ TodoWrite({
     {content: "Step 1: Switch to PR branch", status: "in_progress", activeForm: "Switching to PR branch"},
     {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
-    {content: "Step 4: Explore affected areas only (glob, grep, read files)", status: "pending", activeForm: "Analyzing affected code"},
+    {content: "Step 4: Read changed files and comment context", status: "pending", activeForm: "Reading code files"},
     {content: "Step 5: Assess ALL UNANSWERED OR UNFIXED comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
     {content: "Step 6: Present assessments", status: "pending", activeForm: "Presenting findings"},
     {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
@@ -95,30 +95,17 @@ Get PR metadata and **UNRESOLVED, CURRENT** review comments with:
 
 ---
 
-### Step 4: Explore Affected Areas Only
+### Step 4: Read Changed Files and Comment Context
 
-**NOW you know what files changed and which areas have review comments.** Explore ONLY the affected areas, not the entire codebase.
+**NOW you know what files changed and which have review comments.** Read the relevant files to understand the code.
 
-**Use Task tool with subagent_type=Explore:**
-```
-Explore the codebase areas affected by PR changes and review comments in:
-- {list changed files from Step 3}
-- {list files mentioned in review comments}
+**Read the files:**
+- Use `Read` tool for each changed file from Step 3
+- Use `Read` tool for files mentioned in review comments
+- Focus on understanding what the code is doing
+- Note patterns/conventions used in immediate vicinity of changes
 
-Understand:
-- How these files fit into the architecture
-- Related files/modules that interact with changes
-- Existing patterns in these areas
-- Testing patterns for these components
-- Security considerations for these areas
-```
-
-**Alternative (if Explore agent not available):** Manual targeted exploration:
-- `glob` to find files related to changed areas
-- `grep` to search for similar implementations in affected modules
-- `Read` files that interact with changed code
-
-**Goal:** Know how things are SUPPOSED to be done in the AFFECTED areas, so you can identify when review comments suggest anti-patterns or violate project architecture.
+**Goal:** Understand the code well enough to assess whether review comments are valid.
 
 ---
 
@@ -299,8 +286,8 @@ Happy to discuss further if there's context I'm missing.
 - **Still on different branch when fixing code**
 - **Skipped TodoWrite creation**
 - **Skipped reading documentation (CLAUDE.md, README, ARCHITECTURE)**
-- **Exploring entire codebase before getting PR details** (Step 3 MUST come before Step 4)
-- **Using Task/Explore agent without providing changed file list** (get PR details first)
+- **Reading entire codebase before getting PR details** (Step 3 MUST come before Step 4)
+- **Reading files before getting changed file list** (get PR details first)
 - **Processing resolved or outdated comments**
 - **Not filtering comments by resolution status**
 - **Re-fixing already addressed issues from previous rounds**
@@ -323,8 +310,8 @@ Happy to discuss further if there's context I'm missing.
 | **"I'm already on PR branch, skip verification"** | **NO.** VERIFY FIRST. Run `git branch --show-current`. |
 | **"Process all comments, including resolved"** | **NO.** ONLY unresolved. Filter resolved/outdated FIRST. |
 | **"Senior engineer knows best, just fix all"** | **NO.** Senior engineers miss project patterns. Verify against docs. |
-| **"Skip docs/exploration, I know patterns"** | **NO.** Memory fades. Verify actual patterns before assessment. |
-| **"Explore whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then explore affected areas ONLY (Step 4). |
+| **"Skip docs/reading files, I know patterns"** | **NO.** Memory fades. Read code before assessment. |
+| **"Read whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then read changed files ONLY (Step 4). |
 | **"Not worth arguing about style"** | **NO.** Style changes have cost. Require justification. |
 | **"Faster to fix than debate"** | **NO.** Blind fixes accumulate debt. Assess with full context first. |
 | **"Don't want to seem difficult"** | **NO.** Technical discussion is normal. Respectful refutation is professional. |
@@ -344,7 +331,7 @@ You followed the workflow if:
 - ✓ Switched to PR branch BEFORE any analysis
 - ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
 - ✓ Got PR details and review comments BEFORE exploring
-- ✓ Explored ONLY affected areas (not entire codebase)
+- ✓ Read ONLY changed files and comment context (not entire codebase)
 - ✓ Assessed ALL comments using full repo context
 - ✓ Verified reviewer claims against project patterns
 - ✓ Used AskUserQuestion (not prose suggestions)

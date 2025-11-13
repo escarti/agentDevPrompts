@@ -23,7 +23,7 @@ TodoWrite({
     {content: "Step 1: Extract PR number from user input, switch to PR branch NOW", status: "in_progress", activeForm: "Switching to PR branch"},
     {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Get PR details and changed files", status: "pending", activeForm: "Getting PR info"},
-    {content: "Step 4: Explore affected areas only (glob, grep, read files)", status: "pending", activeForm: "Analyzing affected code"},
+    {content: "Step 4: Read changed files to understand code", status: "pending", activeForm: "Reading changed files"},
     {content: "Step 5: Hunt for bugs (adversarial review)", status: "pending", activeForm: "Hunting for bugs"},
     {content: "Step 6: Present findings", status: "pending", activeForm: "Presenting findings"},
     {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
@@ -80,29 +80,16 @@ You need:
 
 ---
 
-### Step 4: Explore Affected Areas Only
+### Step 4: Read Changed Files
 
-**NOW you know what files changed.** Explore ONLY the affected areas, not the entire codebase.
+**NOW you know what files changed.** Read the changed files to understand what the code does.
 
-**Use Task tool with subagent_type=Explore:**
-```
-Explore the codebase areas affected by PR changes in:
-- {list changed files from Step 3}
+**Read the changed files:**
+- Use `Read` tool for each changed file from Step 3
+- Focus on understanding what the new/modified code is doing
+- Note patterns/conventions used in immediate vicinity of changes
 
-Understand:
-- How these files fit into the architecture
-- Related files/modules that interact with changes
-- Existing patterns in these areas
-- Testing patterns for these components
-- Security considerations for these areas
-```
-
-**Alternative (if Explore agent not available):** Manual targeted exploration:
-- `glob` to find files related to changed areas
-- `grep` to search for similar implementations in affected modules
-- `Read` files that interact with changed code
-
-**Goal:** Know how things are SUPPOSED to be done in the AFFECTED areas, so you can identify violations.
+**Goal:** Understand the code well enough to find bugs in it.
 
 ---
 
@@ -208,8 +195,8 @@ AskUserQuestion({
 - **Still on `main` branch when analyzing**
 - **Thinking "I'll gather metadata first"**
 - **Skipped TodoWrite creation**
-- **Exploring entire codebase before getting PR details** (Step 3 MUST come before Step 4)
-- **Using Task/Explore agent without providing changed file list** (get PR details first)
+- **Reading entire codebase before getting PR details** (Step 3 MUST come before Step 4)
+- **Reading files before getting changed file list** (get PR details first)
 - **Suggesting next steps instead of using AskUserQuestion**
 - **Asking "would you like me to..." in prose**
 - **Drafting comments but not posting them**
@@ -223,8 +210,8 @@ AskUserQuestion({
 | **"Get PR details first to know branch"** | **NO.** PR number in USER INPUT. Extract, switch NOW. |
 | **"I'm already on PR branch, skip verification"** | **NO.** VERIFY FIRST. Run `git branch --show-current`. |
 | **"Run gh pr view to find branch name"** | **NO.** `gh pr checkout {number}` does that. Switch NOW. |
-| **"Skip docs/exploration, I can see changes"** | **NO.** Need patterns to detect violations. |
-| **"Explore whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then explore affected areas ONLY (Step 4). |
+| **"Skip docs/reading files, I can see changes"** | **NO.** Need to read code to find bugs. |
+| **"Read whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then read changed files ONLY (Step 4). |
 | **"Time pressure = skip workflow"** | **NO.** Workflow is FASTER than ad-hoc. Follow it. |
 | "TodoWrite wastes time" | **NO.** TodoWrite prevents mistakes that waste MORE time. |
 | "I'll offer helpful next steps in text" | **NO.** Use AskUserQuestion tool. NOT prose. |
@@ -241,7 +228,7 @@ You followed the workflow if:
 - ✓ Switched to PR branch BEFORE any analysis
 - ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
 - ✓ Got PR details and changed files list BEFORE exploring
-- ✓ Explored ONLY affected areas (not entire codebase)
+- ✓ Read ONLY changed files (not entire codebase)
 - ✓ Hunted for bugs adversarially (not passive validation)
 - ✓ Assumed bugs exist, found them
 - ✓ Analyzed changes with full repo context awareness
