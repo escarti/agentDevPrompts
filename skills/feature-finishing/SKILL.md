@@ -25,10 +25,12 @@ TodoWrite({
     {content: "Step 3: Load Z01/Z02 plan files", status: "pending", activeForm: "Reading plan docs"},
     {content: "Step 4: Hunt for bugs (adversarial assessment)", status: "pending", activeForm: "Hunting for bugs"},
     {content: "Step 5: Compare against plan", status: "pending", activeForm: "Checking deviations"},
-    {content: "Step 6: Present findings", status: "pending", activeForm: "Formatting summary"},
-    {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
-    {content: "Step 8: Execute user choice", status: "pending", activeForm: "Applying fixes"},
-    {content: "Step 9: Create Z05 finish documentation", status: "pending", activeForm: "Writing Z05"}
+    {content: "Step 6: Run PR-style code review on branch diff", status: "pending", activeForm: "Reviewing like PR reviewer"},
+    {content: "Step 7: Run security-focused review pass", status: "pending", activeForm: "Reviewing with security mindset"},
+    {content: "Step 8: Present findings", status: "pending", activeForm: "Formatting summary"},
+    {content: "Step 9: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 10: Execute user choice", status: "pending", activeForm: "Applying fixes"},
+    {content: "Step 11: Create Z05 finish documentation", status: "pending", activeForm: "Writing Z05"}
   ]
 })
 ```
@@ -122,7 +124,40 @@ Track:
 
 ---
 
-### Step 6: Present Findings
+### Step 6: Run PR-Style Code Review
+
+**Do a second pass specifically as an external PR reviewer.**
+
+Goal: minimize follow-up PR findings before opening/updating the PR.
+
+How:
+- Review `git diff main` changed files as if this were a PR review.
+- Re-check for architecture/style/testing issues reviewers usually flag (naming, layering, error handling, test quality, consistency with project patterns).
+- Reuse the adversarial approach from Step 4, but focus on what maintainers would comment on in review.
+- Merge and de-duplicate findings from Steps 4-5 with this review pass.
+
+Document additional findings with: file:line, type, severity, WHY issue, HOW reviewer would detect it.
+
+---
+
+### Step 7: Run Security-Focused Review Pass
+
+**Do a third pass from the perspective of a security engineer.**
+
+Goal: surface vulnerabilities likely to be caught in AppSec/SAST/penetration review before PR feedback.
+
+How:
+- Re-read `git diff main` and trace trust boundaries (user input, external services, file system, shell/database calls, auth/session paths).
+- Look for exploitability, not just code quality: injection, auth bypass, privilege escalation, insecure defaults, secret leakage, unsafe deserialization, SSRF/path traversal, DoS vectors.
+- Validate security controls exist and are enforced: input validation, output encoding, least privilege, rate limiting, audit logging, secure error handling.
+- Include abuse cases: "how can an attacker trigger this?" for every externally reachable path.
+- Merge and de-duplicate findings from Steps 4-6 with this security pass.
+
+Document additional findings with: file:line, type, severity, WHY vulnerable, HOW to exploit, impact.
+
+---
+
+### Step 8: Present Findings
 
 Display summary:
 
@@ -150,15 +185,15 @@ Display summary:
 1. {description} ({file}:{line})
 ```
 
-**DO NOT suggest next steps. Proceed immediately to Step 7.**
+**DO NOT suggest next steps. Proceed immediately to Step 9.**
 
 ---
 
-### Step 7: Ask User What To Do
+### Step 9: Ask User What To Do
 
 **STOP. Use AskUserQuestion tool NOW.**
 
-**If you haven't asked the user yet, you are at Step 7. Ask NOW.**
+**If you haven't asked the user yet, you are at Step 9. Ask NOW.**
 
 ```typescript
 AskUserQuestion({
@@ -175,11 +210,11 @@ AskUserQuestion({
 })
 ```
 
-**Wait for user response before Step 8.**
+**Wait for user response before Step 10.**
 
 ---
 
-### Step 8: Execute User Choice
+### Step 10: Execute User Choice
 
 **If "Fix all":**
 
@@ -198,11 +233,11 @@ For each issue, ask with AskUserQuestion: Fix / Skip / Explain / Stop.
 
 **If "Document only":**
 
-Skip to Step 9.
+Skip to Step 11.
 
 ---
 
-### Step 9: Create Z05 Documentation
+### Step 11: Create Z05 Documentation
 
 **ALWAYS create Z05 file** (regardless of choice).
 
@@ -256,6 +291,8 @@ Skip to Step 9.
 - **Skipping CLAUDE.md** (exists but not read)
 - **Not reading Z01/Z02 files**
 - **Passive validation instead of adversarial bug hunting**
+- **Skipping Step 6 PR-style code review pass**
+- **Skipping Step 7 security-focused review pass**
 - **Not finding ANY bugs** (means you didn't look hard enough)
 - **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Documenting in Z05 instead of fixing when user chose 'Fix'**
@@ -265,7 +302,9 @@ Skip to Step 9.
 
 | Excuse | Reality |
 |--------|---------|
-| **"Assessment done, I can proceed"** | **NO.** Step 7 requires AskUserQuestion. You have NOT done Step 7 yet. |
+| **"Assessment done, I can proceed"** | **NO.** Step 9 requires AskUserQuestion. You have NOT done Step 9 yet. |
+| **"Step 4 bug hunt is enough, skip PR-style review"** | **NO.** Step 6 is mandatory to reduce follow-up PR findings. |
+| **"Security was covered already, skip security pass"** | **NO.** Step 7 is mandatory and uses a dedicated attacker mindset. |
 | **"User obviously wants fixes, no need to ask"** | **NO.** ALWAYS ask. User might want document-only. Use AskUserQuestion. |
 | **"I'll just start fixing, user can stop me"** | **NO.** Ask BEFORE any action. Use AskUserQuestion NOW. |
 | **"I can see what user wants, skip AskUserQuestion"** | **NO.** Use AskUserQuestion. Not optional. STOP and ask. |
@@ -276,7 +315,7 @@ Skip to Step 9.
 | "Code seems correct, just validate it" | **NO.** Don't validate. ATTACK it. Find how to break it. |
 | "I remember from feature-implement context" | **NO.** This runs from FRESH context. Hunt for bugs with fresh eyes. |
 | "Z01/Z02 not found, skip reading" | **NO.** Try to find them. If truly missing, note it and continue. |
-| "Quality check is exploratory, no tracking" | **NO.** 9 mandatory steps with decisions. MUST use TodoWrite. |
+| "Quality check is exploratory, no tracking" | **NO.** 11 mandatory steps with decisions. MUST use TodoWrite. |
 
 
 ## Success Criteria
@@ -288,6 +327,8 @@ You followed the workflow if:
 - ✓ Hunted for bugs adversarially (not passive validation)
 - ✓ Assumed bugs exist, found them
 - ✓ Compared against plan (if exists)
+- ✓ Ran a PR-style review pass to catch likely reviewer feedback
+- ✓ Ran a security-focused review pass to catch vulnerabilities before PR feedback
 - ✓ Used AskUserQuestion (not prose suggestions)
 - ✓ Invoked superpowers:systematic-debugging for fixes (not Edit tool directly)
 - ✓ Created Z05 documentation with systematic-debugging results
