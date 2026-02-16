@@ -1,33 +1,33 @@
 # Feature Workflow - Claude Code Skills
 
-Research-driven feature development workflow for Claude Code. Produces directive specifications with structured clarifications, integrated with superpowers workflow.
+Research-driven feature development workflow for Claude Code, with superpowers integration for planning, implementation, finishing, and PR handling.
 
-## Skills Included
+## Included Skills
 
-**Core Workflow:**
-- **feature-researching** - Systematic feature research producing directive specifications _(standalone)_
-- **feature-planning** - Create implementation plans from research with context loading _(requires superpowers)_
-- **feature-implementing** - Execute plans with batch processing and review checkpoints _(requires superpowers)_
-- **feature-documenting** - Post-implementation consolidation, cleanup, and PR generation _(standalone)_
+Core workflow:
+- `feature-researching` (standalone)
+- `feature-planning` (requires superpowers)
+- `feature-implementing` (requires superpowers)
+- `feature-documenting` (standalone)
 
-**Quality & PR Workflows:**
-- **feature-finishing** - Final quality check with fresh-context analysis before merge _(requires superpowers)_
-- **feature-pr-reviewing** - Review PR changes with research-driven analysis _(requires superpowers)_
-- **feature-pr-fixing** - Address PR review comments with validity assessment _(requires superpowers)_
+Quality and PR workflow:
+- `feature-finishing` (requires superpowers)
+- `feature-pr-reviewing` (requires superpowers)
+- `feature-pr-fixing` (requires superpowers)
+
+Bootstrap helper:
+- `load-superpowers` (loads required superpowers skills before feature-* skills that depend on them)
 
 ## Dependencies
 
-**feature-planning** and **feature-implementing** are wrapper skills that require the [superpowers plugin](https://github.com/obra/superpowers) by Jesse Vincent.
+Install [superpowers](https://github.com/obra/superpowers) for:
+- `feature-planning`
+- `feature-implementing`
+- `feature-finishing`
+- `feature-pr-reviewing`
+- `feature-pr-fixing`
 
-These skills extend superpowers' battle-tested `writing-plans` and `executing-plans` workflows by automatically loading context from the feature-workflow research phase (Z01/Z02 files).
-
-**feature-researching** and **feature-documenting** are fully standalone and work independently.
-
-## Installation
-
-### Prerequisites
-
-**Install superpowers** (required for feature-planning and feature-implementing):
+`feature-researching` and `feature-documenting` are standalone.
 
 ```bash
 # In Claude Code
@@ -35,42 +35,35 @@ These skills extend superpowers' battle-tested `writing-plans` and `executing-pl
 /plugin install superpowers@obra/superpowers
 ```
 
-### Option 1: Via Plugin Marketplace (Recommended)
+## Installation
 
-This repository is a Claude Code marketplace containing the feature-workflow plugin.
+### Option 1: Claude Code Marketplace (Recommended)
 
 ```bash
 # In Claude Code
-# Step 1: Add the marketplace
 /plugin marketplace add escarti/agentDevPrompts
-
-# Step 2: Install the plugin from the marketplace
-/plugin install feature-workflow@feature-workflow
+/plugin install feature-workflow@agentDevPrompts
 ```
 
-Verify installation:
+Verify:
 ```bash
 /help
-
-# Should see all 7 commands:
-# /feature-research - Research codebase using structured workflow
-# /feature-plan - Create implementation plan using structured workflow
-# /feature-implement - Execute implementation plan using structured workflow
-# /feature-document - Consolidate artifacts into dev log using structured workflow
-# /feature-finish - Perform final quality check using structured workflow
-# /feature-prreview - Review pull request changes using structured workflow
-# /feature-prfix - Address PR review comments using structured workflow
 ```
 
-### Option 2: Manual Installation (Development)
+Expected commands:
+- `/feature-research`
+- `/feature-plan`
+- `/feature-implement`
+- `/feature-document`
+- `/feature-finish`
+- `/feature-prreview`
+- `/feature-prfix`
 
-Clone this repository and symlink to Claude Code:
+### Option 2: Manual Skill Symlinks (Development)
 
 ```bash
-# Clone the repository
 git clone git@github.com:escarti/agentDevPrompts.git ~/Projects/Personal/agentDevPrompts
 
-# Create symlinks for all skills
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-researching ~/.claude/skills/feature-researching
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-planning ~/.claude/skills/feature-planning
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-implementing ~/.claude/skills/feature-implementing
@@ -78,146 +71,94 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-documenting ~/.claude/s
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-finishing ~/.claude/skills/feature-finishing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-reviewing ~/.claude/skills/feature-pr-reviewing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-fixing ~/.claude/skills/feature-pr-fixing
+ln -s ~/Projects/Personal/agentDevPrompts/skills/load-superpowers ~/.claude/skills/load-superpowers
 ```
 
-**Single Source of Truth**: Edit skills in the cloned repo, changes are immediately available via symlinks.
+### Option 3: Codex Skill Installer
+
+In Codex, paste and run this command to install all workflow skills from this repository:
+
+```text
+Use the skill-installer skill to install these skills https://github.com/escarti/agentDevPrompts/tree/main/skills/*
+```
+
+Restart Codex to pick up new skills.
+
+## Workflow
+
+1. Research with `feature-workflow:feature-researching`
+2. Plan with `feature-workflow:feature-planning`
+3. Implement with `feature-workflow:feature-implementing`
+4. Finish with `feature-workflow:feature-finishing`
+5. Document with `feature-workflow:feature-documenting`
+
+### Quick Guide (Intended Use)
+
+| Stage | Use this | Goal | Input | Output |
+| --- | --- | --- | --- | --- |
+| 0. Idea to spec | `superpowers:brainstorming` | Turn a rough idea into a detailed spec | Problem statement, constraints, success criteria | Detailed specification |
+| 1. Repository-grounded research | `feature-workflow:feature-researching` | Check how the spec fits the repo and surface blind spots | Detailed specification | `Z01_*_research.md` and `Z01_CLARIFY_*_research.md` |
+| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` |
+| 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute the plan in batches with review checkpoints | `Z02_*_plan.md` | Implemented code + verification + handoff to documentation |
+| 4. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
+| 5. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
+
+Use the full flow for large features where discovery, planning, and execution need strict structure.
+
+For small features or bug fixes, you can start in the middle:
+- Skip directly to planning or implementation when you already have a clear input.
+- A small bug can be handled with a short markdown brief (issue, desired end state, and test approach) and then passed directly to implementation.
+
+Common temporary artifacts:
+- `docs/ai/ongoing/Z01_{feature}_research.md`
+- `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
+- `docs/ai/ongoing/Z02_{feature}_plan.md`
+
+Additional temporary artifacts may be created in PR/finish flows:
+- `Z03_*`, `Z04_*`, `Z05_*` in the same ongoing directory
+
+## Prompt Install Scripts (Codex and Copilot)
+
+This repository also includes scripts for legacy prompt files (`A01_*`, `A02_*`, `A03_*`):
+- `install_codex.sh`: copies prompts to `~/.codex/prompts`
+- `install_copilot_prompts.sh`: installs prompts to VS Code User prompts directory as `*.prompt.md`
+- `create_symlink_prompt.sh`: symlinks prompts into `.prompts/` in the current repo and updates `.gitignore`
+- `install_symlink.sh`: installs `add_prompts` command in `~/.local/bin` pointing to `create_symlink_prompt.sh`
 
 ## Repository Structure
 
-```
+```text
 agentDevPrompts/
 ├── .claude-plugin/
-│   ├── marketplace.json           # Marketplace catalog
-│   └── plugin.json               # Plugin manifest
-├── commands/                      # Slash commands
-│   ├── feature-research.md
-│   ├── feature-plan.md
-│   ├── feature-implement.md
-│   ├── feature-document.md
-│   ├── feature-finish.md
-│   ├── feature-prreview.md
-│   └── feature-prfix.md
-├── skills/                        # Skills
+│   ├── marketplace.json
+│   └── plugin.json
+├── commands/
+├── skills/
 │   ├── feature-researching/
 │   ├── feature-planning/
 │   ├── feature-implementing/
 │   ├── feature-documenting/
 │   ├── feature-finishing/
 │   ├── feature-pr-reviewing/
-│   └── feature-pr-fixing/
-├── CLAUDE.md                      # Development guidelines
-├── PUBLISHING.md                  # Release workflow
-└── README.md                      # This file
+│   ├── feature-pr-fixing/
+│   └── load-superpowers/
+├── docs/
+├── CLAUDE.md
+├── PUBLISHING.md
+└── README.md
 ```
 
-**Note**: The `.claude-plugin/marketplace.json` file makes this repository installable as a marketplace. It contains a catalog that references the feature-workflow plugin in the same repository.
+## Development Notes
 
-## Workflow
-
-### New Feature Development
-
-1. **Research Phase** - Use `feature-workflow:feature-researching` skill _(standalone)_
-   - Produces: `docs/ai/ongoing/Z01_{feature}_research.md`
-   - Produces: `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
-   - User answers clarification questions
-
-2. **Planning Phase** - Use `feature-workflow:feature-planning` skill _(requires superpowers)_
-   - Input: `docs/ai/ongoing/Z01_{feature}_research.md`
-   - Wraps `superpowers:writing-plans` with automatic context loading
-   - Produces: `docs/ai/ongoing/Z02_{feature}_plan.md`
-
-3. **Implementation Phase** - Use `feature-workflow:feature-implementing` skill _(requires superpowers)_
-   - Input: `docs/ai/ongoing/Z02_{feature}_plan.md`
-   - Wraps `superpowers:executing-plans` with automatic context loading
-   - Implements the plan in batches with code review checkpoints
-
-4. **Documentation Phase** - Use `feature-workflow:feature-documenting` skill _(standalone, auto-invoked)_
-   - Consolidates Z01 + Z02 + implementation summary
-   - Produces: `docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md`
-   - Cleans up `docs/ai/ongoing/Z01*` and `Z02*` files
-   - Generates PR description
-
-## File Locations
-
-**Research & Planning** (temporary):
-- `docs/ai/ongoing/Z01_{feature}_research.md`
-- `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
-- `docs/ai/ongoing/Z02_{feature}_plan.md`
-
-**Development Logs** (permanent):
-- `docs/ai/dev_logs/{YYYYMMDD}_{feature}_dev_log.md`
-
-## Skills vs Original Prompts
-
-**Original Prompts (A01, A02, A03)**:
-- Designed for separate agent instances
-- Multi-agent workflow (research → plan → implement)
-- Use when working with multiple specialized agents
-
-**Claude Code Skills**:
-- Designed for single Claude Code session
-- Integrated with [superpowers](https://github.com/obra/superpowers) workflow (by Jesse Vincent)
-- Complete workflow: `feature-workflow:feature-researching` → `feature-workflow:feature-planning` → `feature-workflow:feature-implementing` → `feature-workflow:feature-documenting`
-- Wrapper skills (`feature-workflow:feature-planning`, `feature-workflow:feature-implementing`) extend superpowers' battle-tested workflows with Z0* context loading
-
-**Note**: feature-planning wraps `superpowers:writing-plans` and feature-implementing wraps `superpowers:executing-plans`. These core skills from superpowers handle the actual planning and execution logic.
-
-## Contributing
-
-### For Plugin Users
-
-To contribute improvements:
-1. Fork this repository
-2. Make changes to skills in `skills/` directory
-3. Test locally using manual installation method
-4. Submit a pull request
-
-### For Plugin Maintainers
-
-To release a new version:
-1. Update `plugin.json` version number
-2. Test changes with manual installation
-3. Commit and push to main branch
-4. Create a GitHub release with version tag
-5. Users will get updates via `/plugin update feature-workflow`
-
-## Development
-
-### Testing Changes
-
-Use manual installation (symlinks) for development:
-```bash
-# Your changes in the repo are immediately available via symlinks
-# Test by using skills in Claude Code
-```
-
-### Adding New Skills
-
-1. Create `skills/new-skill/SKILL.md`
-2. Add to `plugin.json`:
-   ```json
-   {
-     "skills": {
-       "new-skill": "skills/new-skill"
-     }
-   }
-   ```
-3. Follow TDD approach from `superpowers:writing-skills`
-4. Test before committing
+- `feature-planning` wraps superpowers `writing-plans`.
+- `feature-implementing` wraps superpowers `executing-plans`.
+- `feature-finishing` and `feature-pr-fixing` leverage superpowers debugging workflows.
+- Keep version fields synchronized before release (see `CLAUDE.md` and `PUBLISHING.md`).
 
 ## Attribution
 
-This plugin builds upon the excellent [superpowers](https://github.com/obra/superpowers) project by [Jesse Vincent](https://github.com/obra).
-
-**feature-planning** and **feature-implementing** are thin wrappers around superpowers' `writing-plans` and `executing-plans` skills. These core workflows were designed and battle-tested by Jesse and the superpowers community. feature-workflow extends them by:
-- Automatically loading research context (Z01/Z02 files)
-- Integrating with the feature-workflow's research → plan → implement → document pipeline
-- Maintaining consistency with feature-workflow file naming conventions
-
-The real credit for the planning and execution methodology goes to superpowers.
-
-**feature-researching** and **feature-documenting** are original contributions to enable research-driven specification and post-implementation consolidation.
+This plugin builds on [superpowers](https://github.com/obra/superpowers) by [Jesse Vincent](https://github.com/obra). The feature-workflow skills add structured research/clarification artifacts and workflow-specific orchestration around those core skills.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE).

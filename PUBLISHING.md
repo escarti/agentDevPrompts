@@ -1,117 +1,104 @@
 # Publishing Guide
 
-## Prerequisites
+## Purpose
 
-1. **GitHub Repository**: `git@github.com:escarti/agentDevPrompts.git`
-2. **Repository Name**: `agentDevPrompts` (matches the marketplace identifier)
+This repository supports two distribution variants:
+- Claude Code marketplace plugin (`feature-workflow`)
+- Codex local/installer-based skills (no marketplace)
 
-## Repository Structure
+Use the variant that matches the user request.
 
-This repository is a **marketplace** that contains the **feature-workflow plugin**:
+## Common Prerequisites
 
-```
-agentDevPrompts/
-├── .claude-plugin/
-│   ├── marketplace.json    # Marketplace catalog (required)
-│   └── plugin.json        # Plugin manifest
-├── commands/              # Slash commands
-├── skills/                # Plugin skills (gerund form)
-│   ├── feature-researching/
-│   ├── feature-planning/
-│   ├── feature-implementing/
-│   ├── feature-documenting/
-│   ├── feature-finishing/
-│   ├── feature-pr-reviewing/
-│   └── feature-pr-fixing/
-└── ...
-```
+1. Repository: `git@github.com:escarti/agentDevPrompts.git`
+2. Skills and command wrappers validated locally
+3. `README.md`, `CLAUDE.md`, and `AGENTS.md` aligned with current behavior
 
-## Publishing Steps
+## Variant A: Claude Marketplace Release
 
-### 1. Push to GitHub
+Use when the goal is to release a new Claude plugin version.
 
-```bash
-# Add all files including marketplace.json
-git add .
-git commit -m "Add marketplace.json and plugin files"
+### Required Version Sync (before tagging)
 
-# Add remote and push (if not already done)
-git remote add origin git@github.com:escarti/agentDevPrompts.git
-git push -u origin main
-```
+Synchronize all 3 JSON version fields:
+1. `.claude-plugin/plugin.json` -> `version`
+2. `.claude-plugin/marketplace.json` -> `metadata.version`
+3. `.claude-plugin/marketplace.json` -> `plugins[0].version`
 
-### 2. Create Initial Release
+Then create matching git tag `vX.Y.Z`.
+
+### Steps
 
 ```bash
-# Tag the release
-git tag -a v1.0.0 -m "Release v1.0.0: Initial release"
-git push origin v1.0.0
+# 1) Edit version fields above
 
-# Create GitHub release via gh CLI
-gh release create v1.0.0 \
-  --title "v1.0.0 - Initial Release" \
-  --notes "Release v{VERSION} with feature-workflow skills"
+# 2) Commit
+git add .claude-plugin/plugin.json .claude-plugin/marketplace.json skills commands README.md CLAUDE.md
+git commit -m "vX.Y.Z: release feature-workflow updates"
+
+# 3) Push
+git push
+
+# 4) Tag and push tag
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin vX.Y.Z
 ```
 
-### 3. Test Installation
-
-Users can now install via:
+### Installation/Update (Claude)
 
 ```bash
-# In Claude Code - Add the marketplace
 /plugin marketplace add escarti/agentDevPrompts
-
-# Install the plugin from the marketplace
 /plugin install feature-workflow@agentDevPrompts
+/plugin update feature-workflow
 ```
 
-### 4. Future Updates
+## Variant B: Codex Skills Release
 
-When releasing new versions:
+Use when the goal is to publish/update Codex-usable skills. Codex does not use plugin marketplaces.
 
-1. Update `plugin.json` version number
-2. Commit changes
-3. Create new git tag and GitHub release
-4. Users update with: `/plugin update feature-workflow`
+### What to Version
 
-## Repository Requirements
+- Source of truth is `skills/*/SKILL.md` (and optionally `commands/*.md` docs).
+- Git tags/releases are optional but recommended for stable install targets.
+- Do not require `.claude-plugin/*` version bumps unless explicitly also doing Claude marketplace release.
 
-Your repository must contain:
-- ✅ `.claude-plugin/marketplace.json` - Marketplace catalog (required for `/plugin marketplace add`)
-- ✅ `plugin.json` - Plugin manifest
-- ✅ `skills/` directory - Skills directory structure
-- ✅ `README.md` - Installation and usage instructions
-- ✅ Valid SKILL.md files with proper YAML frontmatter
-
-**Key distinction**: The `.claude-plugin/marketplace.json` file makes this a marketplace that can be added via `/plugin marketplace add`. It references the plugin in the same repository.
-
-## Testing Before Publishing
-
-Always test locally first:
+### Steps
 
 ```bash
-# Manual installation for testing
-ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-researching ~/.claude/skills/feature-researching
-ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-documenting ~/.claude/skills/feature-documenting
+# 1) Commit skill/command/docs changes
+git add skills commands README.md AGENTS.md
+git commit -m "skills: update feature workflow for Codex"
 
-# Verify skills work in Claude Code
-# Then remove symlinks and test plugin installation
+# 2) Push
+git push
+
+# 3) Optional: tag for stable installer target
+git tag -a vX.Y.Z -m "Codex skills vX.Y.Z"
+git push origin vX.Y.Z
 ```
 
-## Version Numbering
+### Installation/Update (Codex)
 
-Follow semantic versioning:
-- **Major** (1.0.0): Breaking changes
-- **Minor** (0.1.0): New features, backward compatible
-- **Patch** (0.0.1): Bug fixes
+Use Codex skill installer against this repository skills path:
 
-## Distribution Checklist
+```text
+Use the skill-installer skill to install these skills https://github.com/escarti/agentDevPrompts/tree/main/skills/*
+```
 
-Before publishing:
-- [ ] All skills tested and working
-- [ ] `plugin.json` has correct version
-- [ ] README.md has accurate installation instructions
-- [ ] No sensitive data in repository
-- [ ] .gitignore properly configured
-- [ ] Git tags match plugin.json version
-- [ ] GitHub release created
+After install/update, restart Codex if needed to reload skills.
+
+## Testing Before Any Release
+
+- Verify each changed skill executes its expected workflow
+- Verify superpowers-dependent skills still require `load-superpowers`
+- Ensure artifact conventions remain consistent (`docs/ai/ongoing/`, `Z01`-`Z05`)
+
+## Versioning Guidance
+
+Use semantic versioning for tags:
+- Major: breaking workflow/interface changes
+- Minor: new capability
+- Patch: fixes/docs/wording updates
+
+If releasing Claude marketplace variant, tag version must match synchronized marketplace/plugin versions.
+
