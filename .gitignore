@@ -15,3 +15,5 @@ dev_docs/
 # Editor
 .vscode/
 .idea/
+
+.codex-subagents/

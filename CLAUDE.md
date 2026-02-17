@@ -6,7 +6,7 @@ This repository publishes the `feature-workflow` plugin through a Claude Code ma
 
 - Repository: `escarti/agentDevPrompts`
 - Plugin: `feature-workflow`
-- Skills: research, planning, implementing, finishing, documenting, PR review/fix, and superpowers bootstrap
+- Skills: research, planning, implementing, finishing, documenting, PR review/fix, superpowers bootstrap, and subagent orchestration
 
 ## Current Repository Layout
 
@@ -23,6 +23,10 @@ agentDevPrompts/
 │   ├── feature-document.md
 │   ├── feature-prreview.md
 │   └── feature-prfix.md
+├── prompts/  (symlinks to commands/*.md for Codex prompt compatibility)
+├── scripts/
+│   ├── sync_prompts_from_commands.sh
+│   └── release.sh
 ├── skills/
 │   ├── load-superpowers/
 │   ├── feature-researching/
@@ -31,13 +35,13 @@ agentDevPrompts/
 │   ├── feature-finishing/
 │   ├── feature-documenting/
 │   ├── feature-pr-reviewing/
-│   └── feature-pr-fixing/
+│   ├── feature-pr-fixing/
+│   └── use-sub-agent/
 ├── docs/
 │   ├── ai/ongoing/
 │   └── plans/
 ├── README.md
-├── PUBLISHING.md
-└── release.sh
+└── PUBLISHING.md
 ```
 
 ## Skill Dependency Rules
@@ -54,6 +58,8 @@ agentDevPrompts/
   - `feature-pr-reviewing`
   - `feature-pr-fixing`
 
+`use-sub-agent` is standalone and can be used whenever task delegation to headless Codex subagents is needed.
+
 ## Naming Conventions
 
 Avoid command/skill collisions.
@@ -62,6 +68,7 @@ Avoid command/skill collisions.
 - Commands: imperative form (`/feature-plan`)
 
 Command files should stay thin wrappers that invoke their corresponding skill.
+Prompt compatibility is maintained by symlinking `prompts/*.md` to `commands/*.md` via `./scripts/sync_prompts_from_commands.sh`.
 
 ## Workflow Artifacts
 
@@ -113,4 +120,3 @@ Keep skill descriptions short enough to force reading the full `SKILL.md`, not g
 - `README.md`: end-user install and usage
 - `PUBLISHING.md`: release procedure details
 - `CLAUDE.md` (this file): maintainer guardrails and non-negotiable rules
-

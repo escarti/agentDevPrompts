@@ -18,6 +18,9 @@ Quality and PR workflow:
 Bootstrap helper:
 - `load-superpowers` (loads required superpowers skills before feature-* skills that depend on them)
 
+Utility:
+- `use-sub-agent` (orchestrates headless `codex --yolo exec` subagents with safe parallel/log patterns)
+
 ## Dependencies
 
 Install [superpowers](https://github.com/obra/superpowers) for:
@@ -72,6 +75,7 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-finishing ~/.claude/ski
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-reviewing ~/.claude/skills/feature-pr-reviewing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-fixing ~/.claude/skills/feature-pr-fixing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/load-superpowers ~/.claude/skills/load-superpowers
+ln -s ~/Projects/Personal/agentDevPrompts/skills/use-sub-agent ~/.claude/skills/use-sub-agent
 ```
 
 ### Option 3: Codex Skill Installer
@@ -125,6 +129,10 @@ This repository also includes scripts for legacy prompt files (`A01_*`, `A02_*`,
 - `create_symlink_prompt.sh`: symlinks prompts into `.prompts/` in the current repo and updates `.gitignore`
 - `install_symlink.sh`: installs `add_prompts` command in `~/.local/bin` pointing to `create_symlink_prompt.sh`
 
+Command/prompt compatibility:
+- `prompts/*.md` are symlinks to `commands/*.md`
+- Run `./scripts/sync_prompts_from_commands.sh` after adding/removing command files
+
 ## Repository Structure
 
 ```text
@@ -133,6 +141,8 @@ agentDevPrompts/
 │   ├── marketplace.json
 │   └── plugin.json
 ├── commands/
+├── prompts/   (symlinks to commands for Codex prompt compatibility)
+├── scripts/
 ├── skills/
 │   ├── feature-researching/
 │   ├── feature-planning/
@@ -141,9 +151,12 @@ agentDevPrompts/
 │   ├── feature-finishing/
 │   ├── feature-pr-reviewing/
 │   ├── feature-pr-fixing/
-│   └── load-superpowers/
+│   ├── load-superpowers/
+│   └── use-sub-agent/
 ├── docs/
 ├── CLAUDE.md
+├── scripts/sync_prompts_from_commands.sh
+├── scripts/release.sh
 ├── PUBLISHING.md
 └── README.md
 ```
