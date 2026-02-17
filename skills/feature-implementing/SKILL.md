@@ -1,7 +1,6 @@
 ---
 name: feature-implementing
 description: Use to execute implementation plan (Z02 files) in batches - follow structured workflow
-category: Implementation
 ---
 
 # Feature Workflow: Implement Feature

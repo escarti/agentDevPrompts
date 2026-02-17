@@ -86,7 +86,7 @@ Filename sanitizer patterns:
 
 ## Release Rules (Critical)
 
-Before tagging a release, synchronize all version locations:
+Before creating any release tag (or any new git tag intended as a release), update `CHANGELOG.md` for that version and synchronize all version locations:
 
 1. Git tag: `vX.Y.Z`
 2. `.claude-plugin/plugin.json` -> `version`
@@ -99,6 +99,7 @@ If any version is mismatched, fix files first, commit, then tag.
 
 - Validate all changed skills/commands in local Claude Code
 - Ensure README and PUBLISHING docs still match behavior
+- Update `CHANGELOG.md` for the release version
 - Sync the 3 version fields and planned git tag
 - Commit changes
 - Push branch

@@ -175,3 +175,7 @@ This plugin builds on [superpowers](https://github.com/obra/superpowers) by [Jes
 ## License
 
 MIT License - see [LICENSE](LICENSE).
+
+## Changelog
+
+See `CHANGELOG.md` for version-by-version release history.

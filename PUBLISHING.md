@@ -13,6 +13,7 @@ Use the variant that matches the user request.
 1. Repository: `git@github.com:escarti/agentDevPrompts.git`
 2. Skills and command wrappers validated locally
 3. `README.md`, `CLAUDE.md`, and `AGENTS.md` aligned with current behavior
+4. `CHANGELOG.md` updated with a new version entry (move prior `Unreleased` items into the release section)
 
 ## Variant A: Claude Marketplace Release
 
@@ -30,16 +31,18 @@ Then create matching git tag `vX.Y.Z`.
 ### Steps
 
 ```bash
-# 1) Edit version fields above
+# 1) Update CHANGELOG.md with vX.Y.Z release notes
 
-# 2) Commit
-git add .claude-plugin/plugin.json .claude-plugin/marketplace.json skills commands README.md CLAUDE.md
+# 2) Edit version fields above
+
+# 3) Commit
+git add CHANGELOG.md .claude-plugin/plugin.json .claude-plugin/marketplace.json skills commands README.md CLAUDE.md
 git commit -m "vX.Y.Z: release feature-workflow updates"
 
-# 3) Push
+# 4) Push
 git push
 
-# 4) Tag and push tag
+# 5) Tag and push tag
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
 ```
@@ -65,14 +68,16 @@ Use when the goal is to publish/update Codex-usable skills. Codex does not use p
 ### Steps
 
 ```bash
-# 1) Commit skill/command/docs changes
-git add skills commands README.md AGENTS.md
+# 1) Update CHANGELOG.md with vX.Y.Z release notes
+
+# 2) Commit skill/command/docs changes
+git add CHANGELOG.md skills commands README.md AGENTS.md
 git commit -m "skills: update feature workflow for Codex"
 
-# 2) Push
+# 3) Push
 git push
 
-# 3) Optional: tag for stable installer target
+# 4) Optional: tag for stable installer target
 git tag -a vX.Y.Z -m "Codex skills vX.Y.Z"
 git push origin vX.Y.Z
 ```
@@ -101,4 +106,3 @@ Use semantic versioning for tags:
 - Patch: fixes/docs/wording updates
 
 If releasing Claude marketplace variant, tag version must match synchronized marketplace/plugin versions.
-

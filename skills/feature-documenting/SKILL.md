@@ -1,7 +1,6 @@
 ---
 name: feature-documenting
 description: Use when implementation complete and tests pass - follow structured workflow with custom patterns
-category: Documentation
 ---
 
 # Feature Workflow: Document Implementation
