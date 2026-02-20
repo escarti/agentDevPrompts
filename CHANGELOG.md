@@ -15,6 +15,21 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None yet.
 
+## [1.14.0] - 2026-02-20
+
+### Added
+- Added explicit clarification completion gates to keep workflow stages open until clarify files are fully resolved and incorporated:
+  - `skills/feature-researching/SKILL.md`
+  - `skills/feature-planning/SKILL.md`
+- Added README clarification gate documentation for research and planning stages.
+
+### Changed
+- Updated research handoff behavior to block planning suggestions while `Z01_CLARIFY_*` is unresolved.
+- Updated planning handoff behavior to block implementation suggestions while `Z02_CLARIFY_*` is unresolved.
+
+### Fixed
+- Fixed premature workflow advancement when clarify files existed but had unresolved or not-yet-incorporated answers.
+
 ## [1.13.1] - 2026-02-17
 
 ### Added
