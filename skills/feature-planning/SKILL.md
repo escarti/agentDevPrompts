@@ -24,7 +24,8 @@ TodoWrite({
     {content: "Step 2: Verify Z01 files exist", status: "pending", activeForm: "Checking research"},
     {content: "Step 3: Read ALL Z01 files", status: "pending", activeForm: "Loading context"},
     {content: "Step 4: Invoke superpowers:writing-plans", status: "pending", activeForm: "Creating plan"},
-    {content: "Step 5: Verify Z02 outputs", status: "pending", activeForm: "Validating output"}
+    {content: "Step 5: Verify Z02 outputs", status: "pending", activeForm: "Validating output"},
+    {content: "Step 6: Resolve/track Z02_CLARIFY and block handoff until cleared", status: "pending", activeForm: "Waiting for clarification resolution"}
   ]
 })
 ```
@@ -128,16 +129,37 @@ When superpowers:writing-plans completes:
 - Z02_{feature}_plan.md must exist in ONGOING_DIR (main directive plan)
 - Z02_CLARIFY_{feature}_plan.md only if NEW questions exist
 
+---
+
+### Step 6: Completion Gate (CLARIFY Controls Done State)
+
+Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with unresolved items.
+
+**Unresolved means ANY of the following:**
+- File still contains `Agent question:` entries
+- Any `User response:` is blank
+- Answers were provided but not yet incorporated into `Z02_{feature}_plan.md`
+
+**If unresolved Z02_CLARIFY exists:**
+1. Keep planning todo as `in_progress` (do NOT mark workflow complete)
+2. Report only: "Planning blocked by unresolved clarifications in Z02_CLARIFY_{feature}_plan.md."
+3. Do NOT invoke or suggest `feature-implementing` yet
+
+**Only mark planning complete when:**
+1. Clarification answers are incorporated into `Z02_{feature}_plan.md`
+2. `Z02_CLARIFY_{feature}_plan.md` is deleted (or has no remaining Q&A pairs)
+3. Plan remains directive and executable
+
 **Report to user:**
-- "Plan created: Z02_{feature}_plan.md"
-- If clarifications: "Blocking questions in Z02_CLARIFY_{feature}_plan.md"
-- Next step: "Review clarifications, then use feature-workflow:feature-implementing"
+- If no unresolved clarifications: "Plan created: Z02_{feature}_plan.md. Ready for feature-workflow:feature-implementing."
+- If clarifications exist: "Planning not complete. Resolve Z02_CLARIFY before implementation."
 
 ---
 
 ## Red Flags - You're Failing If:
 
 - **Proceeded with unanswered questions in Z01_CLARIFY** (BLOCKING - must stop)
+- **Marked planning done while Z02_CLARIFY still has unresolved items**
 - **Did NOT read CLAUDE.md first** (if exists)
 - **CLAUDE.md exists but constraints not passed to planning**
 - **Did NOT check for Z01* files**
@@ -159,6 +181,7 @@ When superpowers:writing-plans completes:
 | **"Read only Z01_research, skip Z01_CLARIFY"** | **NO.** Missing context = incomplete plan. Read ALL Z01* files. |
 | **"Create Z02_CLARIFY even if no questions"** | **NO.** Empty files clutter directory. Only create if NEW questions. |
 | **"Just invoke superpowers:writing-plans directly"** | **NO.** This wrapper loads Z01 context. That's its value. |
+| **"Planning is done because Z02 plan exists"** | **NO.** Done state requires no unresolved Z02_CLARIFY. |
 | "Wrapper skill, no need to track steps" | **NO.** Wrapper has critical steps (context loading, invocation). Track with TodoWrite. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
 
@@ -172,6 +195,7 @@ You followed the workflow if:
 - ✓ Invoked superpowers:writing-plans skill (NOT slash command)
 - ✓ Explicitly instructed output path in prompt
 - ✓ Verified Z02_{feature}_plan.md was created
+- ✓ Planning stayed in_progress until Z02_CLARIFY was fully resolved and removed
 - ✓ Reported next steps to user
 
 ## When to Use

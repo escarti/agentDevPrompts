@@ -24,7 +24,8 @@ TodoWrite({
     {content: "Step 2: Explore code (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
     {content: "Step 3: Create Z01 research file (directive specification)", status: "pending", activeForm: "Writing research"},
     {content: "Step 4: Create Z01_CLARIFY file (structured questions)", status: "pending", activeForm: "Extracting ambiguities"},
-    {content: "Step 5: Verify directive nature (no questions in research)", status: "pending", activeForm: "Validating specification"}
+    {content: "Step 5: Verify directive nature (no questions in research)", status: "pending", activeForm: "Validating specification"},
+    {content: "Step 6: Resolve/track Z01_CLARIFY and block handoff until cleared", status: "pending", activeForm: "Waiting for clarification resolution"}
   ]
 })
 ```
@@ -186,11 +187,33 @@ Check Z01_research.md for vague questions:
 
 ---
 
+### Step 6: Completion Gate (CLARIFY Controls Done State)
+
+Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists with unresolved items.
+
+**Unresolved means ANY of the following:**
+- File still contains `Agent question:` entries
+- Any `User response:` is blank
+- Answers were provided but not yet incorporated into `Z01_{feature}_research.md`
+
+**If unresolved CLARIFY exists:**
+1. Keep research todo as `in_progress` (do NOT mark workflow complete)
+2. Report only: "Waiting for Z01_CLARIFY_{feature}_research.md answers/incorporation before planning."
+3. Do NOT invoke or suggest `feature-planning` yet
+
+**Only mark research complete when:**
+1. Clarification answers are incorporated into `Z01_{feature}_research.md`
+2. `Z01_CLARIFY_{feature}_research.md` is deleted (or has no remaining Q&A pairs)
+3. Research file is directive and has no open questions
+
+---
+
 ## Red Flags - You're Failing If:
 
 - **Did NOT read CLAUDE.md/README/docs FIRST**
 - **Primary approach violates CLAUDE.md patterns**
 - **Z01_CLARIFY has 5 or more questions but didn't invoke brainstorming**
+- **Marked research done while Z01_CLARIFY still has unresolved items**
 - **More than 2 files created**
 - **No file paths or line ranges**
 - **Questions embedded in Z01_research.md**
@@ -213,6 +236,7 @@ Check Z01_research.md for vague questions:
 | **"6 questions but design seems clear"** | **NO.** 5 or more questions = unclear design. Invoke brainstorming. Iron Law. |
 | **"I'll answer questions instead of brainstorming"** | **NO.** You don't have authority. User needs to clarify via brainstorming. |
 | **"Delete Z01s after brainstorming wastes work"** | **NO.** Bad research blocks planning. Delete and redo correctly. |
+| **"Research is done because files were created"** | **NO.** Done state depends on no unresolved Z01_CLARIFY, not file creation. |
 | "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
 | "Research is exploratory, no need to track" | **NO.** Research follows strict workflow. Track all steps with TodoWrite. |
 
@@ -228,6 +252,7 @@ You followed the workflow if:
 - ✓ If alternative: both have complete technical details
 - ✓ File paths + line ranges included
 - ✓ CLARIFY uses exact format (questions only, blank responses)
+- ✓ Research stays in_progress until CLARIFY is fully resolved and removed
 - ✓ Implementer can code without architectural decisions
 
 ## When to Use
@@ -244,10 +269,13 @@ Use when:
 
 ## Handoff to Planning
 
-When research complete:
+If CLARIFY has unresolved items:
+1. Announce: "Research not complete yet. Waiting for Z01_CLARIFY answers/incorporation."
+2. Keep research workflow open (do not handoff)
+
+When CLARIFY is fully resolved and removed:
 1. Announce: "Research complete. Z01_research.md ready for planning."
-2. If CLARIFY exists: "Waiting for Z01_CLARIFY.md answers"
-3. After answered: Update Z01_research.md, then "Using superpowers:writing-plans"
+2. Then proceed to planning workflow
 
 **What planning receives:**
 - Patterns that MUST be preserved (from CLAUDE.md)

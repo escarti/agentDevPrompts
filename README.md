@@ -101,8 +101,8 @@ Restart Codex to pick up new skills.
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
 | 0. Idea to spec | `superpowers:brainstorming` | Turn a rough idea into a detailed spec | Problem statement, constraints, success criteria | Detailed specification |
-| 1. Repository-grounded research | `feature-workflow:feature-researching` | Check how the spec fits the repo and surface blind spots | Detailed specification | `Z01_*_research.md` and `Z01_CLARIFY_*_research.md` |
-| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` |
+| 1. Repository-grounded research | `feature-workflow:feature-researching` | Check how the spec fits the repo and surface blind spots | Detailed specification | `Z01_*_research.md` (final) and optional temporary `Z01_CLARIFY_*_research.md` |
+| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` (final) and optional temporary `Z02_CLARIFY_*_plan.md` |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute the plan in batches with review checkpoints | `Z02_*_plan.md` | Implemented code + verification + handoff to documentation |
 | 4. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
 | 5. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
@@ -117,6 +117,12 @@ Common temporary artifacts:
 - `docs/ai/ongoing/Z01_{feature}_research.md`
 - `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
 - `docs/ai/ongoing/Z02_{feature}_plan.md`
+- `docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md` (only when planning discovers new blockers)
+
+Clarification gates:
+- Research is not complete while `Z01_CLARIFY_*_research.md` has unresolved questions.
+- Planning is not complete while `Z02_CLARIFY_*_plan.md` has unresolved questions.
+- The workflow must stay in the current stage and wait; do not jump to the next stage until clarify items are incorporated and clarify file is removed (or emptied).
 
 Additional temporary artifacts may be created in PR/finish flows:
 - `Z03_*`, `Z04_*`, `Z05_*` in the same ongoing directory
