@@ -15,6 +15,26 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None yet.
 
+## [1.15.0] - 2026-02-23
+
+### Added
+- Added explicit Plan mode gate steps to these workflow skills:
+  - `skills/feature-documenting/SKILL.md`
+  - `skills/feature-finishing/SKILL.md`
+  - `skills/feature-planning/SKILL.md`
+  - `skills/feature-pr-fixing/SKILL.md`
+  - `skills/feature-pr-reviewing/SKILL.md`
+  - `skills/feature-researching/SKILL.md`
+- Added strict per-item interaction loops for PR review/fix workflows so decisions are collected one finding/comment at a time before execution.
+
+### Changed
+- Standardized decision handling to a Codex-first protocol centered on `request_user_input` (with documented compatibility fallback paths where applicable).
+- Refined PR review and PR fix execution flow to queue decisions first, execute queued actions in batch, and tighten Z03/Z04 documentation conditions.
+
+### Fixed
+- Removed ambiguous guidance that previously encouraged global action prompts or out-of-order execution in interactive review/fix steps.
+- Fixed workflow wording inconsistencies around step numbering, completion gates, and push-stage references.
+
 ## [1.14.0] - 2026-02-20
 
 ### Added

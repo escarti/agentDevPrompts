@@ -9,9 +9,10 @@ description: Use after research (Z01 files exist) to create implementation plan 
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Create TodoWrite checklist (see below)
-2. ☐ Mark Step 1 as `in_progress`
-3. ☐ Read CLAUDE.md first (if exists)
+1. ☐ Verify session is running in Plan mode
+2. ☐ Create TodoWrite checklist (see below)
+3. ☐ Mark Step 1 as `in_progress`
+4. ☐ Read CLAUDE.md first (if exists)
 
 **This skill is a WRAPPER that loads Z01 context and invokes superpowers:writing-plans**
 
@@ -20,7 +21,8 @@ description: Use after research (Z01 files exist) to create implementation plan 
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
+    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 2: Verify Z01 files exist", status: "pending", activeForm: "Checking research"},
     {content: "Step 3: Read ALL Z01 files", status: "pending", activeForm: "Loading context"},
     {content: "Step 4: Invoke superpowers:writing-plans", status: "pending", activeForm: "Creating plan"},
@@ -43,6 +45,17 @@ TodoWrite({
 **Without this wrapper:** You'd manually load Z01 files, pass to superpowers:writing-plans, manage Z02 output paths, check for clarifications.
 
 ## Workflow Steps
+
+### Step 0: Plan Mode Gate (BLOCKING)
+
+This workflow must run in Plan mode.
+
+If current mode is not Plan mode:
+1. STOP immediately
+2. Do not perform planning steps
+3. Report: "feature-planning requires Plan mode. Please switch to Plan mode and rerun."
+
+---
 
 ### Step 1: Load Project Context (MANDATORY FIRST)
 
@@ -160,6 +173,7 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 
 - **Proceeded with unanswered questions in Z01_CLARIFY** (BLOCKING - must stop)
 - **Marked planning done while Z02_CLARIFY still has unresolved items**
+- **Ran this skill outside Plan mode**
 - **Did NOT read CLAUDE.md first** (if exists)
 - **CLAUDE.md exists but constraints not passed to planning**
 - **Did NOT check for Z01* files**
@@ -189,6 +203,7 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 
 You followed the workflow if:
 - ✓ Read CLAUDE.md if exists
+- ✓ Verified session was in Plan mode before Step 1
 - ✓ Passed CLAUDE.md constraints to superpowers:writing-plans
 - ✓ Checked for Z01* files
 - ✓ Read ALL Z01* files if they exist

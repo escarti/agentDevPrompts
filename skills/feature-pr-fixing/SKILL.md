@@ -11,9 +11,10 @@ description: Use when addressing PR review comments - follow structured workflow
 
 Before taking ANY action:
 
-1. ☐ Create TodoWrite (exact template below)
-2. ☐ Mark Step 1 as `in_progress`
-3. ☐ Execute Step 1
+1. ☐ Verify session is running in Plan mode
+2. ☐ Create TodoWrite (exact template below)
+3. ☐ Mark Step 0 as `in_progress`
+4. ☐ Execute Step 0
 
 **If you ran `gh pr view`, `gh api`, or ANY command before TodoWrite: YOU FAILED THE IRON LAW.**
 
@@ -35,14 +36,15 @@ If No → Stop, acknowledge failure, start over.
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 1: Switch to PR branch", status: "in_progress", activeForm: "Switching to PR branch"},
+    {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
+    {content: "Step 1: Switch to PR branch", status: "pending", activeForm: "Switching to PR branch"},
     {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
     {content: "Step 4: Read changed files and comment context", status: "pending", activeForm: "Reading code files"},
     {content: "Step 5: Assess ALL UNANSWERED OR UNFIXED comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
-    {content: "Step 6: Present assessments", status: "pending", activeForm: "Presenting findings"},
-    {content: "Step 7: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
-    {content: "Step 8: Execute user choice", status: "pending", activeForm: "Executing action"}
+    {content: "Step 6: Present EACH comment and collect decision in one pass", status: "pending", activeForm: "Reviewing comments with user"},
+    {content: "Step 7: Execute all queued comment decisions in batch", status: "pending", activeForm: "Applying queued actions"},
+    {content: "Step 8: Create Z04 for anything unhandled", status: "pending", activeForm: "Finalizing documentation"}
   ]
 })
 ```
@@ -50,6 +52,17 @@ TodoWrite({
 **After each step:** Mark completed, move `in_progress` to next step.
 
 ## Workflow Steps
+
+### Step 0: Plan Mode Gate (BLOCKING)
+
+This workflow must run in Plan mode.
+
+If current mode is not Plan mode:
+1. STOP immediately
+2. Do not run Step 1+
+3. Report: "feature-pr-fixing requires Plan mode. Please switch to Plan mode and rerun."
+
+---
 
 ### Step 1: Switch to PR Branch
 
@@ -127,9 +140,9 @@ Get PR metadata and **UNRESOLVED, CURRENT** review comments with:
 
 ---
 
-### Step 6: Present Assessments
+### Step 6: Present Assessments and Decide (One Comment at a Time)
 
-Display all comments with AI assessment:
+Display comments with AI assessment, one comment at a time:
 
 ```
 ## PR Review Comment Assessment: {PR Title}
@@ -150,86 +163,63 @@ Summary:
 - Discuss: {count}
 ```
 
-**DO NOT suggest next steps. Proceed immediately to Step 7.**
-
----
-
-### Step 7: Ask User What To Do
-
-**STOP. Use AskUserQuestion tool NOW.**
+For EACH comment, immediately ask user decision and queue it:
 
 ```typescript
-AskUserQuestion({
+request_user_input({
   questions: [{
-    question: "How would you like to handle these review comments?",
-    header: "Action",
-    multiSelect: false,
+    question: "How should I handle Comment {n}?",
+    header: "Comment {n}",
     options: [
-      {label: "Auto: fix valid, refute invalid", description: "Automatically apply fixes and post refutations based on AI assessment"},
-      {label: "Review per-comment", description: "Go through each comment, decide fix/refute/skip individually"},
-      {label: "Document only", description: "Save assessments to Z04 file without applying changes"}
+      {label: "Queue fix", description: "Queue code fix for this comment in Step 7"},
+      {label: "Queue refute", description: "Queue in-thread technical reply for this comment in Step 7"},
+      {label: "Queue skip", description: "Leave this comment unhandled and continue"},
+      {label: "Stop review cycle", description: "Stop cycling comments now and move to execution/documentation"}
     ]
   }]
 })
 ```
 
-**Wait for user response before Step 8.**
+**Decision protocol for Step 6 (Plan mode required):**
+1. Use `request_user_input` for each comment.
+2. If `request_user_input` is unavailable, STOP and report: "Step 6 requires Plan mode interactive selection."
+
+Collect decisions for all reviewed comments, then proceed to Step 7.
+
+**DO NOT bundle all comments into one decision request.**
+**DO NOT execute fixes/refutations during Step 6. Step 6 is decision collection only.**
 
 ---
 
-### Step 8: Execute User Choice
+### Step 7: Execute Queued Decisions (Batch)
 
-**If "Auto: fix valid, refute invalid":**
-
-For EACH VALID (Fix) comment:
+After Step 6 decision cycle is complete, execute queued actions:
+- For each `Queue fix`:
 1. Invoke `superpowers:systematic-debugging` with context (PR, file, comment, assessment)
 2. Test the fix (run relevant tests, verify behavior)
 3. Commit with descriptive message: `git commit -m "Fix: [comment summary] - [what changed]"`
-4. Move to next VALID comment
-
-For EACH INVALID (refute) comment:
+- For each `Queue refute`:
 1. Post refutation using `gh api` (see "Replying to Review Comments" section)
-2. Move to next INVALID comment
+- For each `Queue skip`: do not fix/refute
+- If Step 6 stopped early: do not auto-handle remaining unreviewed comments
 
-After all comments processed:
-1. Push all commits: `git push`
+After all queued actions executed:
+1. Push all commits once: `git push`
+
 ---
 
-**If "Review per-comment":**
-
-Loop through comments with AskUserQuestion offering: Fix / Refute / Explain / Skip / Stop.
-
-- **Fix**:
-1. Invoke `superpowers:systematic-debugging` with context (PR, file, comment, assessment)
-2. Test the fix (run relevant tests, verify behavior)
-3. Commit with descriptive message: `git commit -m "Fix: [comment summary] - [what changed]"`
-4. Only then move to next comment
-- **Refute**:
-1. Post refutation using `gh api` (see "Replying to Review Comments" section)
-2. Move to next comment
-- **Explain**:
-1. User provides context → update assessment → ask again
-2. Reassess if comment needs fixing or refuting
-
-After all comments processed (or user chooses "Stop"):
-1. Push all commits: `git push`
----
+### Step 8: Document Unhandled Comments (Z04)
 
 **Z04 File Creation (Conditional):**
 
-**If "Auto: fix valid, refute invalid":**
-- All comments fixed or refuted → **NO Z04 file**
-
-**If "Review per-comment":**
 - If user stops before completing: **CREATE Z04** with remaining unhandled comments
-- If all comments fixed/refuted/skipped: **NO Z04 file**
-
-**If "Document only":**
-- **CREATE Z04 file** with all assessments (nothing fixed/refuted)
+- If all comments fixed/refuted and none remain unreviewed: **NO Z04 file**
+- If a comment was queued as skip: include it in Z04
+- If Step 6 stopped early: include all unreviewed comments in Z04
 
 **Z04 conditional creation:**
 - Only create if comments exist that were NOT fixed or refuted
-- If all comments handled → no Z04 needed
+- If all comments are fixed/refuted and none are skipped/unreviewed → no Z04 needed
 
 **Z04 location:** Scan for existing `Z0[12]_*.md` files to find ongoing directory. Default to `docs/ai/ongoing/`.
 
@@ -291,7 +281,10 @@ Happy to discuss further if there's context I'm missing.
 - **Processing resolved or outdated comments**
 - **Not filtering comments by resolution status**
 - **Re-fixing already addressed issues from previous rounds**
-- **Suggesting next steps instead of using AskUserQuestion**
+- **Ran this skill outside Plan mode**
+- **Suggesting next steps instead of running the per-comment decision protocol**
+- **Asking one global action for all comments instead of per-comment decisions**
+- **Executing fixes/refutations before completing the per-comment decision cycle**
 - **Using `gh pr comment` instead of `gh api .../replies`**
 - **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Drafting refutations but not posting them**
@@ -314,15 +307,18 @@ Happy to discuss further if there's context I'm missing.
 | **"Read whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then read changed files ONLY (Step 4). |
 | **"Not worth arguing about style"** | **NO.** Style changes have cost. Require justification. |
 | **"Faster to fix than debate"** | **NO.** Blind fixes accumulate debt. Assess with full context first. |
+| **"I can run this in Default mode from the start"** | **NO.** This skill requires Plan mode. |
 | **"Don't want to seem difficult"** | **NO.** Technical discussion is normal. Respectful refutation is professional. |
 | **"Use gh pr comment to post reply"** | **NO.** Use `gh api .../replies` to reply in thread. |
 | **"I'll fix directly with Edit tool"** | **NO.** Invoke superpowers:systematic-debugging. Don't skip root cause. |
-| "Assessments done, I can proceed" | **NO.** Step 7 requires AskUserQuestion. Use it NOW. |
+| "Assessments done, I can proceed" | **NO.** During Step 6, ask decision per comment and queue it. |
+| "I can pick one action for all comments" | **NO.** Ask decision per comment. No bundling. |
+| "I can execute while I ask" | **NO.** Finish Step 6 decision cycle first, then execute in Step 7. |
 | "I drafted refutation, that's enough" | **NO.** Draft ≠ posted. Execute `gh api` command. |
-| **"I'll simulate user choice"** | **NO.** Use AskUserQuestion tool. Don't assume what user wants. |
+| **"I'll simulate user choice"** | **NO.** Use request_user_input per comment in Step 6. Don't assume what user wants. |
 | **"systematic-debugging handles commits"** | **NO.** You must explicitly commit after each fix is tested. |
 | **"I'll commit all fixes at once at the end"** | **NO.** Commit after testing each individual fix for atomic history. |
-| **"I'll push after each commit"** | **NO.** Batch push once at end of Step 8 for efficiency. |
+| **"I'll push after each commit"** | **NO.** Batch push once at end of Step 7 for efficiency. |
 
 ## Success Criteria
 
@@ -334,10 +330,13 @@ You followed the workflow if:
 - ✓ Read ONLY changed files and comment context (not entire codebase)
 - ✓ Assessed ALL comments using full repo context
 - ✓ Verified reviewer claims against project patterns
-- ✓ Used AskUserQuestion (not prose suggestions)
+- ✓ Verified session was in Plan mode before Step 1
+- ✓ Used request_user_input for per-comment decisions in Step 6
+- ✓ Asked for a decision for EACH comment during Step 6 (no global-action shortcut)
+- ✓ Completed decision collection cycle before executing queued actions
 - ✓ Invoked superpowers:systematic-debugging for valid fixes (not Edit tool directly)
 - ✓ Committed each fix individually after testing
-- ✓ Pushed all commits to PR branch at end of Step 8
+- ✓ Pushed all commits to PR branch at end of Step 7
 - ✓ Posted refutations with `gh api .../replies` (not `gh pr comment`)
 - ✓ Verified replies posted in correct threads
 - ✓ Created Z04 documentation (if needed)

@@ -9,9 +9,10 @@ description: Use after feature-implementing completes - performs final quality c
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Create TodoWrite checklist (see below)
-2. ☐ Mark Step 1 as `in_progress`
-3. ☐ Confirm you're on a feature branch (not main)
+1. ☐ Verify session is running in Plan mode
+2. ☐ Create TodoWrite checklist (see below)
+3. ☐ Mark Step 0 as `in_progress`
+4. ☐ Confirm you're on a feature branch (not main)
 
 **This skill runs from FRESH context. If you have feature-implement conversation history, you're doing it wrong.**
 
@@ -20,7 +21,8 @@ description: Use after feature-implementing completes - performs final quality c
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 1: Get current branch and changed files", status: "in_progress", activeForm: "Getting git status"},
+    {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
+    {content: "Step 1: Get current branch and changed files", status: "pending", activeForm: "Getting git status"},
     {content: "Step 2: Read CLAUDE.md", status: "pending", activeForm: "Reading CLAUDE.md"},
     {content: "Step 3: Load Z01/Z02 plan files", status: "pending", activeForm: "Reading plan docs"},
     {content: "Step 4: Hunt for bugs (adversarial assessment)", status: "pending", activeForm: "Hunting for bugs"},
@@ -28,7 +30,7 @@ TodoWrite({
     {content: "Step 6: Run PR-style code review on branch diff", status: "pending", activeForm: "Reviewing like PR reviewer"},
     {content: "Step 7: Run security-focused review pass", status: "pending", activeForm: "Reviewing with security mindset"},
     {content: "Step 8: Present findings", status: "pending", activeForm: "Formatting summary"},
-    {content: "Step 9: Ask user what to do (AskUserQuestion)", status: "pending", activeForm: "Awaiting user choice"},
+    {content: "Step 9: Ask user what to do (Codex-first decision protocol)", status: "pending", activeForm: "Awaiting user choice"},
     {content: "Step 10: Execute user choice", status: "pending", activeForm: "Applying fixes"},
     {content: "Step 11: Create Z05 finish documentation", status: "pending", activeForm: "Writing Z05"}
   ]
@@ -38,6 +40,17 @@ TodoWrite({
 **After each step:** Mark completed, move `in_progress` to next step.
 
 ## Workflow Steps
+
+### Step 0: Plan Mode Gate (BLOCKING)
+
+This workflow must run in Plan mode.
+
+If current mode is not Plan mode:
+1. STOP immediately
+2. Do not run finishing steps
+3. Report: "feature-finishing requires Plan mode. Please switch to Plan mode and rerun."
+
+---
 
 ### Step 1: Get Current Branch and Changed Files
 
@@ -191,16 +204,15 @@ Display summary:
 
 ### Step 9: Ask User What To Do
 
-**STOP. Use AskUserQuestion tool NOW.**
+**STOP. Run the Codex-first decision protocol NOW.**
 
 **If you haven't asked the user yet, you are at Step 9. Ask NOW.**
 
 ```typescript
-AskUserQuestion({
+request_user_input({
   questions: [{
     question: "How would you like to handle these findings?",
     header: "Action",
-    multiSelect: false,
     options: [
       {label: "Fix all", description: "Automatically fix all issues using Edit tool"},
       {label: "Loop issues", description: "Go through each issue, decide fix/skip/explain individually"},
@@ -209,6 +221,16 @@ AskUserQuestion({
   }]
 })
 ```
+
+**Codex-first decision protocol (required):**
+1. Use `request_user_input` when available.
+2. If `request_user_input` is unavailable and runtime supports `AskUserQuestion`, use `AskUserQuestion`.
+3. If neither tool is available, ask in prose with strict choices:
+   - `How would you like to handle these findings? Reply with 1, 2, or 3.`
+   - `1) Fix all`
+   - `2) Loop issues`
+   - `3) Document only`
+   - Accept only explicit `1|2|3` (or exact label). If unclear, ask once to clarify.
 
 **Wait for user response before Step 10.**
 
@@ -224,7 +246,38 @@ Invoke `superpowers:systematic-debugging` with ALL findings. Track report for Z0
 
 **If "Loop issues":**
 
-For each issue, ask with AskUserQuestion: Fix / Skip / Explain / Stop.
+For each issue, run a strict one-by-one cycle:
+1. Show only the current issue details (`Issue {n}` with file, severity, impact, and why).
+2. Immediately ask decision for that issue.
+3. End the assistant message after that question block.
+4. Wait for explicit user decision.
+5. Execute/record decision for that issue.
+6. Only then move to the next issue.
+
+For each issue decision, use:
+```typescript
+request_user_input({
+  questions: [{
+    question: "How should I handle Issue {n}?",
+    header: "Issue {n}",
+    options: [
+      {label: "Fix issue", description: "Apply a fix for this issue now"},
+      {label: "Skip issue", description: "Leave this issue unfixed and continue"},
+      {label: "Explain issue", description: "I will provide context before deciding"},
+      {label: "Stop cycle", description: "Stop issue loop now and continue to documentation"}
+    ]
+  }]
+})
+```
+
+Fallback when structured input is unavailable:
+- `How should I handle Issue {n}? Reply with 1, 2, 3, or 4.`
+- `1. Fix issue`
+- `2. Skip issue`
+- `3. Explain issue`
+- `4. Stop cycle`
+- Accept only explicit `1|2|3|4` (or exact label). If unclear, ask once to clarify.
+- After asking, stop output. Do not include later issues/questions in the same message.
 
 - **Fix**: Invoke `superpowers:systematic-debugging` for this issue
 - **Explain**: User provides context → update assessment → ask again
@@ -286,7 +339,8 @@ Skip to Step 11.
 
 ## Red Flags - You're Failing If:
 
-- **Presenting findings without using AskUserQuestion** ← MOST COMMON FAILURE
+- **Presenting findings without running the Codex-first decision protocol** ← MOST COMMON FAILURE
+- **Ran this skill outside Plan mode**
 - **Running from same context as feature-implement** (need fresh context)
 - **Skipping CLAUDE.md** (exists but not read)
 - **Not reading Z01/Z02 files**
@@ -296,21 +350,26 @@ Skip to Step 11.
 - **Not finding ANY bugs** (means you didn't look hard enough)
 - **Using Edit tool directly instead of invoking superpowers:systematic-debugging**
 - **Documenting in Z05 instead of fixing when user chose 'Fix'**
-- **Asking "would you like me to..." in prose instead of AskUserQuestion**
+- **Asking "would you like me to..." in free-form prose without strict options**
+- **Loop issues mode but presenting all issues first**
+- **Loop issues mode with multiple pending issue questions at once**
+- **Moving to next issue before current issue decision is explicit**
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
-| **"Assessment done, I can proceed"** | **NO.** Step 9 requires AskUserQuestion. You have NOT done Step 9 yet. |
+| **"Assessment done, I can proceed"** | **NO.** Step 9 requires the Codex-first decision protocol. You have NOT done Step 9 yet. |
 | **"Step 4 bug hunt is enough, skip PR-style review"** | **NO.** Step 6 is mandatory to reduce follow-up PR findings. |
 | **"Security was covered already, skip security pass"** | **NO.** Step 7 is mandatory and uses a dedicated attacker mindset. |
-| **"User obviously wants fixes, no need to ask"** | **NO.** ALWAYS ask. User might want document-only. Use AskUserQuestion. |
-| **"I'll just start fixing, user can stop me"** | **NO.** Ask BEFORE any action. Use AskUserQuestion NOW. |
-| **"I can see what user wants, skip AskUserQuestion"** | **NO.** Use AskUserQuestion. Not optional. STOP and ask. |
+| **"User obviously wants fixes, no need to ask"** | **NO.** ALWAYS ask. User might want document-only. Run the decision protocol. |
+| **"I'll just start fixing, user can stop me"** | **NO.** Ask BEFORE any action. Run the decision protocol NOW. |
+| **"I can see what user wants, skip asking"** | **NO.** Asking is not optional. STOP and ask. |
 | **"I'll fix directly with Edit tool"** | **NO.** Invoke superpowers:systematic-debugging. Don't skip root cause analysis. |
 | **"Issue is simple, don't need systematic-debugging"** | **NO.** Simple issues have root causes too. Use the skill. |
 | **"I'll document in Z05, no need to fix"** | **NO.** User chose 'Fix' = invoke systematic-debugging. |
+| **"I'll show all issues, then ask decisions at the end"** | **NO.** In Loop issues mode, issue-by-issue only. |
+| **"I'll ask all issue decisions in one message"** | **NO.** One pending issue decision at a time. |
 | "Implementation looks good, skip assessment" | **NO.** ASSUME BUGS EXIST. Hunt for them adversarially. |
 | "Code seems correct, just validate it" | **NO.** Don't validate. ATTACK it. Find how to break it. |
 | "I remember from feature-implement context" | **NO.** This runs from FRESH context. Hunt for bugs with fresh eyes. |
@@ -322,6 +381,7 @@ Skip to Step 11.
 
 You followed the workflow if:
 - ✓ Ran from fresh context (no feature-implement history)
+- ✓ Verified session was in Plan mode before Step 1
 - ✓ Used git diff to get changed files
 - ✓ Read Z01/Z02 files (or noted missing)
 - ✓ Hunted for bugs adversarially (not passive validation)
@@ -329,7 +389,9 @@ You followed the workflow if:
 - ✓ Compared against plan (if exists)
 - ✓ Ran a PR-style review pass to catch likely reviewer feedback
 - ✓ Ran a security-focused review pass to catch vulnerabilities before PR feedback
-- ✓ Used AskUserQuestion (not prose suggestions)
+- ✓ Used Codex-first decision protocol (request_user_input first, AskUserQuestion compatibility fallback, strict prose fallback)
+- ✓ In Loop issues mode, used strict sequence: one issue -> one decision -> next issue
+- ✓ Never had more than one pending issue decision at a time
 - ✓ Invoked superpowers:systematic-debugging for fixes (not Edit tool directly)
 - ✓ Created Z05 documentation with systematic-debugging results
 - ✓ Resisted rationalization pressures
