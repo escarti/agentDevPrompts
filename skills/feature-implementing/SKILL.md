@@ -13,7 +13,7 @@ description: Use to execute implementation plan (Z02 files) in batches - follow 
 2. ☐ Mark Step 1 as `in_progress`
 3. ☐ Verify Z02 plan exists
 
-**This skill loads ALL context (Z01/Z02/CLAUDE.md) and executes plan in batches with code review checkpoints.**
+**This skill loads ALL context (Z01/Z02/CLAUDE.md), creates a Z99 implementation tracker, and executes plan in batches with code review checkpoints.**
 
 ## MANDATORY FIRST ACTION: Create TodoWrite
 
@@ -23,9 +23,10 @@ TodoWrite({
     {content: "Step 1: Find Z02 plan file and feature name", status: "in_progress", activeForm: "Finding plan"},
     {content: "Step 2: Check for unresolved clarifications", status: "pending", activeForm: "Checking Z02_CLARIFY"},
     {content: "Step 3: Load context (CLAUDE.md, Z01, Z02)", status: "pending", activeForm: "Reading context"},
-    {content: "Step 4: Invoke superpowers:executing-plans", status: "pending", activeForm: "Starting execution"},
-    {content: "Step 5: Verify tests pass", status: "pending", activeForm: "Running tests"},
-    {content: "Step 6: Invoke feature-document", status: "pending", activeForm: "Creating dev log"}
+    {content: "Step 4: Create Z99_implementation_status.md from Z02 plan phases/tasks", status: "pending", activeForm: "Building implementation tracker"},
+    {content: "Step 5: Invoke superpowers:executing-plans", status: "pending", activeForm: "Starting execution"},
+    {content: "Step 6: Verify tests pass", status: "pending", activeForm: "Running tests"},
+    {content: "Step 7: Enforce Z99 completion gate (all tasks done + proof of work)", status: "pending", activeForm: "Validating completion evidence"}
   ]
 })
 ```
@@ -88,7 +89,27 @@ Read ALL available context in this order:
 
 ---
 
-### Step 4: Invoke Superpowers Execution
+### Step 4: Create Implementation Tracker (Z99)
+
+Create `{ONGOING_DIR}/Z99_implementation_status.md` before execution.
+
+**Purpose:** Track implementation progress without modifying the original plan.
+
+Rules:
+- Do NOT edit `Z02_{feature}_plan.md`
+- Extract all phases and tasks from Z02 into Z99
+- Add per-task status fields (`pending`, `in_progress`, `done`, `blocked`)
+- Include a per-task "Proof of work" field (file paths, tests, or commits proving completion)
+- Include a short "Current batch" section and "Blockers" section
+- Update Z99 as execution progresses; Z99 is the source of progress state during implementation
+
+If Z99 already exists:
+- Reconcile with latest Z02 phases/tasks (append missing tasks, preserve existing statuses)
+- Do NOT delete already recorded progress notes unless they are clearly obsolete
+
+---
+
+### Step 5: Invoke Superpowers Execution
 
 **Use Skill tool** to invoke `superpowers:executing-plans`
 
@@ -107,6 +128,7 @@ EXECUTION CONTEXT:
 === IMPLEMENTATION PLAN ===
 [Full content of Z02_{feature}_plan.md - REQUIRED]
 [Full content of Z02_CLARIFY_{feature}_plan.md if it exists]
+[Full content of Z99_implementation_status.md - REQUIRED]
 
 === EXECUTION INSTRUCTIONS ===
 
@@ -115,8 +137,10 @@ Execute the plan following these requirements:
 1. Batch Execution: 3-5 tasks per batch, report after each, wait for approval
 2. Pattern Adherence: Follow ALL patterns from CLAUDE.md, preserve research decisions
 3. Code Review: Use superpowers:requesting-code-review between batches
-4. Verification: Run tests after significant changes
-5. Completion: ALL tasks done, tests passing, ready for feature-document
+4. Progress Tracking: Keep Z99_implementation_status.md updated after each completed/blocked task; when a task is completed, immediately mark it `done` in Z99 and add proof of work; do NOT modify Z02 plan content
+5. Subagents: If execution requires subagents, invoke use-sub-agent skill and follow it exactly
+6. Verification: Run tests after significant changes
+7. Completion: ALL tasks done, tests passing, and Z99 fully complete with proof
 
 Begin execution now.
 ```
@@ -125,7 +149,7 @@ Begin execution now.
 
 ---
 
-### Step 5: Verify Tests Pass
+### Step 6: Verify Tests Pass
 
 When superpowers:executing-plans reports completion:
 
@@ -143,23 +167,17 @@ Run project tests (pytest, npm test, etc.)
 
 ---
 
-### Step 6: Invoke Development Logging
+### Step 7: Enforce Z99 Completion Gate (BLOCKING)
 
-**MANDATORY:** Automatically invoke `feature-workflow:feature-documenting`
+Before considering implementation flow complete:
 
-Use Skill tool:
-```
-feature-workflow:feature-documenting
-```
+- Every task extracted from Z02 must be present in `Z99_implementation_status.md`
+- Every task in Z99 must be marked `done`
+- Every `done` task must include proof of work in code (for example: touched file paths and validation command/test evidence)
 
-feature-documenting will:
-1. Create consolidated dev log with all Z01/Z02 files
-2. Update README/docs if needed
-3. Remove ALL Z01-Z05 files from ongoing directory
-4. Generate PR description
-5. Ask about PR creation
-
-**Do NOT manually clean up Z0* files** - let feature-document handle it.
+If any task is not `done`, or lacks proof:
+- STOP and continue implementation
+- Do NOT mark the implementation flow complete
 
 ---
 
@@ -171,9 +189,12 @@ feature-documenting will:
 - **Used SlashCommand `/superpowers:execute-plan`** (use Skill tool instead)
 - **Passed file paths instead of FULL CONTENT to superpowers**
 - **Skipped CLAUDE.md when it exists**
+- **Failed to create/update `Z99_implementation_status.md` from Z02 before execution**
+- **Modified `Z02_{feature}_plan.md` to track progress** (track progress in Z99 only)
+- **Completed a task in code but did not immediately mark it `done` in Z99 with proof of work**
 - **Did NOT instruct code review between batches**
-- **Stopped after tests pass without invoking feature-document**
-- **Manually deleted Z0* files**
+- **Needed subagents but skipped use-sub-agent skill**
+- **Claimed implementation complete while any Z99 task is not `done` or lacks proof**
 - **Using hardcoded paths** (detect pattern instead)
 
 ## Common Rationalizations
@@ -183,9 +204,12 @@ feature-documenting will:
 | **"User said feature name, skip file check"** | **NO.** MUST verify Z02_{feature}_plan.md exists first. |
 | **"Pass file paths to superpowers, it will read"** | **NO.** Generic superpowers doesn't know Z0* convention. Pass FULL CONTENT. |
 | **"Read Z02 plan only, skip research"** | **NO.** Research has critical integration details. Read ALL: CLAUDE.md, Z01*, Z02*. |
+| **"Update Z02 with checkboxes for progress"** | **NO.** Keep Z02 immutable. Extract and track progress in `Z99_implementation_status.md`. |
+| **"Z99 is optional overhead"** | **NO.** Z99 is mandatory for execution tracking and batch status clarity. |
+| **"I'll update Z99 at the end"** | **NO.** Each completed task must be marked `done` immediately with proof of work. |
 | **"Execute without code review checkpoints"** | **NO.** MUST instruct superpowers to use code review between batches. |
-| **"Tests pass, ask user about next step"** | **NO.** Automatically invoke feature-document. Don't break workflow. |
-| **"Manually delete Z0* files after logging"** | **NO.** Let feature-document handle ALL cleanup. Manual = error-prone. |
+| **"Subagent work is minor, skip delegation skill"** | **NO.** If subagents are needed, MUST invoke `use-sub-agent` skill. |
+| **"Most tasks are done, close enough to finish"** | **NO.** Workflow is not done until every Z99 task is `done` with proof. |
 | "Use SlashCommand /superpowers:execute-plan" | **NO.** That's a command system. Use Skill tool with "superpowers:executing-plans". |
 | "CLAUDE.md optional, skip if missing" | **NO.** Check for it. Load if exists. Missing critical patterns breaks implementation. |
 
@@ -197,18 +221,22 @@ You followed the workflow if:
 - ✓ Read CLAUDE.md (if exists)
 - ✓ Read ALL Z01 files (if exist)
 - ✓ Read Z02 files (required)
+- ✓ Created/updated `Z99_implementation_status.md` by extracting all Z02 phases/tasks
 - ✓ Invoked superpowers:executing-plans (NOT slash command)
 - ✓ Passed FULL CONTENT of all context files
+- ✓ Instructed execution to keep progress in Z99 and keep Z02 unmodified
+- ✓ Marked each task as `done` in Z99 immediately when completed, with proof of work
+- ✓ Instructed use-sub-agent when subagents are required
 - ✓ Instructed batch execution with code review
+- ✓ Verified all Z99 tasks are `done` with proof before completing flow
 - ✓ All tasks completed and tests passing
-- ✓ Automatically invoked feature-document
 
 ## When to Use
 
 Use when:
 - Z02_{feature}_plan.md exists in ongoing directory
 - All clarifications resolved (no unanswered questions)
-- Ready to implement with automatic code review
+- Ready to implement with automatic code review and Z99-based progress tracking
 
 **Don't use when:**
 - No plan exists → Use feature-plan first
@@ -220,14 +248,11 @@ Use when:
 ```
 1. feature-research    → Z01_research + Z01_CLARIFY
 2. feature-plan        → Z02_plan + Z02_CLARIFY
-3. feature-implement   → Implementation + automatically calls feature-document
-   └─→ feature-document → Dev log + cleanup + PR description
+3. feature-implement   → Implementation tracked in Z99 until all tasks are done with proof
 ```
 
 **After this skill:**
 - Implementation complete
 - Tests passing
-- Dev log created
-- All Z0* temp files cleaned up
-- PR description generated
-- Ready to commit and create PR
+- Z99 shows all tasks `done` with proof-of-work
+- Ready for optional follow-up workflow steps (for example, documentation or PR prep)

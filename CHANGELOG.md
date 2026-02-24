@@ -15,6 +15,22 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None yet.
 
+## [1.16.0] - 2026-02-24
+
+### Added
+- Added phased multi-PR planning requirements to `skills/feature-planning/SKILL.md`, including explicit per-phase scope boundaries, dependencies, and verification expectations.
+- Added mandatory implementation progress tracking in `skills/feature-implementing/SKILL.md` via `Z99_implementation_status.md`, including per-task status and proof-of-work requirements.
+- Added explicit subagent delegation requirement in `skills/feature-implementing/SKILL.md` to invoke `use-sub-agent` when `superpowers:executing-plans` needs subagents.
+- Added self-contained research requirements in `skills/feature-researching/SKILL.md` so `Z01_*` includes required source/spec context directly.
+
+### Changed
+- Updated `skills/feature-implementing/SKILL.md` completion flow to end on Z99 completion gate (all tasks marked `done` with proof), rather than automatically invoking feature-documenting.
+
+### Fixed
+- Prevented mega-PR planning for non-trivial work by enforcing phased, independently reviewable PR plans in `skills/feature-planning/SKILL.md`.
+- Prevented implementation completion claims without per-task evidence by making Z99 status + proof mandatory in `skills/feature-implementing/SKILL.md`.
+- Prevented research outputs that depend on external docs for core implementation requirements in `skills/feature-researching/SKILL.md`.
+
 ## [1.15.0] - 2026-02-23
 
 ### Added

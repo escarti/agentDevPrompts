@@ -126,6 +126,8 @@ The plan should be a DIRECTIVE document with:
 - Complete code examples
 - Verification steps for each task
 - TDD structure (test-fail-implement-pass-commit)
+- A phased delivery strategy split into multiple self-contained PRs (when scope is non-trivial), where each phase is independently reviewable, testable, and mergeable
+- For each planned PR phase: clear scope boundaries, explicit out-of-scope items, dependency notes, and phase-specific verification
 - Assumes engineer has minimal domain knowledge
 
 If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create {ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file.
@@ -184,6 +186,7 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 - **Did NOT explicitly specify output path** in prompt to writing-plans
 - **Skipped reading Z01_CLARIFY** (if exists)
 - **Using hardcoded paths** (detect pattern instead)
+- **Produced a single mega-PR plan for a non-trivial feature** instead of phased, self-contained PRs
 
 ## Common Rationalizations
 
@@ -210,6 +213,7 @@ You followed the workflow if:
 - ✓ Invoked superpowers:writing-plans skill (NOT slash command)
 - ✓ Explicitly instructed output path in prompt
 - ✓ Verified Z02_{feature}_plan.md was created
+- ✓ Plan defines self-contained, sequential PR phases for non-trivial work (not one mega PR)
 - ✓ Planning stayed in_progress until Z02_CLARIFY was fully resolved and removed
 - ✓ Reported next steps to user
 

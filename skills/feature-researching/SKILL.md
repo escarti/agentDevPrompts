@@ -40,6 +40,7 @@ TodoWrite({
 NO RESEARCH WITHOUT READING CLAUDE.MD FIRST
 NO Z01_CLARIFY WITH 5 OR MORE QUESTIONS WITHOUT INVOKING BRAINSTORMING
 NO PLANNING WITHOUT FILE PATHS + LINE RANGES
+NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE WORK
 ```
 
 **If you skip CLAUDE.md:** You'll violate project patterns. Delete Z01, start over.
@@ -47,6 +48,8 @@ NO PLANNING WITHOUT FILE PATHS + LINE RANGES
 **If Z01_CLARIFY has 5 or more questions:** Design is unclear. Stop research, invoke superpowers:brainstorming to clarify requirements first.
 
 **If Z01_research lacks file paths:** Planner can't proceed. Add exact files + line ranges or don't create Z01.
+
+**If Z01_research references another doc for core requirements ("see spec/PRD/ticket"):** Z01 is invalid. Copy required source context into Z01 and rewrite to be self-contained.
 
 ## Research Output Format
 
@@ -95,6 +98,7 @@ Document:
 - Edge cases and failure modes
 - Test requirements
 - Environment variables
+- Source proposal/spec details that drive implementation scope
 
 ---
 
@@ -122,6 +126,12 @@ Document:
 
 ## Summary
 One paragraph: what and why.
+
+## Source Context (Self-Contained)
+- Original user proposal/spec intent copied into this file
+- Functional and non-functional requirements from source docs
+- Constraints, assumptions, and explicit out-of-scope items from source docs
+- Include enough detail so planning/implementation can proceed without opening the source doc
 
 ## Current State
 What exists. Files: path/to/file.py:123-145
@@ -154,6 +164,12 @@ How this connects to existing code.
 ## Environment Variables
 - VAR_NAME - purpose
 ```
+
+**Self-contained requirement (MANDATORY):**
+- Z01 must stand on its own for planning and implementation.
+- Do not require readers to open spec/idea/PRD/ticket documents for core requirements.
+- If external docs are mentioned, summarize or copy the relevant requirements into Z01.
+- Phrases like "see spec", "refer to ticket", "details in doc X" are only allowed for optional background, never for required implementation details.
 
 ---
 
@@ -235,6 +251,7 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 - **Missing "Existing Patterns" section**
 - **Using hardcoded paths** (detect pattern instead)
 - **Vague file references** (need path + line ranges)
+- **Z01 depends on external docs for core requirements**
 
 ## Common Rationalizations
 
@@ -266,6 +283,7 @@ You followed the workflow if:
 - ✓ Z01_research.md is directive (single OR primary + 1 alternative)
 - ✓ If alternative: both have complete technical details
 - ✓ File paths + line ranges included
+- ✓ Z01_research.md includes copied/summarized source proposal context and is self-contained
 - ✓ CLARIFY uses exact format (questions only, blank responses)
 - ✓ Research stays in_progress until CLARIFY is fully resolved and removed
 - ✓ Implementer can code without architectural decisions
