@@ -7,13 +7,24 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ## [Unreleased]
 
 ### Added
-- None yet.
+- None.
 
 ### Changed
-- None yet.
+- None.
 
 ### Fixed
-- None yet.
+- None.
+
+## [1.17.0] - 2026-02-24
+
+### Added
+- None.
+
+### Changed
+- Removed the Plan mode gate from `skills/feature-researching/SKILL.md` so research can run in Default collaboration mode as well.
+
+### Fixed
+- Updated `skills/feature-researching/SKILL.md` checklist, red flags, and success criteria to no longer require Plan mode.
 
 ## [1.16.1] - 2026-02-24
 

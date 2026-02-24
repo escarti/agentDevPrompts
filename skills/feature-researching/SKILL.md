@@ -9,7 +9,7 @@ description: Use when change proposal presented - follow structured research wor
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Verify session is running in Plan mode
+1. ☐ Verify session mode supports this workflow
 2. ☐ Create TodoWrite checklist (see below)
 3. ☐ Mark Step 1 as `in_progress`
 4. ☐ Read CLAUDE.md/docs FIRST before any code
@@ -21,7 +21,7 @@ description: Use when change proposal presented - follow structured research wor
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
+    {content: "Step 0: Verify session mode and proceed in Default mode", status: "in_progress", activeForm: "Checking collaboration mode"},
     {content: "Step 1: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 2: Explore code (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
     {content: "Step 3: Create Z01 research file (directive specification)", status: "pending", activeForm: "Writing research"},
@@ -63,14 +63,10 @@ NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE WORK
 
 ## Workflow Steps
 
-### Step 0: Plan Mode Gate (BLOCKING)
+### Step 0: Session Mode Check
 
-This workflow must run in Plan mode.
-
-If current mode is not Plan mode:
-1. STOP immediately
-2. Do not perform research steps
-3. Report: "feature-researching requires Plan mode. Please switch to Plan mode and rerun."
+This workflow runs in Default mode or Plan mode.
+Proceed in the current mode; do not block on Plan mode availability.
 
 ---
 
@@ -240,7 +236,7 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 ## Red Flags - You're Failing If:
 
 - **Did NOT read CLAUDE.md/README/docs FIRST**
-- **Ran this skill outside Plan mode**
+- **Stopped this skill due to missing Plan mode**
 - **Primary approach violates CLAUDE.md patterns**
 - **Z01_CLARIFY has 5 or more questions but didn't invoke brainstorming**
 - **Marked research done while Z01_CLARIFY still has unresolved items**
@@ -275,7 +271,7 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 
 You followed the workflow if:
 - ✓ Read CLAUDE.md/README/docs FIRST
-- ✓ Verified session was in Plan mode before Step 1
+- ✓ Verified session mode supports workflow before Step 1
 - ✓ "Existing Patterns" section in Z01_research.md
 - ✓ Primary approach preserves patterns from CLAUDE.md
 - ✓ If Z01_CLARIFY has 5 or more questions: invoked superpowers:brainstorming and restarted
