@@ -15,6 +15,17 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None yet.
 
+## [1.16.1] - 2026-02-24
+
+### Added
+- None.
+
+### Changed
+- Removed the Plan mode gating requirement from `skills/feature-planning/SKILL.md` so planning can run in default collaboration mode.
+
+### Fixed
+- Fixed `feature-planning` step tracking and validation criteria to no longer require or reference Plan mode-only checks.
+
 ## [1.16.0] - 2026-02-24
 
 ### Added
