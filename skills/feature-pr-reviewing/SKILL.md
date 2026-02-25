@@ -134,8 +134,24 @@ You need:
 
 ### Step 6: Present Findings and Decide (One by One)
 
-Display findings in structured format, one finding at a time.
-Do not print Finding 2+ before Finding 1 decision is collected.
+First, print a complete findings index so the user can see everything discovered before decisions start.
+Then run the strict one-finding decision loop.
+
+Required pre-loop summary format:
+
+```
+## PR Review Findings: {PR Title}
+
+Total findings: {N}
+
+Findings Index:
+1. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
+2. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
+...
+```
+
+After printing this index, continue with one finding at a time.
+Do not print detailed Finding 2+ blocks before Finding 1 decision is collected.
 
 ```
 ## PR Review Findings: {PR Title}
@@ -169,6 +185,7 @@ request_user_input({
     header: "Finding {n}",
     options: [
       {label: "Post comment", description: "Post this finding as one PR comment in Step 7"},
+      {label: "Add to fix queue", description: "Queue this finding to be fixed directly in the PR in Step 7"},
       {label: "Skip comment", description: "Do not post this finding; continue to next finding"},
       {label: "Stop review cycle", description: "Stop cycling findings now and move to execution/documentation"}
     ]
@@ -184,18 +201,22 @@ Collect decisions in-loop and proceed to Step 7 after loop ends.
 
 **DO NOT ask one global action for all findings.**
 **DO NOT execute posting during Step 6. Step 6 is decision collection only.**
-**DO NOT print all findings first and ask all questions at the end.**
+**DO NOT execute fixes during Step 6. Step 6 is decision collection only.**
+**DO NOT ask all finding decisions at the end.**
 **DO NOT ask the next finding before receiving a decision for the current one.**
 **DO NOT send multiple pending finding questions in one assistant message.**
 
 ---
 
-### Step 7: Execute Queued Decisions (Batch)
+### Step 7: Execute Queued Decisions (Batch: Post + Fix)
 
 After Step 6 decision cycle is complete, execute queued actions:
 - For each `Post comment`: post exactly ONE PR comment for that ONE finding using `gh pr comment`
+- For each `Add to fix queue`: fix that finding directly on the PR branch (one finding at a time), preserving existing project patterns
 - For each `Skip comment`: do not post
 - If Step 6 stopped early: do not auto-post remaining unreviewed findings
+- Validate fixes before moving on (run targeted tests/lint for changed areas; if unavailable, explain what was checked)
+- If a queued fix cannot be completed safely, do not force it; record the reason and include it in Z03
 
 ---
 
@@ -243,10 +264,12 @@ Suggested change:
 - **Using this skill outside Plan mode**
 - **Using free-form prose asks instead of request_user_input**
 - **Asking one global action for all findings instead of per-finding decisions**
-- **Printing all findings before asking decisions**
+- **Skipping the required pre-loop findings index**
+- **Printing all detailed findings before asking decisions**
 - **Asking multiple finding decisions without waiting between them**
 - **Sending multiple pending finding questions in one message**
 - **Executing comments before completing the per-finding decision cycle**
+- **Executing fixes before completing the per-finding decision cycle**
 - **Posting multiple findings in one combined PR comment**
 - **Posting vague comments without concrete file-line evidence**
 - **Drafting comments but not posting them**
@@ -267,10 +290,12 @@ Suggested change:
 | "I'll offer helpful next steps in text" | **NO.** Use request_user_input per finding in Plan mode. |
 | "Findings presented, I can proceed" | **NO.** During Step 6, ask decision per finding and queue it. |
 | "I'll ask one question for all findings" | **NO.** Must ask decision per finding. No bundling. |
-| "I'll list all findings first, then ask at end" | **NO.** Show one finding, ask immediately, wait, then continue. |
+| "I'll skip the full findings list" | **NO.** Print the required pre-loop findings index first. |
+| "I'll list all detailed findings first, then ask at end" | **NO.** Only the index can be listed up front; detailed blocks must stay one-by-one with immediate decisions. |
 | "I can ask all finding decisions in one message" | **NO.** One finding question at a time, wait for explicit answer. |
 | "I'll ask, then continue writing context for later findings" | **NO.** End message right after the current finding question block. |
 | "I can post while I ask" | **NO.** Finish Step 6 decision cycle first, then execute in Step 7. |
+| "I can fix while I ask" | **NO.** Finish Step 6 decision cycle first, then execute fixes in Step 7. |
 | "I can post one summary comment for everything" | **NO.** One accepted finding = one PR comment. No combined comment. |
 | "Short generic comments are fine" | **NO.** Include concrete impact + exact file and line range evidence. |
 | "I drafted comments, that's enough" | **NO.** Draft ≠ posted. Execute `gh pr comment`. |
@@ -294,7 +319,9 @@ You followed the workflow if:
 - ✓ Presented and decided findings in strict sequence: one finding -> one decision -> next finding
 - ✓ Never had more than one pending finding decision at a time
 - ✓ Completed decision collection cycle before executing posts
+- ✓ Completed decision collection cycle before executing fixes
 - ✓ Posted one PR comment per accepted finding (no combined comment)
+- ✓ Fixed queued findings directly in the PR branch when feasible
 - ✓ Each posted comment includes severity (`Must-fix`, `Should-fix`, or `Nice-to-have`)
 - ✓ Each posted comment includes affected file and exact line range evidence
 - ✓ Posted comments with actual commands (not drafts)
