@@ -15,6 +15,17 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None.
 
+## [1.17.1] - 2026-02-25
+
+### Added
+- None.
+
+### Changed
+- Refined Step 5 wording in `skills/feature-implementing/SKILL.md` to require using `superpowers:executing-plans` to execute requested plan tasks, not just invoke/load the skill.
+
+### Fixed
+- Updated corresponding checklist and success criteria language in `skills/feature-implementing/SKILL.md` for explicit execution semantics.
+
 ## [1.17.0] - 2026-02-24
 
 ### Added

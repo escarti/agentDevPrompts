@@ -24,7 +24,7 @@ TodoWrite({
     {content: "Step 2: Check for unresolved clarifications", status: "pending", activeForm: "Checking Z02_CLARIFY"},
     {content: "Step 3: Load context (CLAUDE.md, Z01, Z02)", status: "pending", activeForm: "Reading context"},
     {content: "Step 4: Create Z99_implementation_status.md from Z02 plan phases/tasks", status: "pending", activeForm: "Building implementation tracker"},
-    {content: "Step 5: Invoke superpowers:executing-plans", status: "pending", activeForm: "Starting execution"},
+    {content: "Step 5: Use superpowers:executing-plans to execute plan tasks", status: "pending", activeForm: "Starting execution"},
     {content: "Step 6: Verify tests pass", status: "pending", activeForm: "Running tests"},
     {content: "Step 7: Enforce Z99 completion gate (all tasks done + proof of work)", status: "pending", activeForm: "Validating completion evidence"}
   ]
@@ -109,9 +109,9 @@ If Z99 already exists:
 
 ---
 
-### Step 5: Invoke Superpowers Execution
+### Step 5: Use Superpowers Execution Skill
 
-**Use Skill tool** to invoke `superpowers:executing-plans`
+**Use `superpowers:executing-plans` to execute the requested plan tasks** (not only to load the skill).
 
 Provide enriched context:
 
@@ -222,7 +222,7 @@ You followed the workflow if:
 - ✓ Read ALL Z01 files (if exist)
 - ✓ Read Z02 files (required)
 - ✓ Created/updated `Z99_implementation_status.md` by extracting all Z02 phases/tasks
-- ✓ Invoked superpowers:executing-plans (NOT slash command)
+- ✓ Used superpowers:executing-plans to execute requested tasks (NOT slash command)
 - ✓ Passed FULL CONTENT of all context files
 - ✓ Instructed execution to keep progress in Z99 and keep Z02 unmodified
 - ✓ Marked each task as `done` in Z99 immediately when completed, with proof of work
