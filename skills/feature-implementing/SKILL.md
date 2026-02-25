@@ -23,7 +23,7 @@ TodoWrite({
     {content: "Step 1: Find Z02 plan file and feature name", status: "in_progress", activeForm: "Finding plan"},
     {content: "Step 2: Check for unresolved clarifications", status: "pending", activeForm: "Checking Z02_CLARIFY"},
     {content: "Step 3: Load context (CLAUDE.md, Z01, Z02)", status: "pending", activeForm: "Reading context"},
-    {content: "Step 4: Create Z99_implementation_status.md from Z02 plan phases/tasks", status: "pending", activeForm: "Building implementation tracker"},
+    {content: "Step 4: Create or reconcile Z99_implementation_status.md from Z02 plan phases/tasks", status: "pending", activeForm: "Building implementation tracker"},
     {content: "Step 5: Use superpowers:executing-plans to execute plan tasks", status: "pending", activeForm: "Starting execution"},
     {content: "Step 6: Verify tests pass", status: "pending", activeForm: "Running tests"},
     {content: "Step 7: Enforce Z99 completion gate (all tasks done + proof of work)", status: "pending", activeForm: "Validating completion evidence"}
@@ -89,9 +89,9 @@ Read ALL available context in this order:
 
 ---
 
-### Step 4: Create Implementation Tracker (Z99)
+### Step 4: Create or Reconcile Implementation Tracker (Z99)
 
-Create `{ONGOING_DIR}/Z99_implementation_status.md` before execution.
+Prepare `{ONGOING_DIR}/Z99_implementation_status.md` before execution.
 
 **Purpose:** Track implementation progress without modifying the original plan.
 
@@ -105,6 +105,9 @@ Rules:
 
 If Z99 already exists:
 - Reconcile with latest Z02 phases/tasks (append missing tasks, preserve existing statuses)
+- Treat existing Z99 as continuation state for in-progress development (resume, do not restart)
+- Preserve all completed-task proof of work and existing progress notes
+- Start the next batch from the remaining non-`done` tasks after reconciliation
 - Do NOT delete already recorded progress notes unless they are clearly obsolete
 
 ---
@@ -190,6 +193,7 @@ If any task is not `done`, or lacks proof:
 - **Passed file paths instead of FULL CONTENT to superpowers**
 - **Skipped CLAUDE.md when it exists**
 - **Failed to create/update `Z99_implementation_status.md` from Z02 before execution**
+- **Overwrote an existing Z99 and reset prior progress instead of resuming from it**
 - **Modified `Z02_{feature}_plan.md` to track progress** (track progress in Z99 only)
 - **Completed a task in code but did not immediately mark it `done` in Z99 with proof of work**
 - **Did NOT instruct code review between batches**
@@ -206,6 +210,7 @@ If any task is not `done`, or lacks proof:
 | **"Read Z02 plan only, skip research"** | **NO.** Research has critical integration details. Read ALL: CLAUDE.md, Z01*, Z02*. |
 | **"Update Z02 with checkboxes for progress"** | **NO.** Keep Z02 immutable. Extract and track progress in `Z99_implementation_status.md`. |
 | **"Z99 is optional overhead"** | **NO.** Z99 is mandatory for execution tracking and batch status clarity. |
+| **"Z99 already exists, recreate it from scratch"** | **NO.** Reconcile with Z02 and resume from existing status/proof. |
 | **"I'll update Z99 at the end"** | **NO.** Each completed task must be marked `done` immediately with proof of work. |
 | **"Execute without code review checkpoints"** | **NO.** MUST instruct superpowers to use code review between batches. |
 | **"Subagent work is minor, skip delegation skill"** | **NO.** If subagents are needed, MUST invoke `use-sub-agent` skill. |
@@ -222,6 +227,7 @@ You followed the workflow if:
 - ✓ Read ALL Z01 files (if exist)
 - ✓ Read Z02 files (required)
 - ✓ Created/updated `Z99_implementation_status.md` by extracting all Z02 phases/tasks
+- ✓ If Z99 already existed, reconciled it with Z02 and resumed from remaining tasks without losing prior progress/proof
 - ✓ Used superpowers:executing-plans to execute requested tasks (NOT slash command)
 - ✓ Passed FULL CONTENT of all context files
 - ✓ Instructed execution to keep progress in Z99 and keep Z02 unmodified

@@ -15,6 +15,17 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None.
 
+## [1.17.2] - 2026-02-25
+
+### Added
+- None.
+
+### Changed
+- Updated `skills/feature-implementing/SKILL.md` Step 4 to explicitly support resuming implementation from an existing `Z99_implementation_status.md`.
+
+### Fixed
+- Prevented loss of prior implementation progress by requiring Z99 reconciliation (not recreation) when continuing previously started work.
+
 ## [1.17.1] - 2026-02-25
 
 ### Added
