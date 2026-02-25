@@ -15,6 +15,17 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None.
 
+## [1.17.3] - 2026-02-25
+
+### Added
+- None.
+
+### Changed
+- Updated `skills/feature-documenting/SKILL.md` to require discovery, merge, and cleanup for all workflow `Z*.md` artifacts (including non-standard `ZXX` files), not only Z01-Z05.
+
+### Fixed
+- Prevented documentation runs from missing extra workflow artifacts by enforcing full `Z*.md` inclusion in dev logs and cleanup verification.
+
 ## [1.17.2] - 2026-02-25
 
 ### Added

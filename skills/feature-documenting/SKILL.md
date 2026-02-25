@@ -9,24 +9,24 @@ description: Use when implementation complete and tests pass - follow structured
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Verify session is running in Plan mode
+1. ☐ Confirm collaboration mode (Default or Plan) and continue
 2. ☐ Create TodoWrite checklist (see below)
 3. ☐ Mark Step 0 as `in_progress`
 4. ☐ Verify tests pass (don't document if failing)
 
-**This skill consolidates Z01-Z05 files and DELETES them. Make sure implementation is complete.**
+**This skill consolidates all workflow `Z*.md` files and DELETES them. Make sure implementation is complete.**
 
 ## MANDATORY FIRST ACTION: Create TodoWrite
 
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
+    {content: "Step 0: Confirm collaboration mode and decision fallback path", status: "in_progress", activeForm: "Checking collaboration mode"},
     {content: "Step 1: Verify tests pass", status: "pending", activeForm: "Running tests"},
-    {content: "Step 2: Find Z01/Z02 files and detect paths", status: "pending", activeForm: "Finding Z-files"},
+    {content: "Step 2: Find all Z*.md files and detect paths", status: "pending", activeForm: "Finding Z-files"},
     {content: "Step 3: Create dev log with all Z-files", status: "pending", activeForm: "Writing dev log"},
     {content: "Step 4: Update README/docs if needed", status: "pending", activeForm: "Updating docs"},
-    {content: "Step 5: Clean up ALL Z01-Z05 files", status: "pending", activeForm: "Removing temp files"},
+    {content: "Step 5: Clean up ALL Z*.md files", status: "pending", activeForm: "Removing temp files"},
     {content: "Step 6: Generate PR description", status: "pending", activeForm: "Creating PR description"},
     {content: "Step 7: Check for existing PR and ask next steps", status: "pending", activeForm: "Checking PR status"}
   ]
@@ -45,20 +45,19 @@ TodoWrite({
 ## When NOT to Use
 
 - Implementation incomplete or tests failing
-- No Z01/Z02 files exist
+- No workflow `Z*.md` files exist
 - Already have dev log for this feature
 - PR already merged (unless creating retrospective)
 
 ## Workflow Steps
 
-### Step 0: Plan Mode Gate (BLOCKING)
+### Step 0: Collaboration Mode Check
 
-This workflow must run in Plan mode.
+This workflow can run in both Default and Plan modes.
 
-If current mode is not Plan mode:
-1. STOP immediately
-2. Do not run documentation steps
-3. Report: "feature-documenting requires Plan mode. Please switch to Plan mode and rerun."
+Decision collection should be mode-compatible:
+1. Use `request_user_input` when available
+2. If unavailable, use the documented strict-choice prose fallback in Step 7
 
 ---
 
@@ -75,12 +74,13 @@ pytest  # or npm test, etc.
 
 ### Step 2: Find Z-files and Detect Paths
 
-Scan for Z01/Z02 files in common locations:
+Scan for workflow `Z*.md` files in common locations:
 - docs/ai/ongoing
 - .ai/ongoing
 - docs/ongoing
 
-**Find feature name** from Z02 filename: `Z02_{feature}_plan.md`
+**Find feature name** from Z02 filename when available: `Z02_{feature}_plan.md`
+If Z02 is missing, infer feature name from remaining Z-file naming and confirm before writing the dev log.
 
 **Detect dev log directory:**
 - Check CLAUDE.md for pattern
@@ -143,6 +143,9 @@ One paragraph: what was built and why.
 ### Quality Check
 [Content from Z05_*_finish.md if exists]
 
+## Additional Workflow Artifacts
+[Merge every other `Z*.md` file not already covered above, with filename headers]
+
 ## Deployment Notes
 - Environment variables
 - Configuration changes
@@ -154,14 +157,12 @@ One paragraph: what was built and why.
 - Future improvements
 ```
 
-**Check for optional files:**
+**Check all workflow files and merge all of them:**
 ```bash
-ls {ONGOING_DIR}/Z03_*.md 2>/dev/null && echo "Found Z03 (PR review)"
-ls {ONGOING_DIR}/Z04_*.md 2>/dev/null && echo "Found Z04 (PR fix)"
-ls {ONGOING_DIR}/Z05_*.md 2>/dev/null && echo "Found Z05 (Quality check)"
+ls {ONGOING_DIR}/Z*.md 2>/dev/null
 ```
 
-Include them in dev log if they exist.
+Include every `Z*.md` file in the dev log, even if it does not match Z01-Z05 naming.
 
 ---
 
@@ -179,22 +180,13 @@ Check if these need updates:
 **CRITICAL: Delete ALL temporary files:**
 
 ```bash
-rm {ONGOING_DIR}/Z01_*.md 2>/dev/null || true
-rm {ONGOING_DIR}/Z02_*.md 2>/dev/null || true
-rm {ONGOING_DIR}/Z03_*.md 2>/dev/null || true
-rm {ONGOING_DIR}/Z04_*.md 2>/dev/null || true
-rm {ONGOING_DIR}/Z05_*.md 2>/dev/null || true
+rm {ONGOING_DIR}/Z*.md 2>/dev/null || true
 
 # Verify cleanup
-ls {ONGOING_DIR}/Z0*.md 2>/dev/null || echo "✓ All Z-files cleaned up"
+ls {ONGOING_DIR}/Z*.md 2>/dev/null || echo "✓ All Z-files cleaned up"
 ```
 
-**This deletes:**
-- Z01: Research (feature-research)
-- Z02: Plan (feature-plan)
-- Z03: PR Review (feature-prreview)
-- Z04: PR Fix (feature-prfix)
-- Z05: Quality Check (feature-finish)
+**This deletes all workflow artifacts matching `Z*.md` (for example Z01-Z05, Z99, and other ZXX variants).**
 
 ---
 
@@ -313,11 +305,10 @@ Fallback order:
 
 - **Tests failing but creating dev log anyway**
 - **Using hardcoded paths instead of detecting pattern**
-- **Only removing Z01/Z02 (must remove ALL Z01-Z05)**
-- **Not checking for Z03/Z04/Z05 files**
-- **Z03/Z04/Z05 exist but not included in dev log**
+- **Only removing some Z-files instead of ALL `Z*.md`**
+- **Not checking all `Z*.md` files in ONGOING_DIR**
+- **Some `Z*.md` files exist but are not merged into the dev log**
 - **Not checking for existing PR before asking about creation**
-- **Ran this skill outside Plan mode**
 - **Not asking about PR creation/update with the Codex-first decision protocol**
 - **Using free-form prose asks without strict options**
 - **Committing without staging dev log and Z-file deletions**
@@ -328,9 +319,9 @@ Fallback order:
 | Excuse | Reality |
 |--------|---------|
 | **"Tests pass locally, skip verification"** | **NO.** Run tests NOW. Verify before documenting. |
-| **"Just Z01/Z02 need cleanup"** | **NO.** Remove ALL Z01-Z05 files. PR workflow creates Z03/Z04/Z05. |
+| **"Just Z01/Z02 need cleanup"** | **NO.** Remove ALL `Z*.md` workflow files, not only selected phases. |
 | **"Hardcode docs/ai/ongoing path"** | **NO.** Detect pattern. Different repos use different structures. |
-| **"Skip checking for Z03/Z04/Z05"** | **NO.** Check and include if they exist. PR workflow creates them. |
+| **"Skip checking some ZXX files"** | **NO.** Check and merge every `Z*.md` file that exists. |
 | **"User obviously wants PR, no need to ask"** | **NO.** Ask using the Codex-first decision protocol. User might want manual control. |
 | "Dev log is documentation, skip TodoWrite" | **NO.** 7 steps with cleanup = MUST track. |
 | "Implementation is simple, skip docs update" | **NO.** Check README/CHANGELOG. Feature needs docs. |
@@ -341,13 +332,13 @@ Fallback order:
 
 You followed the workflow if:
 - ✓ Tests passed before creating dev log
-- ✓ Verified session was in Plan mode before Step 1
-- ✓ Found Z01/Z02 files and detected paths
+- ✓ Confirmed collaboration mode and used mode-compatible decision flow in Step 7
+- ✓ Found workflow `Z*.md` files and detected paths
 - ✓ Created timestamped dev log with all sections
-- ✓ Checked for Z03/Z04/Z05 and included if present
+- ✓ Merged every `Z*.md` file into the dev log (including non-standard ZXX variants)
 - ✓ Updated README/docs if needed
-- ✓ Removed ALL Z01-Z05 files (not just Z01/Z02)
-- ✓ Verified no Z0*.md files remain
+- ✓ Removed ALL `Z*.md` files (not just selected phases)
+- ✓ Verified no `Z*.md` files remain
 - ✓ Generated PR description
 - ✓ Checked for existing PR with `gh pr view`
 - ✓ Used Codex-first decision protocol for PR creation/update (request_user_input first, AskUserQuestion compatibility fallback, strict prose fallback)
