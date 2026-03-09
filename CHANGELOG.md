@@ -15,6 +15,18 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None.
 
+## [1.19.0] - 2026-03-09
+
+### Added
+- None.
+
+### Changed
+- Strengthened `skills/feature-pr-reviewing/SKILL.md` so the numbered findings index is an explicit blocking prerequisite before any `Finding 1` prompt.
+- Updated `skills/feature-finishing/SKILL.md` to require a numbered findings index alongside the aggregate summary before any per-issue interaction starts.
+
+### Fixed
+- Prevented Plan mode review loops from asking about `Finding 1` or `Issue 1` before the user has seen the full findings list context.
+
 ## [1.18.0] - 2026-03-09
 
 ### Added

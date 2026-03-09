@@ -172,7 +172,9 @@ Document additional findings with: file:line, type, severity, WHY vulnerable, HO
 
 ### Step 8: Present Findings
 
-Display summary:
+Display the aggregate summary first, then print the full numbered findings index before any user decision prompt or `Issue {n}` loop begins.
+
+Required findings presentation format:
 
 ```
 ## Feature Finish Assessment: {Feature Name}
@@ -196,8 +198,14 @@ Display summary:
 
 ### Critical Issues (if any)
 1. {description} ({file}:{line})
+
+### Findings Index
+1. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
+2. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
+...
 ```
 
+The findings index is required even when there are no critical issues. If there are zero findings, print `Findings Index: None`.
 **DO NOT suggest next steps. Proceed immediately to Step 9.**
 
 ---
@@ -246,6 +254,8 @@ Invoke `superpowers:systematic-debugging` with ALL findings. Track report for Z0
 
 **If "Loop issues":**
 
+Before starting the loop, confirm the Step 8 numbered findings index is already on screen. Do not ask about `Issue 1` until that full index has been shown.
+
 For each issue, run a strict one-by-one cycle:
 1. Show only the current issue details (`Issue {n}` with file, severity, impact, and why).
 2. Immediately ask decision for that issue.
@@ -278,6 +288,7 @@ Fallback when structured input is unavailable:
 - `4. Stop cycle`
 - Accept only explicit `1|2|3|4` (or exact label). If unclear, ask once to clarify.
 - After asking, stop output. Do not include later issues/questions in the same message.
+- Do not ask about `Issue 1` before the Step 8 findings index has been printed.
 
 - **Fix**: Invoke `superpowers:systematic-debugging` for this issue
 - **Explain**: User provides context → update assessment → ask again

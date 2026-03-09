@@ -136,6 +136,7 @@ You need:
 ### Step 6: Present Findings and Decide (One by One)
 
 First, print a complete findings index so the user can see everything discovered before decisions start.
+This findings index is a blocking prerequisite for the decision loop. Do not ask about `Finding 1` until the full numbered index has already been shown in the current review flow.
 Then run the strict one-finding decision loop.
 
 Required pre-loop summary format:
@@ -152,6 +153,7 @@ Findings Index:
 ```
 
 After printing this index, continue with one finding at a time.
+The very next interactive prompt may be for `Finding 1`, but only after the full index above is already on screen.
 Do not print detailed Finding 2+ blocks before Finding 1 decision is collected.
 
 ```
@@ -201,6 +203,7 @@ request_user_input({
 Collect decisions in-loop and proceed to Step 7 after loop ends.
 
 **DO NOT ask one global action for all findings.**
+**DO NOT ask about `Finding 1` before printing the full findings index.**
 **DO NOT execute posting during Step 6. Step 6 is decision collection only.**
 **DO NOT execute fixes during Step 6. Step 6 is decision collection only.**
 **DO NOT ask all finding decisions at the end.**
@@ -266,6 +269,7 @@ Suggested change:
 - **Using free-form prose asks instead of request_user_input**
 - **Asking one global action for all findings instead of per-finding decisions**
 - **Skipping the required pre-loop findings index**
+- **Asking about `Finding 1` before showing the full findings index**
 - **Printing all detailed findings before asking decisions**
 - **Asking multiple finding decisions without waiting between them**
 - **Sending multiple pending finding questions in one message**
@@ -292,6 +296,7 @@ Suggested change:
 | "Findings presented, I can proceed" | **NO.** During Step 6, ask decision per finding and queue it. |
 | "I'll ask one question for all findings" | **NO.** Must ask decision per finding. No bundling. |
 | "I'll skip the full findings list" | **NO.** Print the required pre-loop findings index first. |
+| "The user can infer Finding 1 from context" | **NO.** Show the full numbered findings index before asking about `Finding 1`. |
 | "I'll list all detailed findings first, then ask at end" | **NO.** Only the index can be listed up front; detailed blocks must stay one-by-one with immediate decisions. |
 | "I can ask all finding decisions in one message" | **NO.** One finding question at a time, wait for explicit answer. |
 | "I'll ask, then continue writing context for later findings" | **NO.** End message right after the current finding question block. |
@@ -316,6 +321,7 @@ You followed the workflow if:
 - ✓ Assumed bugs exist, found them
 - ✓ Analyzed changes with full repo context awareness
 - ✓ Ran in Plan mode and used request_user_input for per-finding interaction
+- ✓ Printed the full numbered findings index before asking about `Finding 1`
 - ✓ Asked for a decision for EACH finding during Step 6 (no global-action shortcut)
 - ✓ Presented and decided findings in strict sequence: one finding -> one decision -> next finding
 - ✓ Never had more than one pending finding decision at a time
