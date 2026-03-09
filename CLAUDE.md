@@ -1,8 +1,10 @@
-# CLAUDE.md - Development Guidelines
+# CLAUDE.md - Claude-Specific Development Guidelines
 
 ## Purpose
 
 This repository publishes the `feature-workflow` plugin through a Claude Code marketplace layout.
+
+`AGENTS.md` is the default repository instruction file. Use it first for shared repository rules, then use `CLAUDE.md` for Claude-specific marketplace and maintainer guidance.
 
 - Repository: `escarti/agentDevPrompts`
 - Plugin: `feature-workflow`
@@ -98,7 +100,7 @@ If any version is mismatched, fix files first, commit, then tag.
 ## Release Checklist
 
 - Validate all changed skills/commands in local Claude Code
-- Ensure README and PUBLISHING docs still match behavior
+- Ensure README, AGENTS, and PUBLISHING docs still match behavior
 - Update `CHANGELOG.md` for the release version
 - Sync the 3 version fields and planned git tag
 - Commit changes
@@ -118,6 +120,7 @@ Keep skill descriptions short enough to force reading the full `SKILL.md`, not g
 
 ## Documentation Boundaries
 
+- `AGENTS.md`: default repository instructions and Codex workflow guardrails
 - `README.md`: end-user install and usage
 - `PUBLISHING.md`: release procedure details
-- `CLAUDE.md` (this file): maintainer guardrails and non-negotiable rules
+- `CLAUDE.md` (this file): Claude-specific marketplace and maintainer rules

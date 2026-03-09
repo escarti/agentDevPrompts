@@ -12,7 +12,7 @@ Use the variant that matches the user request.
 
 1. Repository: `git@github.com:escarti/agentDevPrompts.git`
 2. Skills and command wrappers validated locally
-3. `README.md`, `CLAUDE.md`, and `AGENTS.md` aligned with current behavior
+3. `README.md`, `AGENTS.md`, and `CLAUDE.md` aligned with current behavior, with `AGENTS.md` treated as the default repo guidance
 4. `CHANGELOG.md` updated with a new version entry (move prior `Unreleased` items into the release section)
 
 ## Variant A: Claude Marketplace Release
@@ -36,7 +36,7 @@ Then create matching git tag `vX.Y.Z`.
 # 2) Edit version fields above
 
 # 3) Commit
-git add CHANGELOG.md .claude-plugin/plugin.json .claude-plugin/marketplace.json skills commands README.md CLAUDE.md
+git add CHANGELOG.md .claude-plugin/plugin.json .claude-plugin/marketplace.json skills commands README.md AGENTS.md CLAUDE.md
 git commit -m "vX.Y.Z: release feature-workflow updates"
 
 # 4) Push

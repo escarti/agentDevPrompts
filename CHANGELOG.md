@@ -15,6 +15,20 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None.
 
+## [1.18.0] - 2026-03-09
+
+### Added
+- None.
+
+### Changed
+- Made `AGENTS.md` the explicit default repository instruction source, with `CLAUDE.md` repositioned as Claude-specific guidance.
+- Updated release and publishing documentation so Claude marketplace releases check `AGENTS.md`, `CLAUDE.md`, and synced release files together.
+- Updated workflow skills to load `AGENTS.md` before `CLAUDE.md` and to evaluate repo-pattern compliance against both instruction files.
+
+### Fixed
+- Removed inconsistent workflow wording that previously treated `CLAUDE.md` as the sole source of project rules in planning, research, implementation, finishing, and PR review/fix flows.
+- Fixed documentation references so `README.md`, `PUBLISHING.md`, and skill docs consistently mention `AGENTS.md` anywhere `CLAUDE.md` is operationally relevant.
+
 ## [1.17.3] - 2026-02-25
 
 ### Added

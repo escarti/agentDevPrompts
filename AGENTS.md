@@ -7,7 +7,8 @@ Codex agent instructions for this repository. This repo is a local skill library
 ## Codex-First Rules
 
 - Do not assume Claude marketplace or plugin flows.
-- If the user asks to deploy a new Claude marketplace version, read `CLAUDE.md` and follow those release instructions exactly.
+- `AGENTS.md` is the default repository instruction file for Codex workflows. Read it first.
+- If the user asks to deploy a new Claude marketplace version, read `AGENTS.md` first, then read `CLAUDE.md` and follow those Claude-specific release instructions exactly.
 - For any release or git tag creation, update `CHANGELOG.md` in the same change before committing/tagging.
 - Treat `skills/*/SKILL.md` as the source of truth.
 - If a user names a skill (or task clearly matches one), load that skill and follow it.

@@ -23,7 +23,7 @@ TodoWrite({
   todos: [
     {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
     {content: "Step 1: Extract PR number from user input, switch to PR branch NOW", status: "pending", activeForm: "Switching to PR branch"},
-    {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
+    {content: "Step 2: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Get PR details and changed files", status: "pending", activeForm: "Getting PR info"},
     {content: "Step 4: Read changed files to understand code", status: "pending", activeForm: "Reading changed files"},
     {content: "Step 5: Hunt for bugs (adversarial review)", status: "pending", activeForm: "Hunting for bugs"},
@@ -75,9 +75,10 @@ gh pr checkout 258
 **You're now on the PR branch.** Establish full context BEFORE looking at changes.
 
 **Read in order:**
-1. `CLAUDE.md` (mandatory patterns, forbidden approaches, quality standards)
-2. `README.md` (project overview, setup, conventions)
-3. `ARCHITECTURE.md` or `docs/architecture/` (system design, component relationships)
+1. `AGENTS.md` (default repo rules, patterns, quality standards)
+2. `CLAUDE.md` (Claude-specific patterns, forbidden approaches, quality standards)
+3. `README.md` (project overview, setup, conventions)
+4. `ARCHITECTURE.md` or `docs/architecture/` (system design, component relationships)
 
 **Goal:** Understand project patterns so you can detect when PR review comments violate established architecture.
 
@@ -116,7 +117,7 @@ You need:
 |----------|----------|
 | **Security** | Injection (SQL/XSS/command), auth/authz bypasses, exposed secrets, resource exhaustion, info disclosure |
 | **Logic** | Edge cases (null/empty/max), off-by-one, race conditions, state inconsistency, error handling gaps |
-| **Quality** | CLAUDE.md violations, inconsistent with codebase patterns (Step 3), silent failures, poor naming |
+| **Quality** | AGENTS.md or CLAUDE.md violations, inconsistent with codebase patterns (Step 3), silent failures, poor naming |
 | **Architecture** | Broken boundaries, layer bypasses, circular deps, contradicts ARCHITECTURE.md |
 | **Tests** | Missing coverage, no negative tests, integration gaps, mock overuse |
 
@@ -308,7 +309,7 @@ Suggested change:
 You followed the workflow if:
 - ✓ Created TodoWrite as FIRST action
 - ✓ Switched to PR branch BEFORE any analysis
-- ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
+- ✓ Read documentation (AGENTS.md, CLAUDE.md, README, ARCHITECTURE) from PR branch
 - ✓ Got PR details and changed files list BEFORE exploring
 - ✓ Read ONLY changed files (not entire codebase)
 - ✓ Hunted for bugs adversarially (not passive validation)

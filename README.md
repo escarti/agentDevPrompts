@@ -160,6 +160,7 @@ agentDevPrompts/
 │   ├── load-superpowers/
 │   └── use-sub-agent/
 ├── docs/
+├── AGENTS.md
 ├── CLAUDE.md
 ├── scripts/sync_prompts_from_commands.sh
 ├── scripts/release.sh
@@ -172,7 +173,7 @@ agentDevPrompts/
 - `feature-planning` wraps superpowers `writing-plans`.
 - `feature-implementing` wraps superpowers `executing-plans`.
 - `feature-finishing` and `feature-pr-fixing` leverage superpowers debugging workflows.
-- Keep version fields synchronized before release (see `CLAUDE.md` and `PUBLISHING.md`).
+- Keep version fields synchronized before release (see `AGENTS.md`, `CLAUDE.md`, and `PUBLISHING.md`).
 
 ## Attribution
 

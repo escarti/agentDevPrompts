@@ -83,7 +83,7 @@ Scan for workflow `Z*.md` files in common locations:
 If Z02 is missing, infer feature name from remaining Z-file naming and confirm before writing the dev log.
 
 **Detect dev log directory:**
-- Check CLAUDE.md for pattern
+- Check `AGENTS.md` for default repo patterns and `CLAUDE.md` for Claude-specific patterns
 - Look for existing dev logs
 - Default: docs/ai/dev_logs/
 

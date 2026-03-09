@@ -13,7 +13,7 @@ description: Use to execute implementation plan (Z02 files) in batches - follow 
 2. ☐ Mark Step 1 as `in_progress`
 3. ☐ Verify Z02 plan exists
 
-**This skill loads ALL context (Z01/Z02/CLAUDE.md), creates a Z99 implementation tracker, and executes plan in batches with code review checkpoints.**
+**This skill loads ALL context (AGENTS.md, CLAUDE.md, Z01, Z02), creates a Z99 implementation tracker, and executes plan in batches with code review checkpoints.**
 
 ## MANDATORY FIRST ACTION: Create TodoWrite
 
@@ -22,7 +22,7 @@ TodoWrite({
   todos: [
     {content: "Step 1: Find Z02 plan file and feature name", status: "in_progress", activeForm: "Finding plan"},
     {content: "Step 2: Check for unresolved clarifications", status: "pending", activeForm: "Checking Z02_CLARIFY"},
-    {content: "Step 3: Load context (CLAUDE.md, Z01, Z02)", status: "pending", activeForm: "Reading context"},
+    {content: "Step 3: Load context (AGENTS.md, CLAUDE.md, Z01, Z02)", status: "pending", activeForm: "Reading context"},
     {content: "Step 4: Create or reconcile Z99_implementation_status.md from Z02 plan phases/tasks", status: "pending", activeForm: "Building implementation tracker"},
     {content: "Step 5: Use superpowers:executing-plans to execute plan tasks", status: "pending", activeForm: "Starting execution"},
     {content: "Step 6: Verify tests pass", status: "pending", activeForm: "Running tests"},
@@ -81,7 +81,7 @@ Check if clarification files exist in ONGOING_DIR:
 
 Read ALL available context in this order:
 
-1. **Project Patterns** (if exists): `CLAUDE.md`
+1. **Project Patterns**: `AGENTS.md`, then `CLAUDE.md` if it exists
 2. **Research Context** (if exists): `Z01_{feature}_research.md`, `Z01_CLARIFY_{feature}_research.md` (with answers)
 3. **Plan Context** (required): `Z02_{feature}_plan.md`, `Z02_CLARIFY_{feature}_plan.md` (with answers if exists)
 
@@ -122,7 +122,8 @@ Provide enriched context:
 EXECUTION CONTEXT:
 
 === PROJECT PATTERNS ===
-[Full content of CLAUDE.md if it exists]
+[Full content of AGENTS.md]
+[Full content of CLAUDE.md if it exists, after AGENTS.md]
 
 === RESEARCH CONTEXT ===
 [Full content of Z01_{feature}_research.md if it exists]
@@ -138,7 +139,7 @@ EXECUTION CONTEXT:
 Execute the plan following these requirements:
 
 1. Batch Execution: 3-5 tasks per batch, report after each, wait for approval
-2. Pattern Adherence: Follow ALL patterns from CLAUDE.md, preserve research decisions
+2. Pattern Adherence: Follow ALL patterns from AGENTS.md and CLAUDE.md, preserve research decisions
 3. Code Review: Use superpowers:requesting-code-review between batches
 4. Progress Tracking: Keep Z99_implementation_status.md updated after each completed/blocked task; when a task is completed, immediately mark it `done` in Z99 and add proof of work; do NOT modify Z02 plan content
 5. Subagents: If execution requires subagents, invoke use-sub-agent skill and follow it exactly
@@ -191,7 +192,8 @@ If any task is not `done`, or lacks proof:
 - **Did NOT check for CLARIFY files before starting execution**
 - **Used SlashCommand `/superpowers:execute-plan`** (use Skill tool instead)
 - **Passed file paths instead of FULL CONTENT to superpowers**
-- **Skipped CLAUDE.md when it exists**
+- **Skipped AGENTS.md**
+- **Skipped CLAUDE.md when it exists after reading AGENTS.md**
 - **Failed to create/update `Z99_implementation_status.md` from Z02 before execution**
 - **Overwrote an existing Z99 and reset prior progress instead of resuming from it**
 - **Modified `Z02_{feature}_plan.md` to track progress** (track progress in Z99 only)
@@ -207,7 +209,7 @@ If any task is not `done`, or lacks proof:
 |--------|---------|
 | **"User said feature name, skip file check"** | **NO.** MUST verify Z02_{feature}_plan.md exists first. |
 | **"Pass file paths to superpowers, it will read"** | **NO.** Generic superpowers doesn't know Z0* convention. Pass FULL CONTENT. |
-| **"Read Z02 plan only, skip research"** | **NO.** Research has critical integration details. Read ALL: CLAUDE.md, Z01*, Z02*. |
+| **"Read Z02 plan only, skip research"** | **NO.** Research has critical integration details. Read ALL: AGENTS.md, CLAUDE.md, Z01*, Z02*. |
 | **"Update Z02 with checkboxes for progress"** | **NO.** Keep Z02 immutable. Extract and track progress in `Z99_implementation_status.md`. |
 | **"Z99 is optional overhead"** | **NO.** Z99 is mandatory for execution tracking and batch status clarity. |
 | **"Z99 already exists, recreate it from scratch"** | **NO.** Reconcile with Z02 and resume from existing status/proof. |
@@ -216,14 +218,15 @@ If any task is not `done`, or lacks proof:
 | **"Subagent work is minor, skip delegation skill"** | **NO.** If subagents are needed, MUST invoke `use-sub-agent` skill. |
 | **"Most tasks are done, close enough to finish"** | **NO.** Workflow is not done until every Z99 task is `done` with proof. |
 | "Use SlashCommand /superpowers:execute-plan" | **NO.** That's a command system. Use Skill tool with "superpowers:executing-plans". |
-| "CLAUDE.md optional, skip if missing" | **NO.** Check for it. Load if exists. Missing critical patterns breaks implementation. |
+| "AGENTS.md or CLAUDE.md optional, skip if missing" | **NO.** AGENTS.md is required, and CLAUDE.md must be loaded if it exists. Missing critical patterns breaks implementation. |
 
 ## Success Criteria
 
 You followed the workflow if:
 - ✓ Verified Z02_{feature}_plan.md exists
 - ✓ Checked Z02_CLARIFY has no unanswered questions
-- ✓ Read CLAUDE.md (if exists)
+- ✓ Read AGENTS.md
+- ✓ Read CLAUDE.md (if exists) after reading AGENTS.md
 - ✓ Read ALL Z01 files (if exist)
 - ✓ Read Z02 files (required)
 - ✓ Created/updated `Z99_implementation_status.md` by extracting all Z02 phases/tasks

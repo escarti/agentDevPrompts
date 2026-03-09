@@ -11,7 +11,7 @@ description: Use after research (Z01 files exist) to create implementation plan 
 
 1. ☐ Create TodoWrite checklist (see below)
 2. ☐ Mark Step 1 as `in_progress`
-3. ☐ Read CLAUDE.md first (if exists)
+3. ☐ Read AGENTS.md first and CLAUDE.md if it exists
 
 **This skill is a WRAPPER that loads Z01 context and invokes superpowers:writing-plans**
 
@@ -20,7 +20,7 @@ description: Use after research (Z01 files exist) to create implementation plan 
 ```typescript
 TodoWrite({
   todos: [
-    {content: "Step 1: Load project context (CLAUDE.md if exists)", status: "in_progress", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 1: Load project context (AGENTS.md first, CLAUDE.md if it exists)", status: "in_progress", activeForm: "Reading repo instructions"},
     {content: "Step 2: Verify Z01 files exist", status: "pending", activeForm: "Checking research"},
     {content: "Step 3: Read ALL Z01 files", status: "pending", activeForm: "Loading context"},
     {content: "Step 4: Invoke superpowers:writing-plans", status: "pending", activeForm: "Creating plan"},
@@ -35,7 +35,7 @@ TodoWrite({
 ## Why Use This Wrapper?
 
 - Automates Z01 → Z02 file management
-- Loads CLAUDE.md constraints into planning context
+- Loads AGENTS.md defaults and CLAUDE.md constraints into planning context
 - Enforces feature-workflow naming conventions (Z02_{feature}_plan.md)
 - Integrates with clarification workflow (Z02_CLARIFY)
 - Maintains consistent file structure
@@ -46,15 +46,15 @@ TodoWrite({
 
 ### Step 1: Load Project Context (MANDATORY FIRST)
 
-**Read CLAUDE.md if it exists.**
+**Read `AGENTS.md` first. Then read `CLAUDE.md` if it exists.**
 
-Extract from CLAUDE.md (if exists):
+Extract from `AGENTS.md` and `CLAUDE.md` (if it exists):
 - Mandatory patterns that MUST be preserved
 - Forbidden approaches to AVOID
 - Project conventions (naming, structure, etc.)
 - Release workflows and constraints
 
-**CRITICAL:** If CLAUDE.md exists and contains constraints, these MUST be passed to superpowers:writing-plans so the plan preserves project standards.
+**CRITICAL:** Pass `AGENTS.md` defaults and any `CLAUDE.md` constraints to superpowers:writing-plans so the plan preserves project standards.
 
 ---
 
@@ -103,8 +103,8 @@ Provide this instruction:
 
 "Create an implementation plan for the {feature} feature based on the research in Z01_{feature}_research.md and clarifications in Z01_CLARIFY_{feature}_research.md.
 
-**MANDATORY CONSTRAINTS from CLAUDE.md:**
-[Include any constraints, patterns, or forbidden approaches from CLAUDE.md here if it exists]
+**MANDATORY CONSTRAINTS from AGENTS.md and CLAUDE.md:**
+[Include any constraints, patterns, or forbidden approaches from AGENTS.md and CLAUDE.md here if they exist]
 
 CRITICAL: Save the plan to {ONGOING_DIR}/Z02_{feature}_plan.md (use the detected path, NOT hardcoded docs/plans/).
 
@@ -162,8 +162,9 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 
 - **Proceeded with unanswered questions in Z01_CLARIFY** (BLOCKING - must stop)
 - **Marked planning done while Z02_CLARIFY still has unresolved items**
-- **Did NOT read CLAUDE.md first** (if exists)
-- **CLAUDE.md exists but constraints not passed to planning**
+- **Did NOT read AGENTS.md first**
+- **Did NOT read CLAUDE.md when it exists after reading AGENTS.md**
+- **AGENTS.md or CLAUDE.md constraints not passed to planning**
 - **Did NOT check for Z01* files**
 - **Directly invoked superpowers:writing-plans without loading Z01 context**
 - **Creating plan files with non-standard names** (not Z02_{feature}_plan.md)
@@ -191,8 +192,9 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 ## Success Criteria
 
 You followed the workflow if:
-- ✓ Read CLAUDE.md if exists
-- ✓ Passed CLAUDE.md constraints to superpowers:writing-plans
+- ✓ Read AGENTS.md
+- ✓ Read CLAUDE.md if it exists after reading AGENTS.md
+- ✓ Passed AGENTS.md and CLAUDE.md constraints to superpowers:writing-plans
 - ✓ Checked for Z01* files
 - ✓ Read ALL Z01* files if they exist
 - ✓ Invoked superpowers:writing-plans skill (NOT slash command)

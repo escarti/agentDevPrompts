@@ -12,7 +12,7 @@ description: Use when change proposal presented - follow structured research wor
 1. ☐ Verify session mode supports this workflow
 2. ☐ Create TodoWrite checklist (see below)
 3. ☐ Mark Step 1 as `in_progress`
-4. ☐ Read CLAUDE.md/docs FIRST before any code
+4. ☐ Read AGENTS.md first, then CLAUDE.md/docs before any code
 
 **This skill produces 2 files: directive specification (Z01_research.md) + structured questions (Z01_CLARIFY.md)**
 
@@ -22,7 +22,7 @@ description: Use when change proposal presented - follow structured research wor
 TodoWrite({
   todos: [
     {content: "Step 0: Verify session mode and proceed in Default mode", status: "in_progress", activeForm: "Checking collaboration mode"},
-    {content: "Step 1: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
+    {content: "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 2: Explore code (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
     {content: "Step 3: Create Z01 research file (directive specification)", status: "pending", activeForm: "Writing research"},
     {content: "Step 4: Create Z01_CLARIFY file (structured questions)", status: "pending", activeForm: "Extracting ambiguities"},
@@ -37,13 +37,13 @@ TodoWrite({
 ## The Iron Law
 
 ```
-NO RESEARCH WITHOUT READING CLAUDE.MD FIRST
+NO RESEARCH WITHOUT READING AGENTS.MD FIRST
 NO Z01_CLARIFY WITH 5 OR MORE QUESTIONS WITHOUT INVOKING BRAINSTORMING
 NO PLANNING WITHOUT FILE PATHS + LINE RANGES
 NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE WORK
 ```
 
-**If you skip CLAUDE.md:** You'll violate project patterns. Delete Z01, start over.
+**If you skip AGENTS.md or CLAUDE.md:** You'll violate project patterns. Delete Z01, start over.
 
 **If Z01_CLARIFY has 5 or more questions:** Design is unclear. Stop research, invoke superpowers:brainstorming to clarify requirements first.
 
@@ -53,10 +53,10 @@ NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE WORK
 
 ## Research Output Format
 
-**Single directive:** One clear approach (preserves existing patterns from CLAUDE.md/docs)
+**Single directive:** One clear approach (preserves existing patterns from AGENTS.md, CLAUDE.md, and docs)
 
 **Primary + 1 alternative:** Only if alternative is significantly better for specific use case
-- Primary approach MUST preserve existing patterns from CLAUDE.md/docs
+- Primary approach MUST preserve existing patterns from AGENTS.md, CLAUDE.md, and docs
 - Alternative approach has different trade-offs (e.g., microservice vs monolith)
 - Both options have complete technical details (files, line ranges, pros/cons)
 - User chooses, then update Z01_research.md to be fully directive
@@ -73,12 +73,13 @@ Proceed in the current mode; do not block on Plan mode availability.
 ### Step 1: Read Documentation FIRST
 
 **MANDATORY FIRST - read these if they exist:**
-- CLAUDE.md (patterns, conventions, forbidden approaches)
+- AGENTS.md (default repo instructions, patterns, conventions)
+- CLAUDE.md (Claude-specific patterns, conventions, forbidden approaches)
 - README.md (architecture overview)
 - ARCHITECTURE.md (system design)
 - All documentation (glob "**/docs/**/*.md")
 
-**Why:** CLAUDE.md contains mandatory patterns and forbidden approaches. Primary solution MUST preserve these patterns.
+**Why:** AGENTS.md sets the default repo rules, and CLAUDE.md may add mandatory patterns or forbidden approaches. Primary solution MUST preserve these patterns.
 
 ---
 
@@ -133,7 +134,7 @@ One paragraph: what and why.
 What exists. Files: path/to/file.py:123-145
 
 ## Existing Patterns & Documentation
-### From CLAUDE.md
+### From AGENTS.md and CLAUDE.md
 - Conventions that MUST be followed
 - Architectural patterns to preserve
 - Forbidden patterns/approaches
@@ -235,9 +236,9 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 
 ## Red Flags - You're Failing If:
 
-- **Did NOT read CLAUDE.md/README/docs FIRST**
+- **Did NOT read AGENTS.md/CLAUDE.md/README/docs FIRST**
 - **Stopped this skill due to missing Plan mode**
-- **Primary approach violates CLAUDE.md patterns**
+- **Primary approach violates AGENTS.md or CLAUDE.md patterns**
 - **Z01_CLARIFY has 5 or more questions but didn't invoke brainstorming**
 - **Marked research done while Z01_CLARIFY still has unresolved items**
 - **More than 2 files created**
@@ -253,9 +254,9 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 
 | Excuse | Reality |
 |--------|---------|
-| **"No CLAUDE.md exists, skip docs"** | **NO.** Still read README, docs/. Document patterns from code. |
+| **"No CLAUDE.md exists, skip docs"** | **NO.** Still read AGENTS.md, README, docs/. Document patterns from code. |
 | **"Small feature, patterns don't matter"** | **NO.** Small violations create technical debt. Patterns ALWAYS matter. |
-| **"I can see the pattern in code"** | **NO.** CLAUDE.md may forbid what looks standard. Docs are truth. |
+| **"I can see the pattern in code"** | **NO.** AGENTS.md or CLAUDE.md may forbid what looks standard. Docs are truth. |
 | **"Questions need context for user"** | **NO.** User has conversation context. CLARIFY = questions only. |
 | **"File paths in planning step"** | **NO.** Research includes files + line ranges NOW. |
 | **"User suggested solution, proceed"** | **NO.** Still confirm via CLARIFY. No assumptions. |
@@ -270,10 +271,10 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 ## Success Criteria
 
 You followed the workflow if:
-- ✓ Read CLAUDE.md/README/docs FIRST
+- ✓ Read AGENTS.md/CLAUDE.md/README/docs FIRST
 - ✓ Verified session mode supports workflow before Step 1
 - ✓ "Existing Patterns" section in Z01_research.md
-- ✓ Primary approach preserves patterns from CLAUDE.md
+- ✓ Primary approach preserves patterns from AGENTS.md and CLAUDE.md
 - ✓ If Z01_CLARIFY has 5 or more questions: invoked superpowers:brainstorming and restarted
 - ✓ Exactly 2 files: Z01_research.md + Z01_CLARIFY.md (fewer than 5 questions)
 - ✓ Z01_research.md is directive (single OR primary + 1 alternative)
@@ -307,7 +308,7 @@ When CLARIFY is fully resolved and removed:
 2. Then proceed to planning workflow
 
 **What planning receives:**
-- Patterns that MUST be preserved (from CLAUDE.md)
+- Patterns that MUST be preserved (from AGENTS.md and CLAUDE.md)
 - Forbidden approaches to AVOID
 - Files that MUST be modified (with line ranges)
 - APIs/libraries required

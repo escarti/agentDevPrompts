@@ -23,7 +23,7 @@ TodoWrite({
   todos: [
     {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
     {content: "Step 1: Get current branch and changed files", status: "pending", activeForm: "Getting git status"},
-    {content: "Step 2: Read CLAUDE.md", status: "pending", activeForm: "Reading CLAUDE.md"},
+    {content: "Step 2: Read AGENTS.md first and CLAUDE.md if it exists", status: "pending", activeForm: "Reading repo instructions"},
     {content: "Step 3: Load Z01/Z02 plan files", status: "pending", activeForm: "Reading plan docs"},
     {content: "Step 4: Hunt for bugs (adversarial assessment)", status: "pending", activeForm: "Hunting for bugs"},
     {content: "Step 5: Compare against plan", status: "pending", activeForm: "Checking deviations"},
@@ -67,9 +67,9 @@ git diff main --name-only
 
 ---
 
-### Step 2: Read CLAUDE.md
+### Step 2: Read AGENTS.md First, Then CLAUDE.md
 
-Read `CLAUDE.md` if it exists.
+Read `AGENTS.md` first. Then read `CLAUDE.md` if it exists.
 
 Look for:
 - Mandatory patterns
@@ -109,7 +109,7 @@ Don't ask "is this correct?" Ask "how can I break this?"
 |----------|----------|
 | **Security** | Injection (SQL/XSS/command), auth/authz bypasses, exposed secrets, resource exhaustion |
 | **Logic** | Edge cases (null/empty/max), off-by-one, race conditions, error handling gaps, happy-path assumptions |
-| **Quality** | CLAUDE.md violations, inconsistent with codebase, silent failures, poor naming |
+| **Quality** | AGENTS.md or CLAUDE.md violations, inconsistent with codebase, silent failures, poor naming |
 | **Tests** | Untested paths, missing negative tests, integration gaps |
 | **Plan** | Z02 deviations, scope creep, unintentional changes |
 
@@ -342,7 +342,8 @@ Skip to Step 11.
 - **Presenting findings without running the Codex-first decision protocol** ← MOST COMMON FAILURE
 - **Ran this skill outside Plan mode**
 - **Running from same context as feature-implement** (need fresh context)
-- **Skipping CLAUDE.md** (exists but not read)
+- **Skipping AGENTS.md**
+- **Skipping CLAUDE.md after AGENTS.md** (exists but not read)
 - **Not reading Z01/Z02 files**
 - **Passive validation instead of adversarial bug hunting**
 - **Skipping Step 6 PR-style code review pass**

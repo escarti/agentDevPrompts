@@ -38,7 +38,7 @@ TodoWrite({
   todos: [
     {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
     {content: "Step 1: Switch to PR branch", status: "pending", activeForm: "Switching to PR branch"},
-    {content: "Step 2: Read documentation FIRST (CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
+    {content: "Step 2: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
     {content: "Step 3: Get PR details and review comments", status: "pending", activeForm: "Getting PR info"},
     {content: "Step 4: Read changed files and comment context", status: "pending", activeForm: "Reading code files"},
     {content: "Step 5: Assess ALL UNANSWERED OR UNFIXED comments using repo context and pattern awareness", status: "pending", activeForm: "Assessing validity"},
@@ -85,9 +85,10 @@ gh pr checkout 258
 **You're now on the PR branch.** Establish full context BEFORE reading review comments.
 
 **Read in order:**
-1. `CLAUDE.md` (mandatory patterns, forbidden approaches, quality standards)
-2. `README.md` (project overview, setup, conventions)
-3. `ARCHITECTURE.md` or `docs/architecture/` (system design, component relationships)
+1. `AGENTS.md` (default repo rules, patterns, quality standards)
+2. `CLAUDE.md` (Claude-specific patterns, forbidden approaches, quality standards)
+3. `README.md` (project overview, setup, conventions)
+4. `ARCHITECTURE.md` or `docs/architecture/` (system design, component relationships)
 
 **Goal:** Understand project patterns so you can detect when review comments conflict with established architecture.
 
@@ -127,12 +128,12 @@ Get PR metadata and **UNRESOLVED, CURRENT** review comments with:
 **For each comment, determine:**
 
 **Valid?**
-- Real bug/security/violates CLAUDE.md/architecture → **VALID (fix)**
+- Real bug/security/violates AGENTS.md, CLAUDE.md, or architecture → **VALID (fix)**
 - Style preference/conflicts with project conventions → **INVALID (refute)**
 
 **Category:** Bug | Security | Architecture | Style | Convention
 
-**Reasoning:** Reference docs (CLAUDE.md, ARCHITECTURE) and code patterns from Step 3. Explain WHY.
+**Reasoning:** Reference docs (`AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE`) and code patterns from Step 3. Explain WHY.
 
 **Action:** Fix | Refute | Discuss
 
@@ -261,7 +262,7 @@ gh api repos/new-work/insights-etl/pulls/281/comments \
 ```
 Thank you for the feedback. I've assessed this and believe [current approach] is better because:
 1. [Technical reason with evidence]
-2. [Reference to CLAUDE.md or existing pattern]
+2. [Reference to AGENTS.md, CLAUDE.md, or an existing pattern]
 3. [Cost/benefit analysis]
 
 Happy to discuss further if there's context I'm missing.
@@ -275,7 +276,7 @@ Happy to discuss further if there's context I'm missing.
 - **Ran commands before switching to PR branch**
 - **Still on different branch when fixing code**
 - **Skipped TodoWrite creation**
-- **Skipped reading documentation (CLAUDE.md, README, ARCHITECTURE)**
+- **Skipped reading documentation (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)**
 - **Reading entire codebase before getting PR details** (Step 3 MUST come before Step 4)
 - **Reading files before getting changed file list** (get PR details first)
 - **Processing resolved or outdated comments**
@@ -325,7 +326,7 @@ Happy to discuss further if there's context I'm missing.
 You followed the workflow if:
 - ✓ Created TodoWrite as FIRST action
 - ✓ Switched to PR branch BEFORE any analysis
-- ✓ Read documentation (CLAUDE.md, README, ARCHITECTURE) from PR branch
+- ✓ Read documentation (AGENTS.md, CLAUDE.md, README, ARCHITECTURE) from PR branch
 - ✓ Got PR details and review comments BEFORE exploring
 - ✓ Read ONLY changed files and comment context (not entire codebase)
 - ✓ Assessed ALL comments using full repo context
