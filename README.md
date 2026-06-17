@@ -23,7 +23,7 @@ Utility:
 
 ## Dependencies
 
-Install [superpowers](https://github.com/obra/superpowers) for:
+Install [superpowers](https://github.com/obra/superpowers) from the marketplace/plugin system for:
 - `feature-planning`
 - `feature-implementing`
 - `feature-finishing`
@@ -37,6 +37,8 @@ Install [superpowers](https://github.com/obra/superpowers) for:
 /plugin marketplace add obra/superpowers
 /plugin install superpowers@obra/superpowers
 ```
+
+`load-superpowers` is a compatibility shim for these workflow skills. It now assumes `superpowers:*` skills are provided by the marketplace install and no longer bootstraps from a local `~/.codex/superpowers` checkout.
 
 ## Installation
 
@@ -78,6 +80,8 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/load-superpowers ~/.claude/skil
 ln -s ~/Projects/Personal/agentDevPrompts/skills/use-sub-agent ~/.claude/skills/use-sub-agent
 ```
 
+These symlinks install only `feature-workflow`. Superpowers remains a separate marketplace dependency; do not point this setup at a local `~/.codex/superpowers` clone.
+
 ### Option 3: Codex Skill Installer
 
 In Codex, paste and run this command to install all workflow skills from this repository:
@@ -87,6 +91,19 @@ Use the skill-installer skill to install these skills https://github.com/escarti
 ```
 
 Restart Codex to pick up new skills.
+
+## Migrating Off Legacy Local Superpowers
+
+Older setups may still have a local Superpowers checkout at `~/.codex/superpowers`. This repository no longer uses that path.
+
+After confirming the marketplace-installed `superpowers:*` skills resolve correctly through `load-superpowers`, remove only the legacy Superpowers assets:
+
+```bash
+rm -rf ~/.codex/superpowers
+find ~/.codex/skills -maxdepth 1 \( -type l -o -type d \) | rg '/superpowers$'
+```
+
+Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-planning`, `feature-implementing`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
 
 ## Workflow
 

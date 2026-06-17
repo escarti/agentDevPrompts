@@ -10,7 +10,8 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
-- None.
+- Updated `skills/load-superpowers/SKILL.md` to require marketplace-provided `superpowers:*` skills and stop referencing the legacy local `~/.codex/superpowers` bootstrap path.
+- Updated `README.md` installation and migration guidance to describe the marketplace-only Superpowers dependency model and legacy local cleanup steps.
 
 ### Fixed
 - None.
