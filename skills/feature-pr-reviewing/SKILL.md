@@ -3,160 +3,168 @@ name: feature-pr-reviewing
 description: Use when reviewing pull request changes - follow structured workflow
 ---
 
-# feature-prreview: PR Review with Research-Driven Analysis
+# Feature Workflow: Review Pull Request
 
 ## YOU ARE READING THIS SKILL RIGHT NOW
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Verify session is running in Plan mode
-2. ☐ Create TodoWrite checklist (see below)
-3. ☐ Mark Step 1 as `in_progress`
-4. ☐ Switch to PR branch
+1. Create a progress plan (see below)
+2. Mark Step 1 as `in_progress`
+3. Extract the PR number from user input and switch to the PR branch
 
-**If you ran `gh pr view` or `gh pr diff` before switching branches, you FAILED.**
+**Do not inspect PR metadata or diffs before the progress plan exists and the PR branch has been checked out.**
 
-## MANDATORY FIRST ACTION: Create TodoWrite
+## MANDATORY FIRST ACTION: Create Progress Plan
 
 ```typescript
-TodoWrite({
-  todos: [
-    {content: "Step 0: Verify Plan mode and stop if unavailable", status: "in_progress", activeForm: "Checking collaboration mode"},
-    {content: "Step 1: Extract PR number from user input, switch to PR branch NOW", status: "pending", activeForm: "Switching to PR branch"},
-    {content: "Step 2: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
-    {content: "Step 3: Get PR details and changed files", status: "pending", activeForm: "Getting PR info"},
-    {content: "Step 4: Read changed files to understand code", status: "pending", activeForm: "Reading changed files"},
-    {content: "Step 5: Hunt for bugs (adversarial review)", status: "pending", activeForm: "Hunting for bugs"},
-    {content: "Step 6: Present EACH finding and collect decision in one pass", status: "pending", activeForm: "Reviewing findings with user"},
-    {content: "Step 7: Execute all queued decisions in batch", status: "pending", activeForm: "Posting queued comments"},
-    {content: "Step 8: Create Z03 for anything unposted", status: "pending", activeForm: "Finalizing documentation"}
+update_plan({
+  "explanation": "Tracking pull-request review workflow",
+  "plan": [
+    {"step": "Step 1: Confirm collaboration mode and decision fallback path", "status": "in_progress"},
+    {"step": "Step 2: Extract the PR number from user input and switch to the PR branch", "status": "pending"},
+    {"step": "Step 3: Read AGENTS.md first and CLAUDE.md if it exists, then load repo context", "status": "pending"},
+    {"step": "Step 4: Get PR details and changed files", "status": "pending"},
+    {"step": "Step 5: Read the changed files and immediate context", "status": "pending"},
+    {"step": "Step 6: Hunt for bugs with an adversarial review pass", "status": "pending"},
+    {"step": "Step 7: Present findings and collect one decision per finding", "status": "pending"},
+    {"step": "Step 8: Execute queued comment or fix decisions", "status": "pending"},
+    {"step": "Step 9: Create Z03 documentation for any unposted findings", "status": "pending"}
   ]
 })
 ```
 
-**After each step:** Mark completed, move `in_progress` to next step.
+**After each step:** Mark completed and move `in_progress` to the next step.
 
 ## Workflow Steps
 
-### Step 0: Plan Mode Gate (BLOCKING)
+### Step 1: Confirm Collaboration Mode
 
 This workflow must run in Plan mode.
 
-If current mode is not Plan mode:
-1. STOP immediately
-2. Do not perform review steps
-3. Report: "feature-pr-reviewing requires Plan mode. Please switch to Plan mode and rerun."
+Rules:
+1. Use `request_user_input` for the review decision loop.
+2. If `request_user_input` is unavailable, stop and report: `feature-pr-reviewing requires Plan mode with request_user_input.`
+3. Do not continue in prose-fallback mode.
 
 ---
 
-### Step 1: Switch to PR Branch NOW
+### Step 2: Extract the PR Number and Switch to the PR Branch
 
-**PR number comes from USER INPUT, not from gh commands.**
+The PR number comes from user input, not from `gh` discovery.
 
-User said: "review PR https://github.com/owner/repo/pull/258"
-→ PR number is `258`
+Examples:
+- `review PR https://github.com/owner/repo/pull/258` -> PR number `258`
+- `review PR 258` -> PR number `258`
 
-**Verify current branch and switch:**
+If the user did not provide a PR number or URL, ask for it before continuing.
+
+Verify the current branch and switch:
+
 ```bash
 git branch --show-current
 gh pr checkout 258
 ```
 
-**Even if you think you're on the right branch, VERIFY IT FIRST.**
-
-**DO NOT run `gh pr view` to "find the branch name first". The user gave you the PR number. Switch NOW.**
-
-**You MUST be on the PR branch before Step 2. No excuses about "already on it".**
-
----
-
-### Step 2: Read Documentation FIRST
-
-**You're now on the PR branch.** Establish full context BEFORE looking at changes.
-
-**Read in order:**
-1. `AGENTS.md` (default repo rules, patterns, quality standards)
-2. `CLAUDE.md` (Claude-specific patterns, forbidden approaches, quality standards)
-3. `README.md` (project overview, setup, conventions)
-4. `ARCHITECTURE.md` or `docs/architecture/` (system design, component relationships)
-
-**Goal:** Understand project patterns so you can detect when PR review comments violate established architecture.
+Rules:
+- verify first, even if you think you are already on the correct branch
+- do not run `gh pr view` to discover the branch name
+- be on the PR branch before reading docs or changes
 
 ---
 
-### Step 3: Get PR Details
+### Step 3: Read Project Context
 
-Get PR metadata and changed files however you want (`gh pr view`, `gh pr diff`, etc.)
+Read in this order:
+1. `AGENTS.md`
+2. `CLAUDE.md` if it exists
+3. `README.md` if it exists
+4. `ARCHITECTURE.md` or `docs/architecture/` if they exist
+
+Goal:
+- understand local conventions well enough to tell the difference between a real bug and a comment that conflicts with project patterns
+
+---
+
+### Step 4: Get PR Details and Changed Files
+
+Get the PR metadata and changed-file list.
 
 You need:
-- PR title, author
-- **List of changed files** (critical for Step 4)
+- PR title
+- PR author
+- changed files
 
----
+You may use commands such as:
 
-### Step 4: Read Changed Files
-
-**NOW you know what files changed.** Read the changed files to understand what the code does.
-
-**Read the changed files:**
-- Use `Read` tool for each changed file from Step 3
-- Focus on understanding what the new/modified code is doing
-- Note patterns/conventions used in immediate vicinity of changes
-
-**Goal:** Understand the code well enough to find bugs in it.
-
----
-
-### Step 5: Hunt for Bugs (Adversarial Review)
-
-**ASSUME BUGS EXIST. Your goal: FIND them.**
-
-**Hunt for:**
-
-| Category | Look For |
-|----------|----------|
-| **Security** | Injection (SQL/XSS/command), auth/authz bypasses, exposed secrets, resource exhaustion, info disclosure |
-| **Logic** | Edge cases (null/empty/max), off-by-one, race conditions, state inconsistency, error handling gaps |
-| **Quality** | AGENTS.md or CLAUDE.md violations, inconsistent with codebase patterns (Step 3), silent failures, poor naming |
-| **Architecture** | Broken boundaries, layer bypasses, circular deps, contradicts ARCHITECTURE.md |
-| **Tests** | Missing coverage, no negative tests, integration gaps, mock overuse |
-
-**How:**
-- Ask "what breaks here?" for each line
-- Trace data flow: input → validation → processing → output
-- Check conditionals: what if opposite?
-- Check calls: what if error/null/unexpected?
-- Look for what's NOT there: validation, tests, error handling
-- Compare to existing patterns (Step 3)
-
-**Document:** file + exact lines, type, severity (`Must-fix` | `Should-fix` | `Nice-to-have`), WHY bug, HOW to trigger, pattern violations
-
----
-
-### Step 6: Present Findings and Decide (One by One)
-
-First, print a complete findings index so the user can see everything discovered before decisions start.
-This findings index is a blocking prerequisite for the decision loop. Do not ask about `Finding 1` until the full numbered index has already been shown in the current review flow.
-Then run the strict one-finding decision loop.
-
-Required pre-loop summary format:
-
+```bash
+gh pr view 258 --json title,author,files
 ```
+
+or:
+
+```bash
+gh pr diff 258 --name-only
+```
+
+Do not start code review before you know which files changed.
+
+---
+
+### Step 5: Read the Changed Files and Immediate Context
+
+Read the changed files and enough nearby context to understand what the code is doing.
+
+Focus on:
+- changed files from Step 4
+- nearby helpers, tests, and interfaces needed to understand the behavior
+- local project patterns in the touched areas
+
+Do not read the entire codebase when the changed-file set is enough.
+
+---
+
+### Step 6: Hunt for Bugs With an Adversarial Review Pass
+
+Assume defects exist. Attack the PR.
+
+Hunt for:
+- security bugs
+- logic bugs
+- missing or weak tests
+- architecture violations
+- naming, layering, and consistency issues likely to draw reviewer feedback
+
+For each finding, record:
+- file and exact line range
+- issue type
+- severity (`Must-fix`, `Should-fix`, `Nice-to-have`)
+- why it is a real issue
+- how to trigger or observe it
+
+---
+
+### Step 7: Present Findings and Collect One Decision Per Finding
+
+First print the full findings index. The user must see the complete numbered list before any per-finding decision loop begins.
+
+Required pre-loop format:
+
+```markdown
 ## PR Review Findings: {PR Title}
 
 Total findings: {N}
 
 Findings Index:
 1. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
-2. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
-...
+2. ...
 ```
 
-After printing this index, continue with one finding at a time.
-The very next interactive prompt may be for `Finding 1`, but only after the full index above is already on screen.
-Do not print detailed Finding 2+ blocks before Finding 1 decision is collected.
+After the index, present one finding at a time.
 
-```
+Detailed finding format:
+
+```markdown
 ## PR Review Findings: {PR Title}
 
 Finding 1: {Issue Type} - {Description}
@@ -164,173 +172,111 @@ Finding 1: {Issue Type} - {Description}
 - Severity: {Must-fix | Should-fix | Nice-to-have}
 - Why this is a bug: {impact + broken assumption}
 - How to trigger: {minimal repro}
-- Suggested PR comment text (ready to post, not vague):
+- Suggested PR comment text:
   - Summary: {specific issue in one sentence}
   - Evidence: {file}:{line-start}-{line-end} and what those lines do wrong
-  - Impact: {concrete failure/risk}
+  - Impact: {concrete failure or risk}
   - Severity: {Must-fix | Should-fix | Nice-to-have}
 ```
 
-For EACH finding, run this strict loop:
-1. Print only the current finding details.
-2. Immediately ask decision for that finding.
-3. End the assistant message after that question block.
-4. Wait for explicit user decision.
-5. Queue action for that finding.
-6. Only then move to next finding.
+Then ask how to handle that one finding.
 
-For the decision step, ask user decision and queue it:
-
+Required structured input:
 ```typescript
 request_user_input({
   questions: [{
     question: "How should I handle Finding {n}?",
     header: "Finding {n}",
     options: [
-      {label: "Post comment", description: "Post this finding as one PR comment in Step 7"},
-      {label: "Add to fix queue", description: "Queue this finding to be fixed directly in the PR in Step 7"},
-      {label: "Skip comment", description: "Do not post this finding; continue to next finding"},
-      {label: "Stop review cycle", description: "Stop cycling findings now and move to execution/documentation"}
+      {label: "Post comment", description: "Post this finding as one PR comment in Step 8"},
+      {label: "Add to fix queue", description: "Queue this finding to be fixed directly in the PR in Step 8"},
+      {label: "Skip comment", description: "Do not post this finding and continue"},
+      {label: "Stop review cycle", description: "Stop reviewing findings and continue to execution or documentation"}
     ]
   }]
 })
 ```
 
-**Decision protocol (required):**
-1. Use `request_user_input` for each finding.
-2. If `request_user_input` is unavailable, STOP and report: "feature-pr-reviewing requires Plan mode for interactive selection."
-
-Collect decisions in-loop and proceed to Step 7 after loop ends.
-
-**DO NOT ask one global action for all findings.**
-**DO NOT ask about `Finding 1` before printing the full findings index.**
-**DO NOT execute posting during Step 6. Step 6 is decision collection only.**
-**DO NOT execute fixes during Step 6. Step 6 is decision collection only.**
-**DO NOT ask all finding decisions at the end.**
-**DO NOT ask the next finding before receiving a decision for the current one.**
-**DO NOT send multiple pending finding questions in one assistant message.**
+Rules:
+- ask about one finding at a time
+- end the message after the question block
+- wait for the explicit decision
+- do not ask about the next finding before the current one is decided
+- do not post comments or make fixes during Step 7
+- do not replace the structured question with prose fallback
 
 ---
 
-### Step 7: Execute Queued Decisions (Batch: Post + Fix)
+### Step 8: Execute Queued Comment or Fix Decisions
 
-After Step 6 decision cycle is complete, execute queued actions:
-- For each `Post comment`: post exactly ONE PR comment for that ONE finding using `gh pr comment`
-- For each `Add to fix queue`: fix that finding directly on the PR branch (one finding at a time), preserving existing project patterns
-- For each `Skip comment`: do not post
-- If Step 6 stopped early: do not auto-post remaining unreviewed findings
-- Validate fixes before moving on (run targeted tests/lint for changed areas; if unavailable, explain what was checked)
-- If a queued fix cannot be completed safely, do not force it; record the reason and include it in Z03
+After the decision loop finishes:
+- for each `Post comment`, post exactly one PR comment for that one finding
+- for each `Add to fix queue`, fix the finding directly on the PR branch
+- for each `Skip comment`, do nothing
+- if the loop stopped early, do not auto-handle remaining findings
 
----
+Comment format for each posted finding:
 
-### Step 8: Document Unposted Findings (Z03)
-
-**Mandatory comment format for each posted finding:**
-```
+```markdown
 [Severity: Must-fix|Should-fix|Nice-to-have] {specific issue summary}
 
 Why this matters:
 {concrete impact and failure mode}
 
 Affected code:
-- `{file}:{line-start}-{line-end}`: {what this code is doing and why it's wrong/risky}
+- `{file}:{line-start}-{line-end}`: {what this code is doing and why it is wrong or risky}
 
 Suggested change:
 {clear and actionable fix direction}
 ```
 
-**Never post a single combined comment containing multiple findings.**
-
-**Z03 conditional creation:**
-- Only create if findings exist that were NOT posted as comments
-- If all findings posted → no Z03 needed
-- If Step 6 stopped early, include all unreviewed findings in Z03
-- If a finding was queued as skip, include it in Z03
-
-**Z03 location:** Scan for existing `Z0[12]_*.md` files to find ongoing directory. Default to `docs/ai/ongoing/`.
-
-**Z03 filename:** `Z03_{kebab-case-pr-title}_review.md`
+Rules:
+- never combine multiple findings into one PR comment
+- if a queued fix is selected, invoke `superpowers:systematic-debugging` before editing code
+- run targeted verification for each fix before moving on
+- if a queued fix cannot be completed safely, record the reason and include it in `Z03`
 
 ---
 
+### Step 9: Create Z03 Documentation for Any Unposted Findings
 
-## Red Flags - You're Failing If:
+Create `Z03` only when findings remain unposted or unfixed.
 
-- **Ran `gh pr view` or `gh pr diff` before creating TodoWrite**
-- **Ran commands before switching to PR branch**
-- **Still on `main` branch when analyzing**
-- **Thinking "I'll gather metadata first"**
-- **Skipped TodoWrite creation**
-- **Reading entire codebase before getting PR details** (Step 3 MUST come before Step 4)
-- **Reading files before getting changed file list** (get PR details first)
-- **Suggesting next steps instead of running the per-finding decision protocol**
-- **Using this skill outside Plan mode**
-- **Using free-form prose asks instead of request_user_input**
-- **Asking one global action for all findings instead of per-finding decisions**
-- **Skipping the required pre-loop findings index**
-- **Asking about `Finding 1` before showing the full findings index**
-- **Printing all detailed findings before asking decisions**
-- **Asking multiple finding decisions without waiting between them**
-- **Sending multiple pending finding questions in one message**
-- **Executing comments before completing the per-finding decision cycle**
-- **Executing fixes before completing the per-finding decision cycle**
-- **Posting multiple findings in one combined PR comment**
-- **Posting vague comments without concrete file-line evidence**
-- **Drafting comments but not posting them**
-- **Passive review instead of adversarial bug hunting**
-- **Not finding ANY bugs** (means you didn't look hard enough)
+Create `Z03` when:
+- the decision loop stopped early
+- a finding was skipped
+- a queued fix could not be completed safely
 
-## Common Rationalizations
+Do not create `Z03` when every finding was fully handled in-thread.
 
-| Excuse | Reality |
-|--------|---------|
-| **"Get PR details first to know branch"** | **NO.** PR number in USER INPUT. Extract, switch NOW. |
-| **"I'm already on PR branch, skip verification"** | **NO.** VERIFY FIRST. Run `git branch --show-current`. |
-| **"Run gh pr view to find branch name"** | **NO.** `gh pr checkout {number}` does that. Switch NOW. |
-| **"Skip docs/reading files, I can see changes"** | **NO.** Need to read code to find bugs. |
-| **"Read whole codebase before checking PR"** | **NO.** Get PR details FIRST (Step 3), then read changed files ONLY (Step 4). |
-| **"Time pressure = skip workflow"** | **NO.** Workflow is FASTER than ad-hoc. Follow it. |
-| "TodoWrite wastes time" | **NO.** TodoWrite prevents mistakes that waste MORE time. |
-| "I'll offer helpful next steps in text" | **NO.** Use request_user_input per finding in Plan mode. |
-| "Findings presented, I can proceed" | **NO.** During Step 6, ask decision per finding and queue it. |
-| "I'll ask one question for all findings" | **NO.** Must ask decision per finding. No bundling. |
-| "I'll skip the full findings list" | **NO.** Print the required pre-loop findings index first. |
-| "The user can infer Finding 1 from context" | **NO.** Show the full numbered findings index before asking about `Finding 1`. |
-| "I'll list all detailed findings first, then ask at end" | **NO.** Only the index can be listed up front; detailed blocks must stay one-by-one with immediate decisions. |
-| "I can ask all finding decisions in one message" | **NO.** One finding question at a time, wait for explicit answer. |
-| "I'll ask, then continue writing context for later findings" | **NO.** End message right after the current finding question block. |
-| "I can post while I ask" | **NO.** Finish Step 6 decision cycle first, then execute in Step 7. |
-| "I can fix while I ask" | **NO.** Finish Step 6 decision cycle first, then execute fixes in Step 7. |
-| "I can post one summary comment for everything" | **NO.** One accepted finding = one PR comment. No combined comment. |
-| "Short generic comments are fine" | **NO.** Include concrete impact + exact file and line range evidence. |
-| "I drafted comments, that's enough" | **NO.** Draft ≠ posted. Execute `gh pr comment`. |
-| "Code looks correct, just confirm it" | **NO.** Don't confirm. ATTACK it. Find how to break it. |
-| "ASSUME BUGS EXIST. Hunt adversarially" | **NO.** ASSUME BUGS EXIST. Hunt for them adversarially. |
-| "Changes are simple, quick review" | **NO.** Simple code hides subtle bugs. Hunt line-by-line. |
+Location rules:
+- look for existing workflow artifacts to detect the ongoing directory
+- default to `docs/ai/ongoing/` for this repository when no alternate location is already in use
+
+Filename:
+- `Z03_{kebab-case-pr-title}_review.md`
+
+## Red Flags
+
+- Looked up PR metadata before creating the progress plan
+- Looked up PR metadata before switching to the PR branch
+- Ran this workflow outside Plan mode
+- Started review before reading project context
+- Read the whole codebase instead of the changed-file set and needed context
+- Asked for one global action across all findings
+- Asked about `Finding 1` before printing the full findings index
+- Replaced `request_user_input` with prose fallback
+- Posted combined comments covering multiple findings
+- Fixed code directly without routing queued fixes through `superpowers:systematic-debugging`
 
 ## Success Criteria
 
-You followed the workflow if:
-- ✓ Created TodoWrite as FIRST action
-- ✓ Switched to PR branch BEFORE any analysis
-- ✓ Read documentation (AGENTS.md, CLAUDE.md, README, ARCHITECTURE) from PR branch
-- ✓ Got PR details and changed files list BEFORE exploring
-- ✓ Read ONLY changed files (not entire codebase)
-- ✓ Hunted for bugs adversarially (not passive validation)
-- ✓ Assumed bugs exist, found them
-- ✓ Analyzed changes with full repo context awareness
-- ✓ Ran in Plan mode and used request_user_input for per-finding interaction
-- ✓ Printed the full numbered findings index before asking about `Finding 1`
-- ✓ Asked for a decision for EACH finding during Step 6 (no global-action shortcut)
-- ✓ Presented and decided findings in strict sequence: one finding -> one decision -> next finding
-- ✓ Never had more than one pending finding decision at a time
-- ✓ Completed decision collection cycle before executing posts
-- ✓ Completed decision collection cycle before executing fixes
-- ✓ Posted one PR comment per accepted finding (no combined comment)
-- ✓ Fixed queued findings directly in the PR branch when feasible
-- ✓ Each posted comment includes severity (`Must-fix`, `Should-fix`, or `Nice-to-have`)
-- ✓ Each posted comment includes affected file and exact line range evidence
-- ✓ Posted comments with actual commands (not drafts)
-- ✓ Created Z03 documentation (if needed)
-- ✓ Resisted all rationalizations
+- Created the progress plan before PR inspection
+- Switched to the PR branch before review work
+- Read repo instructions and relevant project context
+- Reviewed changed files with an adversarial mindset
+- Printed the full findings index before any per-finding loop
+- Ran in Plan mode and used `request_user_input` for every finding decision
+- Posted one PR comment per accepted finding
+- Routed queued fixes through `superpowers:systematic-debugging`
+- Created `Z03_{kebab-case-pr-title}_review.md` only when unresolved findings remained
