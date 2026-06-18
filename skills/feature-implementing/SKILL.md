@@ -92,13 +92,22 @@ Extract and preserve:
 - Research decisions that MUST survive execution
 - Full task list, dependencies, and verification expectations from Z02
 
+Prepare to hand off a **compact execution brief**, not full artifact dumps.
+
 ---
 
 ### Step 4: Create or Reconcile Implementation Tracker (Z99)
 
 Prepare `{ONGOING_DIR}/Z99_implementation_status.md` before asking for execution mode.
 
-**Purpose:** Track implementation state without modifying the original plan.
+**Purpose:** Maintain a workflow-owned working plan without modifying the original `Z02`.
+
+Treat `Z99` as:
+- the live task state that `feature-implementing` iterates on during execution
+- the checklist used to choose the next batch, evaluate results, and decide whether more work remains
+- persisted to `Z99_implementation_status.md` so a fresh agent can resume if execution is interrupted or something breaks
+
+Treat the file as a persistence and recovery mechanism, not the reasoner that owns the workflow.
 
 Rules:
 - Do NOT edit `Z02_{feature}_plan.md`
@@ -108,12 +117,12 @@ Rules:
 - Add a per-task "Proof of work" field (file paths, tests, or commits proving completion)
 - Add a short "Current batch" section and "Blockers" section
 - Require the "Current batch" section to record the active phase
-- Treat Z99 as the workflow-owned source of execution state across batches
+- Treat Z99 as the workflow-owned execution checklist across batches
 
 If Z99 already exists:
 - Reconcile it with the latest Z02 tasks
 - Append missing tasks without deleting existing status or proof
-- Resume from the earliest unfinished task in the earliest unfinished phase
+- Rebuild the live execution state from the file, then resume from the earliest unfinished task in the earliest unfinished phase
 
 ---
 
@@ -121,8 +130,8 @@ If Z99 already exists:
 
 **Always ask.** Present exactly these two execution modes:
 
-1. **Subagent-Driven (recommended)** - Use `superpowers:subagent-driven-development` for the current batch. This keeps its native per-task implementer/spec-review/code-quality-review flow inside the batch.
-2. **Inline Execution** - Use `superpowers:executing-plans` for the current batch. This keeps its native execution-and-verification behavior without implying reviewer-subagent loops.
+1. **Subagent-Driven (recommended)** - Use `superpowers:subagent-driven-development` for the current batch. Inside that batch, it keeps its native per-task implementer/spec-review/code-quality-review flow.
+2. **Inline Execution** - Use `superpowers:executing-plans` for the current batch. Inside that batch, it executes and verifies work without implying reviewer-subagent loops.
 
 Do not invent additional execution modes.
 
@@ -139,6 +148,8 @@ Do not invent additional execution modes.
 ### Step 6: Select the Next Batch From Z99
 
 Select the next **3-5 remaining tasks** from Z99.
+
+This step operates on the live Z99 task state, then persists the updated snapshot back to `Z99_implementation_status.md`.
 
 Batch rules:
 - Choose the earliest unfinished phase first
@@ -157,28 +168,50 @@ Record the chosen batch in the Z99 "Current batch" section before delegation, in
 
 The chosen execution mode receives **only the current batch scope**, not the full remaining plan.
 
-Provide:
-- Project patterns from `AGENTS.md` and `CLAUDE.md`
-- Relevant research context from Z01
-- Relevant plan context from Z02
-- Current Z99 state
-- Exact batch task list
-- The active phase for the batch
-- The instruction that `feature-implementing` owns cross-batch sequencing and approval
+`feature-implementing` owns:
+- cross-batch sequencing
+- `Z99` state
+- human approval between batches
+- persisting the latest `Z99` snapshot after each meaningful state change
+
+The downstream executor owns:
+- execution of the current batch only
+- verification of the current batch only
+- reporting completion, blockers, and proof back to `feature-implementing`
+
+Provide a **compact execution brief** containing only:
+- the active phase
+- the exact batch task list
+- batch-specific dependency/order constraints
+- only the relevant repo constraints from `AGENTS.md` / `CLAUDE.md`
+- only the relevant excerpts from `Z01`, `Z02`, and current `Z99`
+- the instruction that control returns to `feature-implementing` after this batch completes or blocks
+
+Require the executor to return a **structured batch outcome** for every task in the batch:
+- task identifier or exact task text
+- status: `done` | `blocked` | `incomplete`
+- proof of work for any `done` task
+- blocker summary for any `blocked` task
+- verification run for the batch
+- whether the batch completed cleanly or stopped early
 
 #### Subagent-Driven Batch Contract
 
 When using `superpowers:subagent-driven-development`:
-- Pass only the current batch tasks
-- Let that skill keep its native per-task orchestration and review loops
-- Do NOT require it to continue beyond the current batch
+- Treat the current batch as the full plan scope for this invocation
+- Let that skill keep its native per-task orchestration and review loops within the batch
+- Let it execute continuously within the batch
+- Require it to return control after the batch completes or blocks
+- Do NOT require it to continue into later batches
 - Do NOT claim that this review behavior applies to other execution modes
 
 #### Inline Execution Batch Contract
 
 When using `superpowers:executing-plans`:
-- Pass only the current batch tasks
+- Treat the current batch as the full plan scope for this invocation
 - Require it to execute and verify only that batch
+- Require it to return control after the batch completes or blocks
+- Do NOT require it to continue into later batches
 - Do NOT claim that it provides reviewer-subagent loops
 - Do NOT claim that it owns batching or Z99 orchestration
 
@@ -187,12 +220,19 @@ When using `superpowers:executing-plans`:
 ### Step 8: Verify the Batch Outcome and Update Z99
 
 After the chosen executor returns:
+- First verify that it returned a structured batch outcome covering every task in the batch
 - Check which batch tasks were completed, blocked, or left incomplete
 - Update Z99 task statuses accordingly
 - Add or verify proof of work for every task marked `done`
 - Update the Z99 "Blockers" section if needed
 - Reflect whether the active phase is now complete before selecting any later phase
 - Clear or replace the Z99 "Current batch" section before selecting the next batch
+- Persist the updated Z99 snapshot back to `Z99_implementation_status.md`
+
+If the executor did not return a structured batch outcome:
+- Treat the batch as incomplete
+- Do NOT update Z99 as though the batch finished
+- Ask for the missing task-by-task outcome before proceeding
 
 If a task was reported complete but lacks proof of work:
 - Treat it as incomplete
@@ -208,7 +248,7 @@ If remaining non-`done` tasks still exist after Step 8:
 - Do NOT delegate another batch until the user approves
 
 If the user declines or pauses:
-- Leave Z99 as the continuation state
+- Leave the persisted Z99 snapshot as the continuation state for later resume
 - Report what remains
 
 ---
@@ -233,8 +273,11 @@ If any task is not `done`, is `blocked`, or lacks proof:
 - **Skipped AGENTS.md**
 - **Skipped CLAUDE.md when it exists after reading AGENTS.md**
 - **Failed to create/update Z99 before execution mode selection**
+- **Treated `Z99_implementation_status.md` as a passive report instead of the persisted snapshot of the live execution checklist**
 - **Did NOT ask the user to choose between exactly two execution modes**
 - **Delegated the full remaining plan instead of only the current batch**
+- **Passed full artifact dumps instead of a compact execution brief**
+- **Advanced Z99 without a structured batch outcome covering every batch task**
 - **Claimed both execution modes provide the same review guarantees**
 - **Claimed `executing-plans` owns batching, review loops, or Z99 orchestration**
 - **Overwrote an existing Z99 and reset prior progress instead of resuming**
@@ -250,6 +293,9 @@ If any task is not `done`, is `blocked`, or lacks proof:
 | Excuse | Reality |
 |--------|---------|
 | **"The executor can figure out the rest of the plan"** | **NO.** Delegate only the current batch. The wrapper owns sequencing. |
+| **"Send all Z01/Z02/Z99 context just in case"** | **NO.** Send a compact execution brief with only batch-relevant context. |
+| **"A summary like 'batch done' is enough to update Z99"** | **NO.** Z99 needs task-by-task outcome and proof. |
+| **"Z99 is just a report file"** | **NO.** Z99 is the live execution checklist; the file is its persisted backup for resume/recovery. |
 | **"Subagent-driven and executing-plans are basically the same"** | **NO.** Their review guarantees differ and must stay mode-specific. |
 | **"Skip execution mode choice and default silently"** | **NO.** This workflow always asks the user to choose. |
 | **"Pass the whole plan for convenience"** | **NO.** That breaks wrapper-owned batching and approval gates. |
@@ -267,9 +313,12 @@ You followed the workflow if:
 - ✓ Read CLAUDE.md if it exists after AGENTS.md
 - ✓ Read relevant Z01 and Z02 context
 - ✓ Created or reconciled `Z99_implementation_status.md` before execution mode selection
+- ✓ Used Z99 as the live execution checklist and the file as persisted resume state
 - ✓ Asked the user to choose exactly one of the two execution modes
 - ✓ Selected only the next 3-5 task batch from the earliest unfinished phase in Z99
 - ✓ Delegated only that batch to the chosen executor
+- ✓ Sent a compact execution brief rather than full artifact dumps
+- ✓ Required a structured batch outcome before updating Z99
 - ✓ Kept review guarantees mode-specific
 - ✓ Updated Z99 with statuses and proof of work after the batch
 - ✓ Kept Z99 phase-aware and advanced to the next phase only after the current one was complete
