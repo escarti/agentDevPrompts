@@ -11,9 +11,15 @@ description: Use after research (Z01 files exist) to create implementation plan 
 
 1. ☐ Create a progress plan (see below)
 2. ☐ Mark Step 1 as `in_progress`
-3. ☐ Read AGENTS.md first and CLAUDE.md if it exists
+3. ☐ Read `AGENTS.md` first and `CLAUDE.md` if it exists
 
-**This skill is a WRAPPER that loads Z01 context and invokes superpowers:writing-plans**
+**This skill is a wrapper around `superpowers:writing-plans`.**
+
+Its job is to:
+- load repo constraints and `Z01` inputs
+- require resolved research before planning
+- invoke `superpowers:writing-plans`
+- enforce the `Z02` / `Z02_CLARIFY` artifact contract used by this workflow
 
 ## MANDATORY FIRST ACTION: Create Progress Plan
 
@@ -22,218 +28,154 @@ update_plan({
   "explanation": "Tracking feature planning workflow",
   "plan": [
     {"step": "Step 1: Load project context (AGENTS.md first, CLAUDE.md if it exists)", "status": "in_progress"},
-    {"step": "Step 2: Verify Z01 files exist", "status": "pending"},
-    {"step": "Step 3: Read ALL Z01 files", "status": "pending"},
-    {"step": "Step 4: Invoke superpowers:writing-plans", "status": "pending"},
-    {"step": "Step 5: Verify Z02 outputs", "status": "pending"},
-    {"step": "Step 6: Resolve/track Z02_CLARIFY and block handoff until cleared", "status": "pending"}
+    {"step": "Step 2: Find and validate Z01 inputs", "status": "pending"},
+    {"step": "Step 3: Invoke superpowers:writing-plans with the Z02 contract", "status": "pending"},
+    {"step": "Step 4: Verify Z02 outputs and required phase metadata", "status": "pending"},
+    {"step": "Step 5: Enforce Z02_CLARIFY completion gate", "status": "pending"}
   ]
 })
 ```
 
-**After each step:** Mark completed, move `in_progress` to next step.
-
-## Why Use This Wrapper?
-
-- Automates Z01 → Z02 file management
-- Loads AGENTS.md defaults and CLAUDE.md constraints into planning context
-- Enforces feature-workflow naming conventions (Z02_{feature}_plan.md)
-- Integrates with clarification workflow (Z02_CLARIFY)
-- Maintains consistent file structure
-
-**Without this wrapper:** You'd manually load Z01 files, pass to superpowers:writing-plans, manage Z02 output paths, check for clarifications.
+**After each step:** Mark completed and move `in_progress` to the next step.
 
 ## Workflow Steps
 
-### Step 1: Load Project Context (MANDATORY FIRST)
+### Step 1: Load Project Context
 
-**Read `AGENTS.md` first. Then read `CLAUDE.md` if it exists.**
+Read `AGENTS.md` first. Then read `CLAUDE.md` if it exists.
 
-Extract from `AGENTS.md` and `CLAUDE.md` (if it exists):
-- Mandatory patterns that MUST be preserved
-- Forbidden approaches to AVOID
-- Project conventions (naming, structure, etc.)
-- Release workflows and constraints
+Extract only what planning must preserve:
+- required repo conventions and file locations
+- forbidden approaches
+- release or workflow constraints relevant to plan structure
 
-**CRITICAL:** Pass `AGENTS.md` defaults and any `CLAUDE.md` constraints to superpowers:writing-plans so the plan preserves project standards.
-
----
-
-### Step 2: Verify Z01 Files Exist
-
-Scan for existing Z01 files in common locations (docs/ai/ongoing, .ai/ongoing, docs/ongoing).
-
-**If Z01 files found:**
-- Note the ONGOING_DIR location
-- Extract feature name from filename (e.g., Z01_metrics_research.md → "metrics")
-- Feature name should already be sanitized snake_case from feature-research
-
-**If NO Z01 files found:**
-- Ask user if they want to run feature-workflow:feature-researching first
-- Or proceed without research context (suboptimal)
+Pass those repo-specific constraints into `superpowers:writing-plans`.
 
 ---
 
-### Step 3: Read ALL Z01 Files
+### Step 2: Find and Validate Z01 Inputs
 
-Read all Z01 files in ONGOING_DIR:
-- Z01_{feature}_research.md (required)
-- Z01_CLARIFY_{feature}_research.md (if exists)
+`feature-planning` requires existing research artifacts.
 
-**BLOCKING CHECK - If Z01_CLARIFY exists:**
-- Read the file
-- Check if "User response:" fields are empty
-- **If ANY empty → STOP, report:** "Cannot plan with unanswered questions. Please answer all questions in Z01_CLARIFY_{feature}_research.md first."
-- If all answered → proceed
+Rules:
+- Default to `docs/ai/ongoing/` for this repository.
+- If existing workflow artifacts are already under another ongoing directory, use that discovered directory instead.
+- Determine the feature slug from `Z01_{feature}_research.md`.
 
-Extract:
-- Grounded feature behavior and explicit non-goals
-- Current repo state, likely touchpoints, and integration points
-- Answered clarifications
-- Risks, dependencies, compatibility concerns, and planning-safe assumptions
-- Security, test, and acceptance requirements
+Required inputs:
+- `Z01_{feature}_research.md`
+- `Z01_CLARIFY_{feature}_research.md` if it exists
+
+If multiple `Z01_*_research.md` files exist:
+- use the one the user asked for
+- otherwise ask which feature to plan
+
+If no `Z01_{feature}_research.md` exists:
+- stop and direct the user to `feature-researching` first
+- do not proceed without research unless the user explicitly overrides this workflow
+
+If `Z01_CLARIFY_{feature}_research.md` exists:
+- read it
+- if any `User response:` field is blank, stop and report: `Cannot plan with unanswered questions. Please answer all questions in Z01_CLARIFY_{feature}_research.md first.`
+
+Extract from Z01:
+- grounded behavior and explicit non-goals
+- repo touchpoints and constraints
+- answered clarifications
+- risks, dependencies, compatibility concerns, and acceptance criteria
 
 ---
 
-### Step 4: Invoke Superpowers Planning
+### Step 3: Invoke `superpowers:writing-plans`
 
-**CRITICAL**: This skill's primary job is to invoke superpowers:writing-plans with Z01 context. If you skip this invocation, the skill provides no value.
-
-**Load and follow** `superpowers:writing-plans` using Codex's current skill-loading flow.
+Load and follow `superpowers:writing-plans` using Codex's current skill-loading flow.
 If that dependency is unavailable, stop and report that the required Superpowers skill is missing.
 
-Provide this instruction:
+Provide a compact instruction that adds only this workflow's contract:
 
-"Create an implementation plan for the {feature} feature based on the research in Z01_{feature}_research.md and clarifications in Z01_CLARIFY_{feature}_research.md.
+`Create the implementation plan from Z01 research and save it to {ONGOING_DIR}/Z02_{feature}_plan.md. Preserve AGENTS.md / CLAUDE.md constraints. Keep the plan phase-aware for feature-implementing.`
 
-**MANDATORY CONSTRAINTS from AGENTS.md and CLAUDE.md:**
-[Include any constraints, patterns, or forbidden approaches from AGENTS.md and CLAUDE.md here if they exist]
+The wrapper-owned `Z02` contract is:
+- output path must be `{ONGOING_DIR}/Z02_{feature}_plan.md`
+- feature slug must match the discovered `Z01` artifact
+- plan must include explicit `## Phase N: <name>` sections
+- each phase must include `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
+- each task must include a stable phase field: `**Phase:** Phase N`
+- create `{ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md` only for new blocking questions discovered during planning
+- when answered clarifications are incorporated, remove resolved entries or delete the file entirely
 
-CRITICAL: Save the plan to {ONGOING_DIR}/Z02_{feature}_plan.md (use the detected path, NOT hardcoded docs/plans/).
-
-The plan should be a DIRECTIVE document with:
-- Exact file paths and edit targets determined during planning
-- Complete code examples
-- Verification steps for each task
-- TDD structure (test-fail-implement-pass-commit)
-- A phased delivery strategy split into multiple self-contained PRs (when scope is non-trivial), where each phase is independently reviewable, testable, and mergeable
-- For each planned PR phase: clear scope boundaries, explicit out-of-scope items, dependency notes, and phase-specific verification
-- Explicit `## Phase N: <name>` sections that define the execution boundary for feature-implementing
-- For each phase: `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
-- For every task: a `**Phase:** Phase N` field matching its containing phase
-- Assumes engineer has minimal domain knowledge
-
-Treat Z01 as a grounded feature specification, not a pseudo-plan. Planning is responsible for locking:
-- exact file edits and line ranges
-- implementation decomposition
-- phase boundaries
-- code-level execution detail
-
-Preserve from Z01:
-- grounded behavior
-- clarified requirements
-- risks and dependencies
-- acceptance criteria
-- planning-safe assumptions
-
-If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create {ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file.
-
-**When incorporating answered questions:** Delete fully-answered CLARIFY files or remove incorporated Q&A pairs if only some were answered."
+Do not restate generic `writing-plans` requirements that skill already owns.
 
 ---
 
-### Step 5: Verify Outputs
+### Step 4: Verify `Z02` Outputs
 
-When superpowers:writing-plans completes:
+Planning output is valid only if all of the following are true:
+- `Z02_{feature}_plan.md` exists in `ONGOING_DIR`
+- the feature slug matches the source `Z01`
+- `Z02_CLARIFY_{feature}_plan.md` exists only when new blocking questions were discovered
+- `Z02_{feature}_plan.md` contains at least one `## Phase N: <name>` section
+- every phase contains `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
+- every task uses `**Phase:** Phase N`
 
-**Check structure:**
-- Z02_{feature}_plan.md must exist in ONGOING_DIR (main directive plan)
-- Z02_CLARIFY_{feature}_plan.md only if NEW questions exist
-
----
-
-### Step 6: Completion Gate (CLARIFY Controls Done State)
-
-Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with unresolved items.
-
-**Unresolved means ANY of the following:**
-- File still contains `Agent question:` entries
-- Any `User response:` is blank
-- Answers were provided but not yet incorporated into `Z02_{feature}_plan.md`
-
-**If unresolved Z02_CLARIFY exists:**
-1. Keep planning todo as `in_progress` (do NOT mark workflow complete)
-2. Report only: "Planning blocked by unresolved clarifications in Z02_CLARIFY_{feature}_plan.md."
-3. Do NOT invoke or suggest `feature-implementing` yet
-
-**Only mark planning complete when:**
-1. Clarification answers are incorporated into `Z02_{feature}_plan.md`
-2. `Z02_CLARIFY_{feature}_plan.md` is deleted (or has no remaining Q&A pairs)
-3. Plan remains directive and executable
-
-**Report to user:**
-- If no unresolved clarifications: "Plan created: Z02_{feature}_plan.md. Ready for feature-workflow:feature-implementing, which will ask for execution mode and own batching/Z99 tracking."
-- If clarifications exist: "Planning not complete. Resolve Z02_CLARIFY before implementation."
+If any required phase metadata is missing:
+- treat the plan as invalid
+- do not mark planning complete
+- revise the plan before handing off to `feature-implementing`
 
 ---
 
-## Red Flags - You're Failing If:
+### Step 5: Enforce the `Z02_CLARIFY` Completion Gate
 
-- **Proceeded with unanswered questions in Z01_CLARIFY** (BLOCKING - must stop)
-- **Marked planning done while Z02_CLARIFY still has unresolved items**
-- **Did NOT read AGENTS.md first**
-- **Did NOT read CLAUDE.md when it exists after reading AGENTS.md**
-- **AGENTS.md or CLAUDE.md constraints not passed to planning**
-- **Did NOT check for Z01* files**
-- **Directly invoked superpowers:writing-plans without loading Z01 context**
-- **Creating plan files with non-standard names** (not Z02_{feature}_plan.md)
-- **Saving plans to wrong directory**
-- **Treated `superpowers:writing-plans` like a slash command or generic tool call** instead of loading the skill through Codex's current skill workflow
-- **Did NOT explicitly specify output path** in prompt to writing-plans
-- **Skipped reading Z01_CLARIFY** (if exists)
-- **Using hardcoded paths** (detect pattern instead)
-- **Produced a single mega-PR plan for a non-trivial feature** instead of phased, self-contained PRs
+Planning is not complete while `Z02_CLARIFY_{feature}_plan.md` exists with unresolved items.
 
-## Common Rationalizations
+Unresolved means any of the following:
+- the file still contains at least one open question entry
+- any `User response:` is blank
+- answers were provided but not yet incorporated into `Z02_{feature}_plan.md`
 
-| Excuse | Reality |
-|--------|---------|
-| **"Skip path detection, I know it's docs/ai/ongoing"** | **NO.** Path assumptions break in non-standard repos. Detect ONGOING_DIR. |
-| **"No Z01 files, skip check"** | **NO.** Research context critical for quality plans. Check first. |
-| **"Superpowers will figure out output structure"** | **NO.** Generic plans lack our research integration. Provide explicit Z02* instruction. |
-| **"Read only Z01_research, skip Z01_CLARIFY"** | **NO.** Missing context = incomplete plan. Read ALL Z01* files. |
-| **"Create Z02_CLARIFY even if no questions"** | **NO.** Empty files clutter directory. Only create if NEW questions. |
-| **"Just invoke superpowers:writing-plans directly"** | **NO.** This wrapper loads Z01 context. That's its value. |
-| **"Planning is done because Z02 plan exists"** | **NO.** Done state requires no unresolved Z02_CLARIFY. |
-| "Wrapper skill, no need to track steps" | **NO.** Wrapper has critical steps (context loading, invocation). Track them with the current Codex progress tool. |
-| "Progress tracking adds overhead, skip it" | **NO.** Maintain workflow state with Codex-compatible progress tracking such as `update_plan`. |
+If unresolved `Z02_CLARIFY` exists:
+1. Keep the workflow `in_progress`
+2. Report only: `Planning blocked by unresolved clarifications in Z02_CLARIFY_{feature}_plan.md.`
+3. Do not invoke or suggest `feature-implementing` yet
+
+Only mark planning complete when:
+1. `Z02_{feature}_plan.md` satisfies the `Z02` contract
+2. all clarification answers are incorporated
+3. `Z02_CLARIFY_{feature}_plan.md` is deleted or has no remaining unresolved entries
+
+Report to the user:
+- if complete: `Plan created: Z02_{feature}_plan.md. Ready for feature-workflow:feature-implementing.`
+- if blocked: `Planning not complete. Resolve Z02_CLARIFY before implementation.`
+
+## Red Flags
+
+- Proceeded without `Z01_{feature}_research.md`
+- Planned with unanswered `Z01_CLARIFY`
+- Failed to pass repo constraints into `writing-plans`
+- Saved `Z02` to the wrong directory or with the wrong feature slug
+- Accepted a plan with missing phase metadata
+- Created `Z02_CLARIFY` without a new blocking question
+- Marked planning complete while unresolved `Z02_CLARIFY` remained
 
 ## Success Criteria
 
-You followed the workflow if:
-- ✓ Read AGENTS.md
-- ✓ Read CLAUDE.md if it exists after reading AGENTS.md
-- ✓ Passed AGENTS.md and CLAUDE.md constraints to superpowers:writing-plans
-- ✓ Checked for Z01* files
-- ✓ Read ALL Z01* files if they exist
-- ✓ Loaded and followed `superpowers:writing-plans` through Codex's current skill workflow
-- ✓ Explicitly instructed output path in prompt
-- ✓ Verified Z02_{feature}_plan.md was created
-- ✓ Plan defines self-contained, sequential PR phases for non-trivial work (not one mega PR)
-- ✓ Plan includes explicit phase metadata and per-task phase labels for implementation batching
-- ✓ Planning stayed in_progress until Z02_CLARIFY was fully resolved and removed
-- ✓ Reported next steps to user
+- Read `AGENTS.md` and `CLAUDE.md` if present
+- Required `Z01` research before planning
+- Blocked on unresolved `Z01_CLARIFY`
+- Invoked `superpowers:writing-plans`
+- Enforced the `Z02_{feature}_plan.md` path and feature slug
+- Verified `## Phase N`, `**Phase Goal:**`, `**Phase Verification:**`, `**Phase Boundary Rule:**`, and `**Phase:** Phase N`
+- Kept planning open until `Z02_CLARIFY` was resolved or removed
 
 ## When to Use
 
-**Workflow Position:** AFTER feature-research (Z01 files), BEFORE feature-implement
-
 Use when:
-- Z01 research files exist
-- Need to create implementation plan
-- Want automated Z01 → Z02 workflow
+- `Z01_{feature}_research.md` exists
+- research clarifications are resolved
+- you need a `Z02` plan artifact that is ready for `feature-implementing`
 
-**Don't use when:**
-- No Z01 files exist → Use feature-research first
-- Already have complete plan
-- Simple single-step tasks
+Don't use when:
+- no `Z01` research exists
+- research or planning clarifications are unresolved
+- the work is already fully planned in the required `Z02` format
