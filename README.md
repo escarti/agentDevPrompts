@@ -5,7 +5,7 @@ Research-driven feature development workflow for Claude Code, with superpowers i
 ## Included Skills
 
 Core workflow:
-- `feature-researching` (standalone)
+- `feature-researching` (requires superpowers)
 - `feature-planning` (requires superpowers)
 - `feature-implementing` (requires superpowers)
 - `feature-documenting` (standalone)
@@ -24,13 +24,14 @@ Utility:
 ## Dependencies
 
 Install [superpowers](https://github.com/obra/superpowers) from the marketplace/plugin system for:
+- `feature-researching`
 - `feature-planning`
 - `feature-implementing`
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
 
-`feature-researching` and `feature-documenting` are standalone.
+`feature-documenting` is standalone.
 
 ```bash
 # In Claude Code
@@ -39,6 +40,14 @@ Install [superpowers](https://github.com/obra/superpowers) from the marketplace/
 ```
 
 `load-superpowers` is a compatibility shim for these workflow skills. It now assumes `superpowers:*` skills are provided by the marketplace install and no longer bootstraps from a local `~/.codex/superpowers` checkout.
+
+Run `load-superpowers` before:
+- `feature-researching`
+- `feature-planning`
+- `feature-implementing`
+- `feature-finishing`
+- `feature-pr-reviewing`
+- `feature-pr-fixing`
 
 ## Installation
 
@@ -103,11 +112,11 @@ rm -rf ~/.codex/superpowers
 find ~/.codex/skills -maxdepth 1 \( -type l -o -type d \) | rg '/superpowers$'
 ```
 
-Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-planning`, `feature-implementing`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
+Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-researching`, `feature-planning`, `feature-implementing`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
 
 ## Workflow
 
-1. Research with `feature-workflow:feature-researching`
+1. Start with `feature-workflow:feature-researching`
 2. Plan with `feature-workflow:feature-planning`
 3. Implement with `feature-workflow:feature-implementing`
 4. Finish with `feature-workflow:feature-finishing`
@@ -117,12 +126,13 @@ Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-planni
 
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
-| 0. Idea to spec | `superpowers:brainstorming` | Turn a rough idea into a detailed spec | Problem statement, constraints, success criteria | Detailed specification |
-| 1. Repository-grounded research | `feature-workflow:feature-researching` | Check how the spec fits the repo and surface blind spots | Detailed specification | `Z01_*_research.md` (final) and optional temporary `Z01_CLARIFY_*_research.md` |
+| 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Accept a rough idea, partial spec, or detailed request; refine intent when needed; then ground the feature in the repo and surface blind spots | Rough idea, partial spec, or detailed request | `Z01_*_research.md` (final) and optional `Z01_CLARIFY_*_research.md` |
 | 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` (final) and optional temporary `Z02_CLARIFY_*_plan.md` |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute the plan in batches with review checkpoints | `Z02_*_plan.md` | Implemented code + verification + handoff to documentation |
 | 4. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
 | 5. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
+
+`feature-researching` may invoke `superpowers:brainstorming` internally for low-definition inputs or for medium-definition requests that still have product-level ambiguity after 1-3 targeted clarification questions. Brainstorming is an internal refinement step in this workflow, not a separate user-facing prerequisite for ordinary feature work.
 
 Use the full flow for large features where discovery, planning, and execution need strict structure.
 

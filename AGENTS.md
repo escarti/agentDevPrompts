@@ -19,6 +19,7 @@ Codex agent instructions for this repository. This repo is a local skill library
 Before feature skills that depend on superpowers, run `load-superpowers` first.
 
 Requires `load-superpowers` first:
+- `feature-researching`
 - `feature-planning`
 - `feature-implementing`
 - `feature-finishing`
@@ -26,7 +27,6 @@ Requires `load-superpowers` first:
 - `feature-pr-fixing`
 
 Standalone:
-- `feature-researching`
 - `feature-documenting`
 
 ## Workflow Artifacts

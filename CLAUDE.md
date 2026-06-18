@@ -51,9 +51,9 @@ agentDevPrompts/
 `feature-*` skills that depend on superpowers must bootstrap with `load-superpowers` first.
 
 - Standalone:
-  - `feature-researching`
   - `feature-documenting`
 - Requires `load-superpowers` first:
+  - `feature-researching`
   - `feature-planning`
   - `feature-implementing`
   - `feature-finishing`

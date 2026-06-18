@@ -5,6 +5,14 @@ description: Bootstrap superpowers and load required superpowers skills before u
 
 ## Superpowers System
 
+Use this before:
+- `feature-researching`
+- `feature-planning`
+- `feature-implementing`
+- `feature-finishing`
+- `feature-pr-reviewing`
+- `feature-pr-fixing`
+
 <EXTREMELY_IMPORTANT>
 Superpowers for this workflow must come from the marketplace/plugin system, not from a local checkout.
 Immediately use `superpowers:using-superpowers` before any response, and follow its rules for loading and applying all relevant superpowers skills.

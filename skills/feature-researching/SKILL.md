@@ -1,6 +1,6 @@
 ---
 name: feature-researching
-description: Use when change proposal presented - follow structured research workflow to produce directive specification
+description: Use as the single feature-workflow entry point to classify idea definition, refine intent when needed, and produce a grounded feature specification
 ---
 
 # Feature Research
@@ -9,64 +9,84 @@ description: Use when change proposal presented - follow structured research wor
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Verify session mode supports this workflow
-2. ☐ Create TodoWrite checklist (see below)
-3. ☐ Mark Step 1 as `in_progress`
-4. ☐ Read AGENTS.md first, then CLAUDE.md/docs before any code
+1. ☐ Verify Superpowers dependencies are available for this session
+2. ☐ Create a progress plan (see below)
+3. ☐ Mark Step 0 as `in_progress`
+4. ☐ Read AGENTS.md first, then CLAUDE.md/docs before any code exploration
 
-**This skill produces 2 files: directive specification (Z01_research.md) + structured questions (Z01_CLARIFY.md)**
+**This skill is the single feature-workflow entry point.**
 
-## MANDATORY FIRST ACTION: Create TodoWrite
+Its responsibilities are:
+- Classify the incoming request as low-, medium-, or high-definition
+- Use `superpowers:brainstorming` as an internal refinement step when the idea is too underdefined for repo-grounded research
+- Produce repo-grounded research artifacts: `Z01_{feature}_research.md` and, when required, `Z01_CLARIFY_{feature}_research.md`
+
+**This skill produces a grounded feature specification, not an implementation plan.**
+
+## MANDATORY FIRST ACTION: Create Progress Plan
 
 ```typescript
-TodoWrite({
-  todos: [
-    {content: "Step 0: Verify session mode and proceed in Default mode", status: "in_progress", activeForm: "Checking collaboration mode"},
-    {content: "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", status: "pending", activeForm: "Reading project docs"},
-    {content: "Step 2: Explore code (glob, grep, read files)", status: "pending", activeForm: "Analyzing codebase"},
-    {content: "Step 3: Create Z01 research file (directive specification)", status: "pending", activeForm: "Writing research"},
-    {content: "Step 4: Create Z01_CLARIFY file (structured questions)", status: "pending", activeForm: "Extracting ambiguities"},
-    {content: "Step 5: Verify directive nature (no questions in research)", status: "pending", activeForm: "Validating specification"},
-    {content: "Step 6: Resolve/track Z01_CLARIFY and block handoff until cleared", status: "pending", activeForm: "Waiting for clarification resolution"}
+update_plan({
+  "explanation": "Tracking feature research workflow",
+  "plan": [
+    {"step": "Step 0: Verify session mode and Superpowers dependencies", "status": "in_progress"},
+    {"step": "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", "status": "pending"},
+    {"step": "Step 2: Classify request definition level", "status": "pending"},
+    {"step": "Step 3: Route low/medium/high definition requests appropriately", "status": "pending"},
+    {"step": "Step 4: Explore code and repo touchpoints", "status": "pending"},
+    {"step": "Step 5: Create Z01 research file (grounded feature specification)", "status": "pending"},
+    {"step": "Step 6: Create or update Z01_CLARIFY for blocking ambiguities", "status": "pending"},
+    {"step": "Step 7: Verify research/planning boundary and completion gate", "status": "pending"}
   ]
 })
 ```
 
-**After each step:** Mark completed, move `in_progress` to next step.
+**After each step:** Mark completed, move `in_progress` to the next step.
 
 ## The Iron Law
 
 ```
 NO RESEARCH WITHOUT READING AGENTS.MD FIRST
-NO Z01_CLARIFY WITH 5 OR MORE QUESTIONS WITHOUT INVOKING BRAINSTORMING
-NO PLANNING WITHOUT FILE PATHS + LINE RANGES
-NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE WORK
+NO LOW-DEFINITION INPUT WITHOUT AN INTERNAL REFINEMENT STEP
+NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
+NO HANDOFF TO PLANNING WHILE BLOCKING AMBIGUITIES REMAIN
 ```
 
-**If you skip AGENTS.md or CLAUDE.md:** You'll violate project patterns. Delete Z01, start over.
+**If Superpowers dependencies are unavailable:** Stop and report that the required marketplace-installed Superpowers skills are missing.
 
-**If Z01_CLARIFY has 5 or more questions:** Design is unclear. Stop research, invoke superpowers:brainstorming to clarify requirements first.
+**If Z01 depends on external docs for core requirements:** Copy or summarize the required source context into Z01 and rewrite it to be self-contained.
 
-**If Z01_research lacks file paths:** Planner can't proceed. Add exact files + line ranges or don't create Z01.
+**If the request remains product-ambiguous after medium-definition clarification:** Escalate to `superpowers:brainstorming`.
 
-**If Z01_research references another doc for core requirements ("see spec/PRD/ticket"):** Z01 is invalid. Copy required source context into Z01 and rewrite to be self-contained.
+## Research Output Contract
 
-## Research Output Format
+**Z01 is a grounded feature specification.**
 
-**Single directive:** One clear approach (preserves existing patterns from AGENTS.md, CLAUDE.md, and docs)
+It must:
+- Stand on its own for planning
+- Be grounded in current repo behavior and constraints
+- Surface edge cases, risks, dependencies, and test criteria
+- Record likely touchpoints and possible downstream adaptations
+- Make explicit which assumptions are safe for planning versus which ambiguities still block planning
 
-**Primary + 1 alternative:** Only if alternative is significantly better for specific use case
-- Primary approach MUST preserve existing patterns from AGENTS.md, CLAUDE.md, and docs
-- Alternative approach has different trade-offs (e.g., microservice vs monolith)
-- Both options have complete technical details (files, line ranges, pros/cons)
-- User chooses, then update Z01_research.md to be fully directive
+It must **not**:
+- Lock exact edit line ranges
+- Contain a pseudo-implementation plan
+- Promise that implementation can begin without planning
+- Turn planning into a formatting-only step
 
 ## Workflow Steps
 
-### Step 0: Session Mode Check
+### Step 0: Verify Session Mode and Dependencies
 
 This workflow runs in Default mode or Plan mode.
 Proceed in the current mode; do not block on Plan mode availability.
+
+This skill depends on Superpowers. Verify that the following skills are available before continuing:
+- `superpowers:using-superpowers`
+- `superpowers:brainstorming`
+
+If they are unavailable, stop and report that the required Superpowers dependency is missing.
 
 ---
 
@@ -75,38 +95,107 @@ Proceed in the current mode; do not block on Plan mode availability.
 **MANDATORY FIRST - read these if they exist:**
 - AGENTS.md (default repo instructions, patterns, conventions)
 - CLAUDE.md (Claude-specific patterns, conventions, forbidden approaches)
-- README.md (architecture overview)
+- README.md (workflow expectations and public behavior)
 - ARCHITECTURE.md (system design)
-- All documentation (glob "**/docs/**/*.md")
+- All documentation (glob `**/docs/**/*.md`)
 
-**Why:** AGENTS.md sets the default repo rules, and CLAUDE.md may add mandatory patterns or forbidden approaches. Primary solution MUST preserve these patterns.
+Why:
+- AGENTS.md sets default repo rules
+- CLAUDE.md may add mandatory patterns or forbidden approaches
+- README and docs establish the public workflow contract this skill must preserve
 
 ---
 
-### Step 2: Explore Code
+### Step 2: Classify Request Definition Level
 
-Find related files, search for patterns, read key files.
+Before code exploration, classify the incoming request:
+
+**Low definition**
+- Only a couple of lines or an intention statement
+- No clear behavior, scope boundaries, or success criteria
+- Not enough specificity to research against the repo responsibly
+
+**Medium definition**
+- Some desired behavior is described
+- Important scope, UX, contract, compatibility, or test expectations are still missing
+- Enough detail exists to ask a small number of targeted questions before deciding whether research can proceed
+
+**High definition**
+- Desired behavior, scope, and success criteria are mostly clear
+- Research can proceed directly after repo inspection
+
+Record the chosen classification and a short reason in Z01 under `Definition Level and Triage Result`.
+
+---
+
+### Step 3: Route Based on Definition Level
+
+#### Low-definition requests
+
+Use `superpowers:brainstorming` as an **internal refinement step**.
+
+Critical constraints for that invocation:
+- `feature-researching` remains the primary workflow owner
+- The goal is to refine product intent enough for repo-grounded research
+- Do NOT treat brainstorming output as the final workflow artifact
+- Do NOT hand off directly to planning from the brainstorming flow
+
+Tell the dependency:
+- It is being used to refine intent only
+- After refinement, control returns to `feature-researching`
+- Refined requirements must be merged back into `Z01_{feature}_research.md`
+- If brainstorming writes a spec because its own workflow requires it, treat that file as temporary input and fold the needed context into Z01
+
+After refinement completes, continue with Step 4.
+
+#### Medium-definition requests
+
+Ask **1-3 targeted clarification questions** inside `feature-researching` before repo exploration when that will materially sharpen research.
+
+Use those questions to resolve:
+- Scope boundaries
+- User-visible behavior
+- Acceptance/test intent
+- Contract assumptions
+- Compatibility expectations
+
+After the answers:
+- If the request is now clear enough for research, continue with Step 4
+- If ambiguity remains primarily product/design-level, escalate to `superpowers:brainstorming` using the same internal-refinement constraints as low-definition requests
+
+#### High-definition requests
+
+Proceed directly to Step 4.
+
+---
+
+### Step 4: Explore Code and Repo Touchpoints
+
+Find related files, search for patterns, read key files, and ground the request in what the repo can already do.
 
 Document:
-- Files to change with line ranges
-- APIs and integration points
-- Data shapes and types
+- Current behavior and current limitations
+- Existing patterns and constraints that must be preserved
+- Likely touchpoints and integration points
+- Data shapes and contracts already in play
 - Security considerations
 - Edge cases and failure modes
-- Test requirements
-- Environment variables
-- Source proposal/spec details that drive implementation scope
+- Dependency risks and compatibility concerns
+- Testing expectations and acceptance criteria implied by the current code
+- Possible downstream or upstream adaptations that may be required
+
+Prefer likely touchpoints and integration boundaries over false precision. Exact edit ranges belong in planning unless they are genuinely obvious and important for risk analysis.
 
 ---
 
-### Step 3: Create Research File
+### Step 5: Create Research File
 
 **Scan for ongoing directory:**
 - Check for existing Z01 files
-- Common locations: docs/ai/ongoing, .ai/ongoing, docs/ongoing
-- Create default docs/ai/ongoing if none found
+- Common locations: `docs/ai/ongoing`, `.ai/ongoing`, `docs/ongoing`
+- Create default `docs/ai/ongoing` if none is found
 
-**Save ONGOING_DIR location** for Step 4.
+**Save ONGOING_DIR location** for Step 6.
 
 **File**: `{ONGOING_DIR}/Z01_{feature}_research.md`
 
@@ -115,202 +204,212 @@ Document:
 - Replace spaces and special chars with underscores
 - Remove quotes, slashes, colons
 - Truncate to 50 characters
-- Example: "OAuth 2.0 Authentication!" → "oauth_2_0_authentication"
+- Example: `OAuth 2.0 Authentication!` → `oauth_2_0_authentication`
 
-**Structure** (key sections only):
+**Structure**:
+
 ```markdown
 # {Feature} Research
 
 ## Summary
-One paragraph: what and why.
+One paragraph: what is being proposed and why it matters.
 
-## Source Context (Self-Contained)
-- Original user proposal/spec intent copied into this file
-- Functional and non-functional requirements from source docs
-- Constraints, assumptions, and explicit out-of-scope items from source docs
-- Include enough detail so planning/implementation can proceed without opening the source doc
+## Source Idea / Requested Change
+- Original user proposal or refined request context
+- Functional requirements from the source prompt or refinement step
+- Non-functional requirements, constraints, and explicit out-of-scope notes
 
-## Current State
-What exists. Files: path/to/file.py:123-145
+## Definition Level and Triage Result
+- Classification: low | medium | high
+- Why it was classified this way
+- Whether brainstorming or targeted clarification was used
 
-## Existing Patterns & Documentation
+## Current State in the Repo
+- What exists today
+- Relevant files, modules, endpoints, or workflows already involved
+- Current limitations or inconsistencies discovered during exploration
+
+## Observed Constraints and Existing Patterns
 ### From AGENTS.md and CLAUDE.md
 - Conventions that MUST be followed
 - Architectural patterns to preserve
 - Forbidden patterns/approaches
 
-### Repository Structure
-- Directory/file naming patterns
+### From the Codebase
+- Relevant repository structure or implementation patterns already in use
 
-## Proposed Implementation
+## Proposed Feature Behavior
+- What the feature should do
+- What it should not do
+- User-visible behavior and system-visible behavior
 
-### Primary Approach (Preserves Existing Patterns)
-- Architecture: How it fits existing system
-- Files: path/to/file.py:50-75 - What changes
-- Data shapes, APIs, integration points
-- Security, edge cases, test requirements
+## Edge Cases and Failure Modes
+- Important edge cases that must be handled
+- Expected failure behavior and fallback behavior
 
-### Alternative Approach (Optional - only if significantly better)
-- Why different: [specific advantages]
-- Architecture, files, data shapes
-- Trade-offs vs primary
+## Dependencies, Compatibility Risks, and Potential Adaptations
+- Likely touchpoints or integration points
+- Upstream/downstream contracts that may need adaptation
+- Endpoint, schema, consumer, or workflow risks
+- External dependencies or internal services affected
 
-## Integration Points
-How this connects to existing code.
+## Testing and Acceptance Criteria
+- What must be verified for the feature to be considered correct
+- Critical regression coverage expectations
+- User-visible acceptance criteria
 
-## Environment Variables
-- VAR_NAME - purpose
+## Known Limitations / Explicit Non-Goals
+- Constraints accepted for now
+- Things this research intentionally does not solve
+
+## Open Assumptions Chosen for Planning
+- Non-blocking assumptions that planning may rely on
+- Assumptions that must be revisited if new evidence appears
 ```
 
 **Self-contained requirement (MANDATORY):**
-- Z01 must stand on its own for planning and implementation.
-- Do not require readers to open spec/idea/PRD/ticket documents for core requirements.
+- Z01 must stand on its own for planning.
+- Do not require readers to open idea/spec/PRD/ticket documents for core requirements.
 - If external docs are mentioned, summarize or copy the relevant requirements into Z01.
-- Phrases like "see spec", "refer to ticket", "details in doc X" are only allowed for optional background, never for required implementation details.
+- Phrases like `see spec`, `refer to ticket`, or `details in doc X` are only allowed for optional background, never for required planning inputs.
 
 ---
 
-### Step 4: Create CLARIFY File
+### Step 6: Create or Update CLARIFY File
 
 **File**: `{ONGOING_DIR}/Z01_CLARIFY_{feature}_research.md`
 
-Every ambiguity, technology choice, or missing requirement:
-```markdown
-Agent question: {concise question}
-User response:
+Use this file only for **blocking ambiguities** that remain after routing and repo exploration.
 
-Agent question: {next question}
+Blocking categories include:
+- User-visible behavior or scope ambiguity
+- Data contract ambiguity
+- Permission or security ambiguity
+- External dependency or upstream/downstream contract uncertainty
+- Compatibility or migration ambiguity
+- Test oracle ambiguity
+
+**Do not** create CLARIFY entries for non-blocking unknowns. Keep those in Z01 under `Open Assumptions Chosen for Planning`.
+
+**Structure for each blocking item:**
+
+```markdown
+Question: {concise blocking question}
+Why this matters: {short explanation of the planning risk}
+Options considered:
+- Option A
+- Option B
+Recommended default: {recommended direction if the user does not care strongly}
 User response:
 ```
 
-**Critical**: Leave "User response:" blank. No explanations.
+**Critical:** Leave `User response:` blank until answered.
 
-**When incorporating answered questions:** Delete fully-answered CLARIFY files or remove incorporated Q&A pairs if only some were answered.
-
-**Phase Gate**: After creating Z01_CLARIFY, count the questions.
-
-**If 5 or more questions:**
-1. STOP - don't proceed to Step 5
-2. Design is too unclear for research
-3. Delete both Z01_research.md and Z01_CLARIFY.md
-4. Announce: "Design unclear (5+ questions). Using superpowers:brainstorming to clarify requirements first."
-5. Use Skill tool to invoke `superpowers:brainstorming`
-6. After brainstorming completes, start feature-research again from Step 1
-
-**If fewer than 5 questions:** Proceed to Step 5
+**When incorporating answered questions:** Delete fully answered CLARIFY files or remove incorporated entries if only some were answered.
 
 ---
 
-### Step 5: Verify Directive Nature
+### Step 7: Verify Research/Planning Boundary and Completion Gate
 
-Check Z01_research.md for vague questions:
-- "Should we...?" → Move to CLARIFY
-- "Options include..." (vague) → Make directive OR move to CLARIFY
-- "We could..." (incomplete) → Make directive OR move to CLARIFY
+Check `Z01_{feature}_research.md` for boundary violations.
 
-**Acceptable:** Primary + 1 alternative with complete details for both
-**Not acceptable:** Vague alternatives, 3+ options, questions embedded
-
----
-
-### Step 6: Completion Gate (CLARIFY Controls Done State)
+Move or remove anything that looks like:
+- exact implementation task breakdown
+- phased PR execution plan
+- code-level execution instructions
+- hard requirements for exact edit line ranges
+- claims that planning has no meaningful decisions left
 
 Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists with unresolved items.
 
 **Unresolved means ANY of the following:**
-- File still contains `Agent question:` entries
+- The file still contains at least one `Question:` entry
 - Any `User response:` is blank
 - Answers were provided but not yet incorporated into `Z01_{feature}_research.md`
 
 **If unresolved CLARIFY exists:**
-1. Keep research todo as `in_progress` (do NOT mark workflow complete)
-2. Report only: "Waiting for Z01_CLARIFY_{feature}_research.md answers/incorporation before planning."
+1. Keep research todo as `in_progress`
+2. Report only: `Waiting for Z01_CLARIFY_{feature}_research.md answers/incorporation before planning.`
 3. Do NOT invoke or suggest `feature-planning` yet
 
 **Only mark research complete when:**
 1. Clarification answers are incorporated into `Z01_{feature}_research.md`
-2. `Z01_CLARIFY_{feature}_research.md` is deleted (or has no remaining Q&A pairs)
-3. Research file is directive and has no open questions
-
----
+2. `Z01_CLARIFY_{feature}_research.md` is deleted (or has no remaining entries)
+3. Z01 is self-contained and grounded
+4. Z01 contains behavior, risks, dependencies, edge cases, and acceptance criteria
+5. Z01 stays on the research side of the research/planning boundary
 
 ## Red Flags - You're Failing If:
 
 - **Did NOT read AGENTS.md/CLAUDE.md/README/docs FIRST**
 - **Stopped this skill due to missing Plan mode**
-- **Primary approach violates AGENTS.md or CLAUDE.md patterns**
-- **Z01_CLARIFY has 5 or more questions but didn't invoke brainstorming**
+- **Treated brainstorming as a separate user-facing prerequisite instead of an internal refinement step**
+- **Allowed brainstorming artifacts to replace Z01 as the primary research artifact**
+- **Skipped classification of the request as low/medium/high definition**
+- **Used more than 3 initial clarification questions for a medium-definition request before deciding whether to escalate**
+- **Stored non-blocking unknowns in Z01_CLARIFY instead of Z01 assumptions**
 - **Marked research done while Z01_CLARIFY still has unresolved items**
-- **More than 2 files created**
-- **No file paths or line ranges**
-- **Questions embedded in Z01_research.md**
-- **CLARIFY has explanations** (should be questions only)
-- **Missing "Existing Patterns" section**
-- **Using hardcoded paths** (detect pattern instead)
-- **Vague file references** (need path + line ranges)
+- **No triage result recorded in Z01**
+- **No edge cases or failure modes captured**
+- **No dependency/adaptation warnings captured**
 - **Z01 depends on external docs for core requirements**
+- **Z01 reads like an implementation plan instead of grounded research**
 
 ## Common Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
-| **"No CLAUDE.md exists, skip docs"** | **NO.** Still read AGENTS.md, README, docs/. Document patterns from code. |
-| **"Small feature, patterns don't matter"** | **NO.** Small violations create technical debt. Patterns ALWAYS matter. |
-| **"I can see the pattern in code"** | **NO.** AGENTS.md or CLAUDE.md may forbid what looks standard. Docs are truth. |
-| **"Questions need context for user"** | **NO.** User has conversation context. CLARIFY = questions only. |
-| **"File paths in planning step"** | **NO.** Research includes files + line ranges NOW. |
-| **"User suggested solution, proceed"** | **NO.** Still confirm via CLARIFY. No assumptions. |
-| **"This alternative is better, skip primary"** | **NO.** Primary preserving patterns is REQUIRED. |
-| **"6 questions but design seems clear"** | **NO.** 5 or more questions = unclear design. Invoke brainstorming. Iron Law. |
-| **"I'll answer questions instead of brainstorming"** | **NO.** You don't have authority. User needs to clarify via brainstorming. |
-| **"Delete Z01s after brainstorming wastes work"** | **NO.** Bad research blocks planning. Delete and redo correctly. |
-| **"Research is done because files were created"** | **NO.** Done state depends on no unresolved Z01_CLARIFY, not file creation. |
-| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
-| "Research is exploratory, no need to track" | **NO.** Research follows strict workflow. Track all steps with TodoWrite. |
+| **"This is only a rough idea, research can't start"** | **NO.** Research is now the single entry point. Classify it and route internally. |
+| **"Brainstorming should own the whole flow for vague requests"** | **NO.** Brainstorming is an internal refinement tool here. Artifact ownership remains with research. |
+| **"Medium ambiguity means ask every question now"** | **NO.** Ask 1-3 high-leverage questions, then decide whether to continue or escalate. |
+| **"The repo touchpoints are obvious, I'll skip documenting risks"** | **NO.** Surfacing compatibility and adaptation risks is a core deliverable of research. |
+| **"Exact file edits belong in research so planning stays easy"** | **NO.** That collapses the stage boundary. Research should identify likely touchpoints, not replace planning. |
+| **"Questions need no context in CLARIFY"** | **NO.** Blocking questions should include why they matter and the recommended default. |
+| **"If a guess is reasonable, no need to mention it"** | **NO.** Non-blocking guesses belong in `Open Assumptions Chosen for Planning`. |
+| **"Research is done because Z01 exists"** | **NO.** Done state depends on resolved blocking ambiguities and a clean research/planning boundary. |
 
 ## Success Criteria
 
 You followed the workflow if:
 - ✓ Read AGENTS.md/CLAUDE.md/README/docs FIRST
-- ✓ Verified session mode supports workflow before Step 1
-- ✓ "Existing Patterns" section in Z01_research.md
-- ✓ Primary approach preserves patterns from AGENTS.md and CLAUDE.md
-- ✓ If Z01_CLARIFY has 5 or more questions: invoked superpowers:brainstorming and restarted
-- ✓ Exactly 2 files: Z01_research.md + Z01_CLARIFY.md (fewer than 5 questions)
-- ✓ Z01_research.md is directive (single OR primary + 1 alternative)
-- ✓ If alternative: both have complete technical details
-- ✓ File paths + line ranges included
-- ✓ Z01_research.md includes copied/summarized source proposal context and is self-contained
-- ✓ CLARIFY uses exact format (questions only, blank responses)
-- ✓ Research stays in_progress until CLARIFY is fully resolved and removed
-- ✓ Implementer can code without architectural decisions
+- ✓ Verified Superpowers dependencies before proceeding
+- ✓ Classified the request as low, medium, or high definition
+- ✓ Used brainstorming internally for low-definition requests and product-level medium-definition escalations
+- ✓ Recorded the triage result in Z01
+- ✓ Produced a self-contained Z01 grounded in repo behavior and constraints
+- ✓ Captured current state, proposed behavior, edge cases, risks, dependencies, and acceptance criteria
+- ✓ Used likely touchpoints/integration points instead of forcing planning-level edit detail
+- ✓ Put non-blocking unknowns into Z01 assumptions
+- ✓ Used contextualized Z01_CLARIFY entries only for blocking ambiguities
+- ✓ Kept research in progress until Z01_CLARIFY was fully resolved and removed
+- ✓ Handed planning a grounded feature spec rather than a pseudo-plan
 
 ## When to Use
 
 Use when:
-- Design direction is clear from brainstorming
-- Need thorough technical research before planning
-- Need to understand integration points, APIs, data shapes, security
+- You have a rough idea, partial spec, or well-defined feature request
+- You need one entry point that can refine intent and then ground the work in the repo
+- You need to surface integration risks, edge cases, constraints, and test criteria before planning
 
 **Don't use when:**
-- Design is still unclear → Use superpowers:brainstorming first
-- Simple changes (typo fixes, trivial updates)
-- Already have complete technical specification
+- The change is trivial enough that no research artifact is needed
+- The work is already fully planned and ready for execution
 
 ## Handoff to Planning
 
 If CLARIFY has unresolved items:
-1. Announce: "Research not complete yet. Waiting for Z01_CLARIFY answers/incorporation."
-2. Keep research workflow open (do not handoff)
+1. Announce: `Research not complete yet. Waiting for Z01_CLARIFY answers/incorporation.`
+2. Keep research workflow open (do not hand off)
 
 When CLARIFY is fully resolved and removed:
-1. Announce: "Research complete. Z01_research.md ready for planning."
+1. Announce: `Research complete. Z01_research.md ready for planning.`
 2. Then proceed to planning workflow
 
 **What planning receives:**
-- Patterns that MUST be preserved (from AGENTS.md and CLAUDE.md)
-- Forbidden approaches to AVOID
-- Files that MUST be modified (with line ranges)
-- APIs/libraries required
-- Security/integration requirements
-- When to proceed (user approval trigger)
+- Patterns that MUST be preserved
+- Grounded feature behavior and explicit non-goals
+- Current repo state and likely touchpoints
+- Edge cases, failure modes, and compatibility risks
+- Test and acceptance criteria
+- Blocking decisions already resolved
+- Explicit assumptions safe to carry into planning

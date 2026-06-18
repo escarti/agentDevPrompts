@@ -9,23 +9,24 @@ description: Use after research (Z01 files exist) to create implementation plan 
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Create TodoWrite checklist (see below)
+1. ☐ Create a progress plan (see below)
 2. ☐ Mark Step 1 as `in_progress`
 3. ☐ Read AGENTS.md first and CLAUDE.md if it exists
 
 **This skill is a WRAPPER that loads Z01 context and invokes superpowers:writing-plans**
 
-## MANDATORY FIRST ACTION: Create TodoWrite
+## MANDATORY FIRST ACTION: Create Progress Plan
 
 ```typescript
-TodoWrite({
-  todos: [
-    {content: "Step 1: Load project context (AGENTS.md first, CLAUDE.md if it exists)", status: "in_progress", activeForm: "Reading repo instructions"},
-    {content: "Step 2: Verify Z01 files exist", status: "pending", activeForm: "Checking research"},
-    {content: "Step 3: Read ALL Z01 files", status: "pending", activeForm: "Loading context"},
-    {content: "Step 4: Invoke superpowers:writing-plans", status: "pending", activeForm: "Creating plan"},
-    {content: "Step 5: Verify Z02 outputs", status: "pending", activeForm: "Validating output"},
-    {content: "Step 6: Resolve/track Z02_CLARIFY and block handoff until cleared", status: "pending", activeForm: "Waiting for clarification resolution"}
+update_plan({
+  "explanation": "Tracking feature planning workflow",
+  "plan": [
+    {"step": "Step 1: Load project context (AGENTS.md first, CLAUDE.md if it exists)", "status": "in_progress"},
+    {"step": "Step 2: Verify Z01 files exist", "status": "pending"},
+    {"step": "Step 3: Read ALL Z01 files", "status": "pending"},
+    {"step": "Step 4: Invoke superpowers:writing-plans", "status": "pending"},
+    {"step": "Step 5: Verify Z02 outputs", "status": "pending"},
+    {"step": "Step 6: Resolve/track Z02_CLARIFY and block handoff until cleared", "status": "pending"}
   ]
 })
 ```
@@ -86,10 +87,11 @@ Read all Z01 files in ONGOING_DIR:
 - If all answered → proceed
 
 Extract:
-- Technical research and integration points
-- File paths and line ranges
+- Grounded feature behavior and explicit non-goals
+- Current repo state, likely touchpoints, and integration points
 - Answered clarifications
-- Security and test requirements
+- Risks, dependencies, compatibility concerns, and planning-safe assumptions
+- Security, test, and acceptance requirements
 
 ---
 
@@ -97,7 +99,8 @@ Extract:
 
 **CRITICAL**: This skill's primary job is to invoke superpowers:writing-plans with Z01 context. If you skip this invocation, the skill provides no value.
 
-**Use Skill tool** to invoke `superpowers:writing-plans`
+**Load and follow** `superpowers:writing-plans` using Codex's current skill-loading flow.
+If that dependency is unavailable, stop and report that the required Superpowers skill is missing.
 
 Provide this instruction:
 
@@ -109,13 +112,29 @@ Provide this instruction:
 CRITICAL: Save the plan to {ONGOING_DIR}/Z02_{feature}_plan.md (use the detected path, NOT hardcoded docs/plans/).
 
 The plan should be a DIRECTIVE document with:
-- Exact file paths from research
+- Exact file paths and edit targets determined during planning
 - Complete code examples
 - Verification steps for each task
 - TDD structure (test-fail-implement-pass-commit)
 - A phased delivery strategy split into multiple self-contained PRs (when scope is non-trivial), where each phase is independently reviewable, testable, and mergeable
 - For each planned PR phase: clear scope boundaries, explicit out-of-scope items, dependency notes, and phase-specific verification
+- Explicit `## Phase N: <name>` sections that define the execution boundary for feature-implementing
+- For each phase: `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
+- For every task: a `**Phase:** Phase N` field matching its containing phase
 - Assumes engineer has minimal domain knowledge
+
+Treat Z01 as a grounded feature specification, not a pseudo-plan. Planning is responsible for locking:
+- exact file edits and line ranges
+- implementation decomposition
+- phase boundaries
+- code-level execution detail
+
+Preserve from Z01:
+- grounded behavior
+- clarified requirements
+- risks and dependencies
+- acceptance criteria
+- planning-safe assumptions
 
 If you discover NEW blocking questions during planning (not already in Z01_CLARIFY), create {ONGOING_DIR}/Z02_CLARIFY_{feature}_plan.md. Otherwise, do NOT create a Z02_CLARIFY file.
 
@@ -153,7 +172,7 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 3. Plan remains directive and executable
 
 **Report to user:**
-- If no unresolved clarifications: "Plan created: Z02_{feature}_plan.md. Ready for feature-workflow:feature-implementing."
+- If no unresolved clarifications: "Plan created: Z02_{feature}_plan.md. Ready for feature-workflow:feature-implementing, which will ask for execution mode and own batching/Z99 tracking."
 - If clarifications exist: "Planning not complete. Resolve Z02_CLARIFY before implementation."
 
 ---
@@ -169,7 +188,7 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 - **Directly invoked superpowers:writing-plans without loading Z01 context**
 - **Creating plan files with non-standard names** (not Z02_{feature}_plan.md)
 - **Saving plans to wrong directory**
-- **Used SlashCommand `/superpowers:write-plan`** (use Skill tool)
+- **Treated `superpowers:writing-plans` like a slash command or generic tool call** instead of loading the skill through Codex's current skill workflow
 - **Did NOT explicitly specify output path** in prompt to writing-plans
 - **Skipped reading Z01_CLARIFY** (if exists)
 - **Using hardcoded paths** (detect pattern instead)
@@ -186,8 +205,8 @@ Planning is **NOT complete** while `Z02_CLARIFY_{feature}_plan.md` exists with u
 | **"Create Z02_CLARIFY even if no questions"** | **NO.** Empty files clutter directory. Only create if NEW questions. |
 | **"Just invoke superpowers:writing-plans directly"** | **NO.** This wrapper loads Z01 context. That's its value. |
 | **"Planning is done because Z02 plan exists"** | **NO.** Done state requires no unresolved Z02_CLARIFY. |
-| "Wrapper skill, no need to track steps" | **NO.** Wrapper has critical steps (context loading, invocation). Track with TodoWrite. |
-| "TodoWrite adds overhead, skip it" | **NO.** TodoWrite provides user visibility and prevents skipped steps. MANDATORY. |
+| "Wrapper skill, no need to track steps" | **NO.** Wrapper has critical steps (context loading, invocation). Track them with the current Codex progress tool. |
+| "Progress tracking adds overhead, skip it" | **NO.** Maintain workflow state with Codex-compatible progress tracking such as `update_plan`. |
 
 ## Success Criteria
 
@@ -197,10 +216,11 @@ You followed the workflow if:
 - ✓ Passed AGENTS.md and CLAUDE.md constraints to superpowers:writing-plans
 - ✓ Checked for Z01* files
 - ✓ Read ALL Z01* files if they exist
-- ✓ Invoked superpowers:writing-plans skill (NOT slash command)
+- ✓ Loaded and followed `superpowers:writing-plans` through Codex's current skill workflow
 - ✓ Explicitly instructed output path in prompt
 - ✓ Verified Z02_{feature}_plan.md was created
 - ✓ Plan defines self-contained, sequential PR phases for non-trivial work (not one mega PR)
+- ✓ Plan includes explicit phase metadata and per-task phase labels for implementation batching
 - ✓ Planning stayed in_progress until Z02_CLARIFY was fully resolved and removed
 - ✓ Reported next steps to user
 
