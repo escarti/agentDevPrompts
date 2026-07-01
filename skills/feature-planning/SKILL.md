@@ -177,9 +177,11 @@ Publish-time body and link requirements to include in the preview:
 - if information from `Z02` is needed, copy or restate it into the tracker items themselves
 - tracker items may reference only other tracker items when those references clarify execution order or parent/child structure
 - `GitHub issues`: propose one epic-like parent issue plus one child issue per `Z02` task
+- `GitHub issues`: the parent issue title must use the format `[Epic] <feature name>`
 - `GitHub issues`: the parent issue must restate the complete roadmap context needed to understand the work, including the feature goal, the ordered phase structure, and how the child issues fit together
 - `GitHub issues`: the parent issue preview must include the full intended child issue list in execution order, using concrete child titles and explicit predecessor/dependency notes for each child
 - `GitHub issues`: the parent issue preview must not stop at a policy statement like "one child per task"; it must enumerate the actual planned children and their order
+- `GitHub issues`: each child issue title must use the format `[Task X.Y][Parent #N] <task title>`, where `X.Y` is derived from phase/task order and `N` is the real created parent issue number
 - `GitHub issues`: each child issue must reference the parent issue and any blocker or predecessor tasks from `Z02`
 - `GitHub issues`: each child issue must include all task intent, scope boundaries, dependencies, and verification expectations needed to implement that task without opening the local `Z02` plan
 - `GitHub issues`: the parent issue must be updated after child creation with real child issue references, not placeholders
@@ -210,7 +212,10 @@ Rules:
 
 If publishing `GitHub issues`:
 - create the epic-like parent issue in the resolved repository
+- use the title format `[Epic] <feature name>` for the parent issue
 - create one child issue per `Z02` task
+- create the parent issue first so the real parent issue number can be used in every child title
+- use the title format `[Task X.Y][Parent #N] <task title>` for every child issue, where `X.Y` comes from the plan order and `N` is the created parent issue number
 - include parent references and blocker references in each child issue body
 - keep all required implementation context in the GitHub issues themselves rather than linking back to local planning artifacts
 - update the parent issue after child creation so it contains real links or issue references to every created child
@@ -271,6 +276,7 @@ Report to the user:
 - Published tracker items that relied on `Z0X` files, local paths, or external documents for required implementation context
 - Linked tracker items back to transient local workflow artifacts instead of restating the required information in the issues themselves
 - Published a parent issue or epic that described child-item policy abstractly but did not enumerate the actual child items, their execution order, and their dependency/completion order
+- Published GitHub child issues whose titles did not use the `[Task X.Y][Parent #N] <task title>` pattern
 - Published GitHub issues without a parent issue, child issues, or final parent back-links
 - Published Jira tasks without epic references, predecessor links, or dependency language in task bodies
 - Guessed a Jira project when no repo-defined project reference existed
@@ -291,6 +297,7 @@ Report to the user:
 - Previewed destination, tasks, and dependencies before mutation
 - Kept tracker items self-contained and free of required links to local workflow artifacts or external documents
 - Published one parent item and one child item per `Z02` task when approved
+- Enforced `[Epic] <feature name>` for GitHub parent titles and `[Task X.Y][Parent #N] <task title>` for GitHub child titles
 - Published tracker items only after explicit approval
 - Ensured the parent issue or epic enumerated the actual child items in execution order with explicit dependency/completion ordering
 - Kept publication aligned to the parent/child or epic/task contract with dependency references

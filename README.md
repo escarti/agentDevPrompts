@@ -153,6 +153,9 @@ Optional tracker publication after planning:
 - Publication is never automatic. The workflow previews destination, tasks, and dependencies first and waits for explicit approval before mutation.
 - `Z02_*_plan.md` remains the canonical local planning artifact even when tracker items are published. Tracker items are a projection of the approved Z02, not a separate planning flow.
 - Published tracker items must be self-contained. They must not rely on links to `Z0X` workflow files, local file paths, or other transient local artifacts for required implementation context.
+- GitHub publication uses a strict title pattern for easy scanning:
+  - parent issue: `[Epic] <feature name>`
+  - child issue: `[Task X.Y][Parent #N] <task title>`
 
 Implementation mode after planning:
 - Local-plan execution keeps `Z02_*_plan.md` as source of truth and `Z99_implementation_status.md` as the live execution tracker.
