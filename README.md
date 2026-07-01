@@ -152,6 +152,7 @@ Optional tracker publication after planning:
   - Jira: one epic plus one task per Z02 task
 - Publication is never automatic. The workflow previews destination, tasks, and dependencies first and waits for explicit approval before mutation.
 - `Z02_*_plan.md` remains the canonical local planning artifact even when tracker items are published. Tracker items are a projection of the approved Z02, not a separate planning flow.
+- Published tracker items must be self-contained. They must not rely on links to `Z0X` workflow files, local file paths, or other transient local artifacts for required implementation context.
 
 Clarification gates:
 - Research is not complete while `Z01_CLARIFY_*_research.md` has unresolved questions.
