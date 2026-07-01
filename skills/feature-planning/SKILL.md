@@ -178,14 +178,20 @@ Publish-time body and link requirements to include in the preview:
 - tracker items may reference only other tracker items when those references clarify execution order or parent/child structure
 - `GitHub issues`: propose one epic-like parent issue plus one child issue per `Z02` task
 - `GitHub issues`: the parent issue must restate the complete roadmap context needed to understand the work, including the feature goal, the ordered phase structure, and how the child issues fit together
+- `GitHub issues`: the parent issue preview must include the full intended child issue list in execution order, using concrete child titles and explicit predecessor/dependency notes for each child
+- `GitHub issues`: the parent issue preview must not stop at a policy statement like "one child per task"; it must enumerate the actual planned children and their order
 - `GitHub issues`: each child issue must reference the parent issue and any blocker or predecessor tasks from `Z02`
 - `GitHub issues`: each child issue must include all task intent, scope boundaries, dependencies, and verification expectations needed to implement that task without opening the local `Z02` plan
 - `GitHub issues`: the parent issue must be updated after child creation with real child issue references, not placeholders
+- `GitHub issues`: the published parent issue must contain the actual created child issue references in execution order and must state the dependency/completion order between those child issues
 - `Jira epic plus tasks`: propose one epic plus one task per `Z02` task
 - `Jira epic plus tasks`: the epic must restate the complete roadmap context needed to understand the work, including the feature goal, the ordered phase structure, and how the child tasks fit together
+- `Jira epic plus tasks`: the epic preview must include the full intended child task list in execution order, using concrete child titles and explicit predecessor/dependency notes for each task
+- `Jira epic plus tasks`: the epic preview must not stop at a policy statement like "one task per Z02 task"; it must enumerate the actual planned children and their order
 - `Jira epic plus tasks`: each task must reference the epic and any predecessor tasks from `Z02`
 - `Jira epic plus tasks`: each task must include all task intent, scope boundaries, dependencies, and verification expectations needed to implement that task without opening the local `Z02` plan
 - `Jira epic plus tasks`: dependency language must appear both in issue links and in the task bodies when predecessor relationships exist
+- `Jira epic plus tasks`: the published epic must contain the actual created child task references in execution order and must state the dependency/completion order between those child tasks
 
 Do not mutate or replace `Z02_{feature}_plan.md` during tracker preparation.
 
@@ -208,6 +214,7 @@ If publishing `GitHub issues`:
 - include parent references and blocker references in each child issue body
 - keep all required implementation context in the GitHub issues themselves rather than linking back to local planning artifacts
 - update the parent issue after child creation so it contains real links or issue references to every created child
+- ensure the updated parent issue lists the child issues in the intended execution order and explicitly describes which child issues block or precede later ones
 
 If publishing `Jira epic plus tasks`:
 - create the epic in the resolved Jira project
@@ -215,6 +222,7 @@ If publishing `Jira epic plus tasks`:
 - include epic references and predecessor-task dependency language in each task body
 - keep all required implementation context in the Jira issues themselves rather than linking back to local planning artifacts
 - create issue links that express the predecessor relationships between tasks when those dependencies exist
+- ensure the updated epic lists the child tasks in the intended execution order and explicitly describes which child tasks block or precede later ones
 
 If approval is not given:
 - leave tracker items unpublished
@@ -262,6 +270,7 @@ Report to the user:
 - Published a tracker graph that dropped task dependencies or verification expectations
 - Published tracker items that relied on `Z0X` files, local paths, or external documents for required implementation context
 - Linked tracker items back to transient local workflow artifacts instead of restating the required information in the issues themselves
+- Published a parent issue or epic that described child-item policy abstractly but did not enumerate the actual child items, their execution order, and their dependency/completion order
 - Published GitHub issues without a parent issue, child issues, or final parent back-links
 - Published Jira tasks without epic references, predecessor links, or dependency language in task bodies
 - Guessed a Jira project when no repo-defined project reference existed
@@ -283,6 +292,7 @@ Report to the user:
 - Kept tracker items self-contained and free of required links to local workflow artifacts or external documents
 - Published one parent item and one child item per `Z02` task when approved
 - Published tracker items only after explicit approval
+- Ensured the parent issue or epic enumerated the actual child items in execution order with explicit dependency/completion ordering
 - Kept publication aligned to the parent/child or epic/task contract with dependency references
 - Kept planning open until `Z02_CLARIFY` was resolved or removed
 

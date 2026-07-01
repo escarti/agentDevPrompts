@@ -14,6 +14,7 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - Updated `README.md` installation and migration guidance to describe the marketplace-only Superpowers dependency model and legacy local cleanup steps.
 - Extended `skills/feature-planning/SKILL.md` so planning can optionally preview and publish an approved `Z02_*_plan.md` into GitHub issues or a Jira epic plus tasks after the Z02 validation gate.
 - Tightened `skills/feature-planning/SKILL.md` so published GitHub/Jira tracker items must be self-contained and must not rely on links to transient local `Z0X` workflow artifacts for required implementation context.
+- Tightened `skills/feature-planning/SKILL.md` again so parent roadmap issues/epics must enumerate the actual child items in execution order and include explicit dependency/completion ordering, not just abstract child-item policy text.
 - Extended `skills/feature-implementing/SKILL.md` so implementation can normalize either a local `Z02_*_plan.md` or an approved published tracker graph into the same Z99-driven execution flow.
 - Updated `README.md` to document optional tracker publication and multimodal implementation entrypoints.
 
