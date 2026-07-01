@@ -15,8 +15,9 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - Extended `skills/feature-planning/SKILL.md` so planning can optionally preview and publish an approved `Z02_*_plan.md` into GitHub issues or a Jira epic plus tasks after the Z02 validation gate.
 - Tightened `skills/feature-planning/SKILL.md` so published GitHub/Jira tracker items must be self-contained and must not rely on links to transient local `Z0X` workflow artifacts for required implementation context.
 - Tightened `skills/feature-planning/SKILL.md` again so parent roadmap issues/epics must enumerate the actual child items in execution order and include explicit dependency/completion ordering, not just abstract child-item policy text.
-- Extended `skills/feature-implementing/SKILL.md` so implementation can normalize either a local `Z02_*_plan.md` or an approved published tracker graph into the same Z99-driven execution flow.
-- Updated `README.md` to document optional tracker publication and multimodal implementation entrypoints.
+- Reworked `skills/feature-implementing/SKILL.md` to split early into local-plan mode and tracker-native mode, keeping `Z99_implementation_status.md` only for local `Z02_*_plan.md` execution.
+- Tightened `skills/feature-implementing/SKILL.md` tracker mode so the tracker itself is the live execution state, one branch is used per parent issue or epic, and one validated commit SHA is required before a child issue or task can be marked done.
+- Updated `README.md` to document optional tracker publication plus the new tracker-native implementation model.
 
 ### Fixed
 - None.
