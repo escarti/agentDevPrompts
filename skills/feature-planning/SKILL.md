@@ -20,6 +20,7 @@ Its job is to:
 - require resolved research before planning
 - invoke `superpowers:writing-plans`
 - enforce the `Z02` / `Z02_CLARIFY` artifact contract used by this workflow
+- optionally prepare and publish tracker items only after the `Z02` plan is approved
 
 ## MANDATORY FIRST ACTION: Create Progress Plan
 
@@ -31,7 +32,10 @@ update_plan({
     {"step": "Step 2: Find and validate Z01 inputs", "status": "pending"},
     {"step": "Step 3: Invoke superpowers:writing-plans with the Z02 contract", "status": "pending"},
     {"step": "Step 4: Verify Z02 outputs and required phase metadata", "status": "pending"},
-    {"step": "Step 5: Enforce Z02_CLARIFY completion gate", "status": "pending"}
+    {"step": "Step 5: Ask whether to publish the approved Z02 plan to a tracker", "status": "pending"},
+    {"step": "Step 6: Build and preview the tracker publication model", "status": "pending"},
+    {"step": "Step 7: Publish tracker items only after explicit approval", "status": "pending"},
+    {"step": "Step 8: Enforce Z02_CLARIFY completion gate", "status": "pending"}
   ]
 })
 ```
@@ -117,6 +121,7 @@ Planning output is valid only if all of the following are true:
 - `Z02_{feature}_plan.md` contains at least one `## Phase N: <name>` section
 - every phase contains `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
 - every task uses `**Phase:** Phase N`
+- tracker publication, when requested, is previewed before mutation and uses one child item per `Z02` task
 
 If any required phase metadata is missing:
 - treat the plan as invalid
@@ -125,7 +130,87 @@ If any required phase metadata is missing:
 
 ---
 
-### Step 5: Enforce the `Z02_CLARIFY` Completion Gate
+### Step 5: Ask Whether to Publish the Approved Z02 Plan
+
+Once `Z02_{feature}_plan.md` satisfies the `Z02` contract, treat that artifact as the primary planning deliverable.
+
+After validating the plan:
+- ask whether the approved `Z02` plan should also be published to a tracker
+- offer exactly these choices: `GitHub issues`, `Jira epic plus tasks`, or `No publication`
+- describe tracker publication as an optional follow-on step, not a replacement for `Z02_{feature}_plan.md`
+- do not publish anything by default
+- do not start tracker-target resolution until the user selects a publication mode
+
+If the user does not want tracker publication:
+- skip Steps 6 and 7
+- continue directly to Step 8
+
+If the user wants tracker publication:
+- continue to Step 6 while keeping `Z02_{feature}_plan.md` as the source of truth
+
+---
+
+### Step 6: Build and Preview the Tracker Publication Model
+
+If tracker publication is requested:
+- derive the tracker item structure from the approved `Z02_{feature}_plan.md`
+- preview the proposed tracker items before publishing them
+- preserve phase boundaries, ordering, and verification intent from `Z02`
+- surface any assumptions or mapping gaps that require confirmation
+- use a preview model only; do not create or update remote tracker items in this step
+
+Target resolution rules:
+- for `GitHub issues`, default the publication target to the current repository unless the user explicitly chooses another repository
+- for `Jira epic plus tasks`, use an explicit repository-defined Jira project reference when one exists
+- if no repository-defined Jira project reference exists, ask the user which Jira project to use before requesting preview approval
+
+Approval rules:
+- no mutation before explicit approval of the preview
+- do not ask for publication approval until the target repository or Jira project is resolved
+- if the preview contains unresolved target, mapping, or dependency questions, keep the items in preview only
+
+Publish-time body and link requirements to include in the preview:
+- `GitHub issues`: propose one epic-like parent issue plus one child issue per `Z02` task
+- `GitHub issues`: each child issue must reference the parent issue and any blocker or predecessor tasks from `Z02`
+- `GitHub issues`: the parent issue must be updated after child creation with real child issue references, not placeholders
+- `Jira epic plus tasks`: propose one epic plus one task per `Z02` task
+- `Jira epic plus tasks`: each task must reference the epic and any predecessor tasks from `Z02`
+- `Jira epic plus tasks`: dependency language must appear both in issue links and in the task bodies when predecessor relationships exist
+
+Do not mutate or replace `Z02_{feature}_plan.md` during tracker preparation.
+
+---
+
+### Step 7: Publish Tracker Items Only After Explicit Approval
+
+Tracker publication requires an explicit user approval after preview.
+
+Rules:
+- do not publish on implied consent
+- do not publish from the existence of `Z02_{feature}_plan.md` alone
+- do not publish if the preview still contains unresolved mapping questions
+- do not publish if the target repository or Jira project is unresolved
+- keep `Z02_{feature}_plan.md` as the canonical local planning artifact after publication
+
+If publishing `GitHub issues`:
+- create the epic-like parent issue in the resolved repository
+- create one child issue per `Z02` task
+- include parent references and blocker references in each child issue body
+- update the parent issue after child creation so it contains real links or issue references to every created child
+
+If publishing `Jira epic plus tasks`:
+- create the epic in the resolved Jira project
+- create one task per `Z02` task
+- include epic references and predecessor-task dependency language in each task body
+- create issue links that express the predecessor relationships between tasks when those dependencies exist
+
+If approval is not given:
+- leave tracker items unpublished
+- keep `Z02_{feature}_plan.md` as the completed planning artifact
+
+---
+
+### Step 8: Enforce the `Z02_CLARIFY` Completion Gate
 
 Planning is not complete while `Z02_CLARIFY_{feature}_plan.md` exists with unresolved items.
 
@@ -145,7 +230,8 @@ Only mark planning complete when:
 3. `Z02_CLARIFY_{feature}_plan.md` is deleted or has no remaining unresolved entries
 
 Report to the user:
-- if complete: `Plan created: Z02_{feature}_plan.md. Ready for feature-workflow:feature-implementing.`
+- if complete without publication: `Plan created: Z02_{feature}_plan.md. Tracker publication skipped. Ready for feature-workflow:feature-implementing.`
+- if complete with publication: `Plan created: Z02_{feature}_plan.md and published to the approved tracker destination. Ready for feature-workflow:feature-implementing.`
 - if blocked: `Planning not complete. Resolve Z02_CLARIFY before implementation.`
 
 ## Red Flags
@@ -155,6 +241,16 @@ Report to the user:
 - Failed to pass repo constraints into `writing-plans`
 - Saved `Z02` to the wrong directory or with the wrong feature slug
 - Accepted a plan with missing phase metadata
+- Treated tracker publication as a replacement for `Z02_{feature}_plan.md`
+- Mutated GitHub or Jira before preview approval
+- Asked for tracker publication without offering `GitHub issues`, `Jira epic plus tasks`, or `No publication`
+- Used a non-preview flow for tracker preparation
+- Failed to resolve the target repository or Jira project before approval
+- Published tracker items without explicit approval
+- Published a tracker graph that dropped task dependencies or verification expectations
+- Published GitHub issues without a parent issue, child issues, or final parent back-links
+- Published Jira tasks without epic references, predecessor links, or dependency language in task bodies
+- Guessed a Jira project when no repo-defined project reference existed
 - Created `Z02_CLARIFY` without a new blocking question
 - Marked planning complete while unresolved `Z02_CLARIFY` remained
 
@@ -166,6 +262,13 @@ Report to the user:
 - Invoked `superpowers:writing-plans`
 - Enforced the `Z02_{feature}_plan.md` path and feature slug
 - Verified `## Phase N`, `**Phase Goal:**`, `**Phase Verification:**`, `**Phase Boundary Rule:**`, and `**Phase:** Phase N`
+- Treated tracker publication as an optional post-`Z02` tail
+- Offered explicit tracker choices and kept `No publication` as the default path
+- Built a preview-only publication model with resolved GitHub or Jira targets before approval
+- Previewed destination, tasks, and dependencies before mutation
+- Published one parent item and one child item per `Z02` task when approved
+- Published tracker items only after explicit approval
+- Kept publication aligned to the parent/child or epic/task contract with dependency references
 - Kept planning open until `Z02_CLARIFY` was resolved or removed
 
 ## When to Use

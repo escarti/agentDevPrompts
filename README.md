@@ -127,8 +127,8 @@ Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-resear
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
 | 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Accept a rough idea, partial spec, or detailed request; refine intent when needed; then ground the feature in the repo and surface blind spots | Rough idea, partial spec, or detailed request | `Z01_*_research.md` (final) and optional `Z01_CLARIFY_*_research.md` |
-| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` (final) and optional temporary `Z02_CLARIFY_*_plan.md` |
-| 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute the plan in batches with review checkpoints | `Z02_*_plan.md` | Implemented code + verification + handoff to documentation |
+| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
+| 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute from the canonical Z02 plan or from an approved published tracker graph with the same task/dependency detail | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + verification + handoff to documentation |
 | 4. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
 | 5. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
 
@@ -145,6 +145,13 @@ Common temporary artifacts:
 - `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
 - `docs/ai/ongoing/Z02_{feature}_plan.md`
 - `docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md` (only when planning discovers new blockers)
+
+Optional tracker publication after planning:
+- `feature-planning` can preview and publish the approved `Z02_*_plan.md` into:
+  - GitHub: one parent roadmap issue plus one child issue per Z02 task
+  - Jira: one epic plus one task per Z02 task
+- Publication is never automatic. The workflow previews destination, tasks, and dependencies first and waits for explicit approval before mutation.
+- `Z02_*_plan.md` remains the canonical local planning artifact even when tracker items are published. Tracker items are a projection of the approved Z02, not a separate planning flow.
 
 Clarification gates:
 - Research is not complete while `Z01_CLARIFY_*_research.md` has unresolved questions.

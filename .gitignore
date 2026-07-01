@@ -11,7 +11,7 @@
 test_*
 baseline_*
 dev_docs/
-
+docs/ai/ongoing/*
 # Editor
 .vscode/
 .idea/

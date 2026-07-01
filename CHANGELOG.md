@@ -12,6 +12,9 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Changed
 - Updated `skills/load-superpowers/SKILL.md` to require marketplace-provided `superpowers:*` skills and stop referencing the legacy local `~/.codex/superpowers` bootstrap path.
 - Updated `README.md` installation and migration guidance to describe the marketplace-only Superpowers dependency model and legacy local cleanup steps.
+- Extended `skills/feature-planning/SKILL.md` so planning can optionally preview and publish an approved `Z02_*_plan.md` into GitHub issues or a Jira epic plus tasks after the Z02 validation gate.
+- Extended `skills/feature-implementing/SKILL.md` so implementation can normalize either a local `Z02_*_plan.md` or an approved published tracker graph into the same Z99-driven execution flow.
+- Updated `README.md` to document optional tracker publication and multimodal implementation entrypoints.
 
 ### Fixed
 - None.
