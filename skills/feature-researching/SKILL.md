@@ -18,7 +18,8 @@ description: Use as the single feature-workflow entry point to classify idea def
 
 Its responsibilities are:
 - Classify the incoming request as low-, medium-, or high-definition
-- Use `superpowers:brainstorming` as an internal refinement step when the idea is too underdefined for repo-grounded research
+- Run an explicit conversational refinement phase before any `Z01_*` writing when the idea is too underdefined for repo-grounded research
+- Use `superpowers:brainstorming` as an internal refinement step when deeper product/design refinement is needed
 - Produce repo-grounded research artifacts: `Z01_{feature}_research.md` and, when required, `Z01_CLARIFY_{feature}_research.md`
 
 **This skill produces a grounded feature specification, not an implementation plan.**
@@ -47,7 +48,7 @@ update_plan({
 
 ```
 NO RESEARCH WITHOUT READING AGENTS.MD FIRST
-NO LOW-DEFINITION INPUT WITHOUT AN INTERNAL REFINEMENT STEP
+NO LOW-DEFINITION INPUT WITHOUT A USER-FACING REFINEMENT CHECKPOINT BEFORE Z01
 NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
 NO HANDOFF TO PLANNING WHILE BLOCKING AMBIGUITIES REMAIN
 ```
@@ -56,7 +57,7 @@ NO HANDOFF TO PLANNING WHILE BLOCKING AMBIGUITIES REMAIN
 
 **If Z01 depends on external docs for core requirements:** Copy or summarize the required source context into Z01 and rewrite it to be self-contained.
 
-**If the request remains product-ambiguous after medium-definition clarification:** Escalate to `superpowers:brainstorming`.
+**If the request remains product-ambiguous after conversational refinement or medium-definition clarification:** Escalate to `superpowers:brainstorming`.
 
 ## Research Output Contract
 
@@ -108,7 +109,7 @@ Why:
 
 ### Step 2: Classify Request Definition Level
 
-Before code exploration, classify the incoming request:
+Before code exploration or artifact creation, classify the incoming request:
 
 **Low definition**
 - Only a couple of lines or an intention statement
@@ -123,22 +124,37 @@ Before code exploration, classify the incoming request:
 **High definition**
 - Desired behavior, scope, and success criteria are mostly clear
 - Research can proceed directly after repo inspection
+- Still verify the request does not hide unresolved product intent behind detailed wording
 
-Record the chosen classification and a short reason in Z01 under `Definition Level and Triage Result`.
+Record the chosen classification and a short reason in Z01 under `Definition Level and Triage Result` after refinement is complete and `Z01_*` is created.
 
 ---
 
 ### Step 3: Route Based on Definition Level
 
+For any route that is still idea-level or product-ambiguous, there must be an explicit user-facing refinement checkpoint before `Z01_*` is written.
+
+That checkpoint must happen inside `feature-researching`, and must include:
+- A short restatement of the problem in your own words
+- 2-3 viable approaches with a recommendation
+- The likely building blocks, repo touchpoints, and integration areas you expect to inspect
+- The main tradeoffs, risks, or open decisions
+- A direct confirmation question such as `Does this direction look right before I write the research doc?`
+
+Do not write `Z01_*` until that checkpoint has happened and the direction is clear enough to ground in the repo.
+
 #### Low-definition requests
 
-Use `superpowers:brainstorming` as an **internal refinement step**.
+Start with an explicit conversational refinement phase inside `feature-researching`.
+
+If the request still needs deeper product/design shaping after that first exchange, use `superpowers:brainstorming` as an **internal refinement step**.
 
 Critical constraints for that invocation:
 - `feature-researching` remains the primary workflow owner
 - The goal is to refine product intent enough for repo-grounded research
 - Do NOT treat brainstorming output as the final workflow artifact
 - Do NOT hand off directly to planning from the brainstorming flow
+- Do NOT skip the visible refinement checkpoint and jump straight to document writing
 
 Tell the dependency:
 - It is being used to refine intent only
@@ -159,13 +175,16 @@ Use those questions to resolve:
 - Contract assumptions
 - Compatibility expectations
 
+If the request is still idea-level rather than spec-level after those answers, provide the same explicit refinement checkpoint used for low-definition requests before writing `Z01_*`.
+
 After the answers:
 - If the request is now clear enough for research, continue with Step 4
 - If ambiguity remains primarily product/design-level, escalate to `superpowers:brainstorming` using the same internal-refinement constraints as low-definition requests
 
 #### High-definition requests
 
-Proceed directly to Step 4.
+Proceed directly to Step 4 only when the request is actually decision-ready.
+If the wording looks detailed but the product direction is still not locked, run a short refinement checkpoint first instead of drafting `Z01_*` immediately.
 
 ---
 
@@ -189,6 +208,8 @@ Prefer likely touchpoints and integration boundaries over false precision. Exact
 ---
 
 ### Step 5: Create Research File
+
+Only begin this step after any required refinement checkpoint is complete and the requested direction is clear enough to research responsibly.
 
 **Scan for ongoing directory:**
 - Check for existing Z01 files
@@ -343,9 +364,11 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 
 - **Did NOT read AGENTS.md/CLAUDE.md/README/docs FIRST**
 - **Stopped this skill due to missing Plan mode**
-- **Treated brainstorming as a separate user-facing prerequisite instead of an internal refinement step**
+- **Skipped the explicit user-facing refinement checkpoint for a rough or product-ambiguous request**
+- **Treated brainstorming as a separate workflow owner or canonical artifact instead of an internal refinement step**
 - **Allowed brainstorming artifacts to replace Z01 as the primary research artifact**
 - **Skipped classification of the request as low/medium/high definition**
+- **Wrote `Z01_*` before presenting approaches/building blocks/tradeoffs for an idea-level request**
 - **Used more than 3 initial clarification questions for a medium-definition request before deciding whether to escalate**
 - **Stored non-blocking unknowns in Z01_CLARIFY instead of Z01 assumptions**
 - **Marked research done while Z01_CLARIFY still has unresolved items**
@@ -360,8 +383,10 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 | Excuse | Reality |
 |--------|---------|
 | **"This is only a rough idea, research can't start"** | **NO.** Research is now the single entry point. Classify it and route internally. |
-| **"Brainstorming should own the whole flow for vague requests"** | **NO.** Brainstorming is an internal refinement tool here. Artifact ownership remains with research. |
+| **"I already know enough to write Z01 from this rough prompt"** | **NO.** Rough or idea-level requests require a visible refinement checkpoint before artifact creation. |
+| **"Brainstorming should own the whole flow for vague requests"** | **NO.** Brainstorming is an internal refinement tool here. Workflow and artifact ownership remain with research. |
 | **"Medium ambiguity means ask every question now"** | **NO.** Ask 1-3 high-leverage questions, then decide whether to continue or escalate. |
+| **"If I keep the brainstorm short, it doesn't need options or tradeoffs"** | **NO.** The refinement checkpoint must still surface approaches, building blocks, and tradeoffs clearly enough for user confirmation. |
 | **"The repo touchpoints are obvious, I'll skip documenting risks"** | **NO.** Surfacing compatibility and adaptation risks is a core deliverable of research. |
 | **"Exact file edits belong in research so planning stays easy"** | **NO.** That collapses the stage boundary. Research should identify likely touchpoints, not replace planning. |
 | **"Questions need no context in CLARIFY"** | **NO.** Blocking questions should include why they matter and the recommended default. |
@@ -374,7 +399,9 @@ You followed the workflow if:
 - ✓ Read AGENTS.md/CLAUDE.md/README/docs FIRST
 - ✓ Verified Superpowers dependencies before proceeding
 - ✓ Classified the request as low, medium, or high definition
-- ✓ Used brainstorming internally for low-definition requests and product-level medium-definition escalations
+- ✓ Used an explicit conversational refinement checkpoint before `Z01_*` for low-definition and product-ambiguous requests
+- ✓ Presented approaches, likely building blocks/touchpoints, and tradeoffs before writing `Z01_*` when the idea was rough
+- ✓ Used brainstorming internally for deeper refinement without surrendering workflow or artifact ownership
 - ✓ Recorded the triage result in Z01
 - ✓ Produced a self-contained Z01 grounded in repo behavior and constraints
 - ✓ Captured current state, proposed behavior, edge cases, risks, dependencies, and acceptance criteria
@@ -390,6 +417,7 @@ Use when:
 - You have a rough idea, partial spec, or well-defined feature request
 - You need one entry point that can refine intent and then ground the work in the repo
 - You need to surface integration risks, edge cases, constraints, and test criteria before planning
+- You want a short collaborative framing step before a persistent research artifact is written for rough requests
 
 **Don't use when:**
 - The change is trivial enough that no research artifact is needed

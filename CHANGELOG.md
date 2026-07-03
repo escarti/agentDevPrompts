@@ -10,6 +10,12 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
+- Updated `skills/feature-researching/SKILL.md` so rough or product-ambiguous requests must go through an explicit user-facing conversational refinement checkpoint before any `Z01_*` research artifact is written.
+- Updated `README.md` to document the new `/feature-research` entry behavior: rough requests now begin with collaborative framing instead of immediate research-doc drafting.
+- Tightened `skills/feature-implementing/SKILL.md` so local-plan mode now requires at least one validated, attributable commit per Z02 task on the feature branch, while still allowing extra fix commits when needed.
+- Tightened `skills/feature-implementing/SKILL.md` tracker mode batching and delegation so child items default to one-per-batch and cannot be combined into a shared completion commit.
+- Tightened `skills/feature-implementing/SKILL.md` tracker-mode return and approval rules so subagent-completed child items must already be committed before the workflow asks the user whether to continue with the next batch.
+- Updated `README.md` implementation guidance so both local-plan tasks and published tracker child items end with one followable completion commit each on the feature branch.
 - Updated `skills/load-superpowers/SKILL.md` to require marketplace-provided `superpowers:*` skills and stop referencing the legacy local `~/.codex/superpowers` bootstrap path.
 - Updated `README.md` installation and migration guidance to describe the marketplace-only Superpowers dependency model and legacy local cleanup steps.
 - Extended `skills/feature-planning/SKILL.md` so planning can optionally preview and publish an approved `Z02_*_plan.md` into GitHub issues or a Jira epic plus tasks after the Z02 validation gate.

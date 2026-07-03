@@ -134,11 +134,16 @@ Use local-plan mode when the source is `Z02_{feature}_plan.md`.
 Live execution tracker:
 - `Z99_implementation_status.md`
 
+Proof ledger:
+- at least one validated, attributable commit per completed task on the feature branch
+
 Rules:
 - create or reconcile `{ONGOING_DIR}/Z99_implementation_status.md` before execution-mode selection
 - normalize the plan into ordered phases, ordered tasks, stable task identifiers, dependencies, and verification checkpoints
 - add per-task status fields: `pending`, `in_progress`, `done`, `blocked`
 - add per-task proof-of-work fields
+- require each completed task to map to one isolated, attributable commit on the feature branch
+- require the commit message or returned metadata to make task attribution unambiguous
 - add `Current batch` and `Blockers` sections
 - treat Z99 as the live execution checklist and the file as persisted resume state
 - do not edit the original Z02 plan
@@ -156,7 +161,7 @@ Live execution tracker:
 - the tracker itself
 
 Proof ledger:
-- one validated commit SHA per completed child item on the epic branch
+- at least one validated, attributable commit per completed child item on the epic branch
 
 Rules:
 - do not create, read, reconcile, or rely on `Z99_implementation_status.md`
@@ -210,7 +215,9 @@ Local-plan mode batching:
 Tracker mode batching:
 - select from child items not already done in the tracker
 - derive remaining work from tracker state plus dependency order
-- default to the next 3-5 dependency-ready independent child items only when the tracker does not imply a narrower batch
+- default to exactly the next single dependency-ready child item
+- only include multiple child items in one batch when the chosen executor is explicitly going to keep one isolated completion commit and one structured outcome entry per child item
+- if that per-child-item isolation cannot be guaranteed up front, reduce the batch back to one child item
 - do not mirror the batch into Z99 or another local tracker file
 
 ### Step 7: Delegate Only the Current Batch
@@ -226,6 +233,7 @@ The chosen execution mode receives only the current batch scope.
 The downstream executor owns:
 - implementation of the current batch only
 - verification of the current batch only
+- persisting any `done` work as committed git history before returning control
 - reporting completion, blockers, and proof back to `feature-implementing`
 
 Provide a compact execution brief containing only:
@@ -236,40 +244,51 @@ Provide a compact execution brief containing only:
 - relevant research and planning excerpts
 - batch success criteria
 - tracker-specific red flags when tracker mode is used
+- when tracker mode is used: the explicit hard rule that each child item must complete in its own isolated, followable commit on the feature branch and must not be combined with another child item in the same commit
 - the instruction that control returns to `feature-implementing` after this batch completes or blocks
 
 Require a structured batch outcome for every task:
 - task identifier or exact task text
 - status: `done` | `blocked` | `incomplete`
+- returned commit SHA for any `done` task
 - proof of work for any `done` task
 - blocker summary for any `blocked` task
 - verification run for the batch
 - whether the batch completed cleanly or stopped early
 
-Additional tracker-mode requirement for any `done` task:
-- returned commit SHA
-- confirmation that the commit was made on the epic branch
+Additional branch-proof requirement for any `done` task:
+- confirmation that the commit was made on the active feature branch
+- the commit must be attributable to exactly one completed task or child item
+- the commit must already exist before the task is returned as `done`
 
 #### Subagent-Driven Batch Contract
 
 When using `superpowers:subagent-driven-development`:
 - treat the current batch as the full plan scope for that invocation
 - let it keep its native per-task orchestration and review loops within the batch
+- require each task it returns as `done` to already be committed before control returns to `feature-implementing`
 - require it to return control after the batch completes or blocks
 - do not let it continue into later batches on its own
 
 Tracker-mode subagent expectation:
-- one child item should result in one completion commit
+- every child item must end up with at least one attributable commit on the feature branch before it is considered done
+- one tracker child item should be the default unit of subagent execution
 - the subagent should report child identifier, commit SHA, verification run, and final status
+
+Local-plan subagent expectation:
+- every completed Z02 task must end up with at least one attributable commit on the feature branch before it is considered done
+- the subagent should report task identifier, commit SHA, verification run, and final status
 
 #### Inline Execution Batch Contract
 
 When using `superpowers:executing-plans`:
 - treat the current batch as the full plan scope for that invocation
 - require it to execute and verify only that batch
+- require each task it returns as `done` to already be committed before control returns to `feature-implementing`
 - require it to return control after the batch completes or blocks
 - do not claim it provides reviewer-subagent loops
 - do not claim it owns batching or live-tracker orchestration
+- when tracker mode is active, require it to keep one isolated completion commit per child item and forbid collapsing multiple child items into one shared commit
 
 ### Step 8: Verify the Batch Outcome and Update the Live Execution Tracker
 
@@ -277,10 +296,16 @@ After the chosen executor returns:
 - verify that it returned a structured batch outcome covering every task in the batch
 - verify proof of work for every reported `done` task
 - verify verification was reported for the batch
+- treat any reported `done` task without an already-existing commit as `incomplete`
 
 Local-plan mode:
+- for each task reported `done`, validate that the returned commit SHA exists on the current feature branch
+- do not mark a task done without a returned commit SHA
+- do not mark a task done until commit-on-branch validation succeeds
+- do not allow multiple completed tasks to share one completion commit
 - update Z99 task statuses
 - add or verify proof-of-work entries
+- retain the commit SHA in the task proof entry
 - update the Z99 `Blockers` section if needed
 - clear or replace the Z99 `Current batch` section
 - persist the updated Z99 snapshot
@@ -289,6 +314,8 @@ Tracker mode:
 - for each task reported `done`, validate that the returned commit SHA exists on the current epic branch
 - do not mark a child item done without a returned commit SHA
 - do not mark a child item done until commit-on-branch validation succeeds
+- do not allow multiple completed child items to share one completion commit
+- do not defer committing child-item work until after user approval for the next batch
 - once validated, mark the child item done in the tracker immediately
 - retain or add the commit SHA reference in the child item if the tracker supports it
 - update tracker-side blockers or comments only as needed to preserve execution clarity
@@ -306,6 +333,7 @@ If a task is reported complete but lacks required proof:
 
 If remaining non-done work still exists after Step 8:
 - report the batch outcome
+- only ask for approval after all reported `done` tasks from the batch are already committed and validated
 - ask whether to continue with the next batch
 - do not delegate another batch until the user approves
 
@@ -319,6 +347,7 @@ Local-plan mode is complete only when:
 - every task extracted from Z02 is present in Z99
 - every Z99 task is marked `done`
 - every done task includes proof of work
+- every done task has a validated commit SHA on the feature branch
 - final verification has been run
 
 Tracker mode is complete only when:
@@ -352,6 +381,8 @@ Local-plan mode red flags:
 - treated Z99 as a passive report instead of the live execution checklist
 - overwrote an existing Z99 instead of resuming
 - modified `Z02_{feature}_plan.md` to track progress
+- marked a local-plan task done without a returned commit SHA
+- allowed multiple local-plan tasks to share one completion commit
 - claimed implementation complete while any Z99 task is not `done` or lacks proof
 
 Tracker mode red flags:
@@ -359,6 +390,8 @@ Tracker mode red flags:
 - closed a child item without a returned commit SHA
 - closed a child item before validating the commit on the epic branch
 - allowed multiple child items to share one completion commit
+- delegated multiple tracker child items as one combined work unit without explicit per-child-item commit isolation
+- returned tracker child-item work for human approval before creating the required completion commit
 - lost dependency order while selecting the next child item
 - treated partial non-committed work as done
 - relied on links to local Z0X files for required execution context
@@ -369,8 +402,12 @@ Tracker mode red flags:
 |--------|---------|
 | "All sources should normalize into Z99." | No. Only local Z02 execution uses Z99. Tracker mode is tracker-native. |
 | "The parent issue title is enough to implement from." | No. Tracker mode requires self-contained child items plus explicit order and verification. |
+| "A local Z02 task can stay uncommitted until the end of the feature." | No. Local-plan completion also requires one validated commit per completed task on the feature branch. |
 | "A child item can be marked done once code exists locally." | No. Tracker mode completion requires a validated commit on the epic branch. |
-| "Two child items can share one commit if the work is related." | No. Tracker mode uses one completion commit per child item. |
+| "The subagent can implement first and commit after the user says continue." | No. Any task returned as `done` must already be committed before the approval-for-next-batch step. |
+| "A tracker batch can combine several child items as long as the code is small." | No. Tracker mode defaults to one child item per batch unless per-child-item commit isolation is explicitly preserved. |
+| "Several local-plan tasks can share one commit if they were done in one batch." | No. Batching does not relax per-task commit isolation. |
+| "Two child items can share one commit if the work is related." | No. Each child item needs its own attributable commit history; a shared single commit is not enough. |
 | "Close the tracker item now and clean up the git proof later." | No. Validate the commit first, then close the item. |
 | "Pass the whole plan for convenience." | No. The wrapper owns batching and approval. |
 | "Approval between batches slows things down." | No. Batch approval is a core workflow guarantee. |
@@ -399,13 +436,17 @@ Local-plan mode success requires:
 - created or reconciled `Z99_implementation_status.md`
 - used Z99 as the live execution checklist
 - updated Z99 with statuses and proof after each batch
+- required at least one attributable commit per Z02 task
+- validated commit-on-branch before marking a task done
 - verified every Z99 task is `done` with proof before claiming completion
 
 Tracker mode success requires:
 - did not create or rely on `Z99_implementation_status.md`
 - used the tracker itself as the live execution state
 - used one branch per parent issue or epic
-- required one completion commit per child item
+- required at least one attributable commit per child item
+- defaulted tracker execution to one child item per batch unless stricter per-child-item isolation was explicitly preserved
+- required those commits to exist before asking the user whether to continue with the next batch
 - validated commit-on-branch before marking a child item done
 - derived remaining work from still-open child items in dependency order
 
@@ -434,7 +475,7 @@ Do not use when:
 ```
 
 After this skill:
-- local-plan mode leaves all Z99 tasks done with proof
+- local-plan mode leaves all Z99 tasks done with proof and validated per-task commit SHAs
 - tracker mode leaves all child items done with validated commit proof
 - final verification has passed
 - implementation is ready for optional finishing and documenting steps
