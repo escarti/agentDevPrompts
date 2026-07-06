@@ -1,6 +1,6 @@
 # Feature Workflow - Claude Code Skills
 
-Research-driven feature development workflow for Claude Code, with superpowers integration for planning, implementation, finishing, and PR handling.
+Research-driven feature development workflow for Claude Code, with superpowers integration for planning, implementation, QA review, finishing, and PR handling.
 
 ## Included Skills
 
@@ -8,6 +8,7 @@ Core workflow:
 - `feature-researching` (requires superpowers)
 - `feature-planning` (requires superpowers)
 - `feature-implementing` (requires superpowers)
+- `feature-qa-review` (requires superpowers)
 - `feature-documenting` (standalone)
 
 Quality and PR workflow:
@@ -27,6 +28,7 @@ Install [superpowers](https://github.com/obra/superpowers) from the marketplace/
 - `feature-researching`
 - `feature-planning`
 - `feature-implementing`
+- `feature-qa-review`
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
@@ -45,6 +47,7 @@ Run `load-superpowers` before:
 - `feature-researching`
 - `feature-planning`
 - `feature-implementing`
+- `feature-qa-review`
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
@@ -68,6 +71,7 @@ Expected commands:
 - `/feature-research`
 - `/feature-plan`
 - `/feature-implement`
+- `/feature-qa-review`
 - `/feature-document`
 - `/feature-finish`
 - `/feature-prreview`
@@ -81,6 +85,7 @@ git clone git@github.com:escarti/agentDevPrompts.git ~/Projects/Personal/agentDe
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-researching ~/.claude/skills/feature-researching
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-planning ~/.claude/skills/feature-planning
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-implementing ~/.claude/skills/feature-implementing
+ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-qa-review ~/.claude/skills/feature-qa-review
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-documenting ~/.claude/skills/feature-documenting
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-finishing ~/.claude/skills/feature-finishing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-reviewing ~/.claude/skills/feature-pr-reviewing
@@ -112,15 +117,16 @@ rm -rf ~/.codex/superpowers
 find ~/.codex/skills -maxdepth 1 \( -type l -o -type d \) | rg '/superpowers$'
 ```
 
-Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-researching`, `feature-planning`, `feature-implementing`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
+Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-researching`, `feature-planning`, `feature-implementing`, `feature-qa-review`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
 
 ## Workflow
 
 1. Start with `feature-workflow:feature-researching`
 2. Plan with `feature-workflow:feature-planning`
 3. Implement with `feature-workflow:feature-implementing`
-4. Finish with `feature-workflow:feature-finishing`
-5. Document with `feature-workflow:feature-documenting`
+4. Review with `feature-workflow:feature-qa-review`
+5. Finish with `feature-workflow:feature-finishing`
+6. Document with `feature-workflow:feature-documenting`
 
 ### Quick Guide (Intended Use)
 
@@ -129,8 +135,9 @@ Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-resear
 | 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Accept a rough idea, partial spec, or detailed request; start with a short collaborative refinement step when the request is rough; then ground the feature in the repo and surface blind spots | Rough idea, partial spec, or detailed request | `Z01_*_research.md` (final) and optional `Z01_CLARIFY_*_research.md` |
 | 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute from the canonical Z02 plan with local `Z99` tracking, or execute tracker-natively from an approved published tracker graph | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + verification + handoff to documentation |
-| 4. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
-| 5. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
+| 4. Multi-profile QA review | `feature-workflow:feature-qa-review` | Run a tracker-aware, subagent-driven QA review on the feature branch and capture explicit issue dispositions | Implemented code + tracker or Z01/Z02 context | Findings synthesis, issue decisions, and `Z06_{feature}_qa_review.md` |
+| 5. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
+| 6. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
 
 `feature-researching` now starts with a short collaborative framing step for rough or idea-level requests before it writes any `Z01_*` artifact. That refinement checkpoint should summarize the problem, present 2-3 viable approaches with a recommendation, call out likely building blocks or repo touchpoints, and confirm direction with the user first.
 
@@ -177,6 +184,7 @@ Clarification gates:
 
 Additional temporary artifacts may be created in PR/finish flows:
 - `Z03_*`, `Z04_*`, `Z05_*` in the same ongoing directory
+- `Z06_{feature}_qa_review.md` for multi-profile QA review output
 
 ## Prompt Install Scripts (Codex and Copilot)
 
@@ -204,6 +212,7 @@ agentDevPrompts/
 │   ├── feature-researching/
 │   ├── feature-planning/
 │   ├── feature-implementing/
+│   ├── feature-qa-review/
 │   ├── feature-documenting/
 │   ├── feature-finishing/
 │   ├── feature-pr-reviewing/

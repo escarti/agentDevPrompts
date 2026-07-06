@@ -8,7 +8,7 @@ This repository publishes the `feature-workflow` plugin through a Claude Code ma
 
 - Repository: `escarti/agentDevPrompts`
 - Plugin: `feature-workflow`
-- Skills: research, planning, implementing, finishing, documenting, PR review/fix, superpowers bootstrap, and subagent orchestration
+- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, superpowers bootstrap, and subagent orchestration
 
 ## Current Repository Layout
 
@@ -21,6 +21,7 @@ agentDevPrompts/
 │   ├── feature-research.md
 │   ├── feature-plan.md
 │   ├── feature-implement.md
+│   ├── feature-qa-review.md
 │   ├── feature-finish.md
 │   ├── feature-document.md
 │   ├── feature-prreview.md
@@ -34,6 +35,7 @@ agentDevPrompts/
 │   ├── feature-researching/
 │   ├── feature-planning/
 │   ├── feature-implementing/
+│   ├── feature-qa-review/
 │   ├── feature-finishing/
 │   ├── feature-documenting/
 │   ├── feature-pr-reviewing/
@@ -56,6 +58,7 @@ agentDevPrompts/
   - `feature-researching`
   - `feature-planning`
   - `feature-implementing`
+  - `feature-qa-review`
   - `feature-finishing`
   - `feature-pr-reviewing`
   - `feature-pr-fixing`
@@ -80,6 +83,7 @@ Temporary artifacts are written to `docs/ai/ongoing/`.
 - `Z01_CLARIFY_{feature}_research.md`
 - `Z02_{feature}_plan.md`
 - `Z03_*`, `Z04_*`, `Z05_*` for PR/finishing flows
+- `Z06_{feature}_qa_review.md` for multi-profile QA review output
 
 Filename sanitizer patterns:
 

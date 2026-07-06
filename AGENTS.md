@@ -22,6 +22,7 @@ Requires `load-superpowers` first:
 - `feature-researching`
 - `feature-planning`
 - `feature-implementing`
+- `feature-qa-review`
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
@@ -33,5 +34,6 @@ Standalone:
 
 - Use `docs/ai/ongoing/` for temporary workflow files.
 - Common artifacts: `Z01_*`, `Z01_CLARIFY_*`, `Z02_*`, `Z03_*`, `Z04_*`, `Z05_*`.
+- Additional review artifact: `Z06_{feature}_qa_review.md`.
 - Feature slugs: `snake_case` (max 50 chars).
 - PR slugs: `kebab-case` (max 50 chars).

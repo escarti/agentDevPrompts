@@ -96,7 +96,7 @@ After install/update, restart Codex if needed to reload skills.
 
 - Verify each changed skill executes its expected workflow
 - Verify superpowers-dependent skills still require `load-superpowers`
-- Ensure artifact conventions remain consistent (`docs/ai/ongoing/`, `Z01`-`Z05`)
+- Ensure artifact conventions remain consistent (`docs/ai/ongoing/`, `Z01`-`Z06`)
 
 ## Versioning Guidance
 

@@ -10,11 +10,24 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
+- None.
+
+### Fixed
+- None.
+
+## [1.20.0] - 2026-07-06
+
+### Added
+- Added the new `feature-qa-review` skill, command wrapper, and prompt symlink for tracker-aware multi-profile QA review after implementation.
+- Added `Z06_{feature}_qa_review.md` as the workflow artifact for synthesized QA review findings and dispositions.
+
+### Changed
 - Updated `skills/feature-researching/SKILL.md` so rough or product-ambiguous requests must go through an explicit user-facing conversational refinement checkpoint before any `Z01_*` research artifact is written.
 - Updated `README.md` to document the new `/feature-research` entry behavior: rough requests now begin with collaborative framing instead of immediate research-doc drafting.
 - Tightened `skills/feature-implementing/SKILL.md` so local-plan mode now requires at least one validated, attributable commit per Z02 task on the feature branch, while still allowing extra fix commits when needed.
 - Tightened `skills/feature-implementing/SKILL.md` tracker mode batching and delegation so child items default to one-per-batch and cannot be combined into a shared completion commit.
 - Tightened `skills/feature-implementing/SKILL.md` tracker-mode return and approval rules so subagent-completed child items must already be committed before the workflow asks the user whether to continue with the next batch.
+- Tightened `skills/feature-implementing/SKILL.md` again to enforce branch provenance, branch-specific resume identity, and branch-drift handling for both local-plan and tracker execution.
 - Updated `README.md` implementation guidance so both local-plan tasks and published tracker child items end with one followable completion commit each on the feature branch.
 - Updated `skills/load-superpowers/SKILL.md` to require marketplace-provided `superpowers:*` skills and stop referencing the legacy local `~/.codex/superpowers` bootstrap path.
 - Updated `README.md` installation and migration guidance to describe the marketplace-only Superpowers dependency model and legacy local cleanup steps.
@@ -24,10 +37,11 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - Tightened `skills/feature-planning/SKILL.md` GitHub publication rules to require `[Epic] <feature name>` parent titles and `[Task X.Y][Parent #N] <task title>` child titles.
 - Reworked `skills/feature-implementing/SKILL.md` to split early into local-plan mode and tracker-native mode, keeping `Z99_implementation_status.md` only for local `Z02_*_plan.md` execution.
 - Tightened `skills/feature-implementing/SKILL.md` tracker mode so the tracker itself is the live execution state, one branch is used per parent issue or epic, and one validated commit SHA is required before a child issue or task can be marked done.
+- Updated `README.md`, `AGENTS.md`, `CLAUDE.md`, and plugin metadata to document the new QA review stage and release surface.
 - Updated `README.md` to document optional tracker publication plus the new tracker-native implementation model.
 
 ### Fixed
-- None.
+- Fixed plugin metadata version drift by resynchronizing release-controlled descriptions and version fields for the current release.
 
 ## [1.19.0] - 2026-03-09
 
