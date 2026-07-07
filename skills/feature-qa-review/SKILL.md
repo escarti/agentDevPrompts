@@ -92,13 +92,15 @@ If no changed files exist versus `main`, continue. A clean diff is a valid QA ou
 Read in this order:
 1. `AGENTS.md`
 2. `CLAUDE.md` if it exists
-3. `README.md` if it helps interpret workflow conventions
+3. `README.md` if it exists
+4. `PUBLISHING.md` when release, install, command-surface, plugin, or repo-instruction files changed
 
 Extract:
 - repository-specific workflow rules
 - command and skill naming expectations
 - temporary artifact naming rules
 - tracker publication expectations already used by the feature workflow
+- documentation surfaces that must stay synchronized when changed together
 
 ---
 
@@ -146,6 +148,7 @@ The brief must include:
 - changed-file scope
 - review constraints from `AGENTS.md` and `CLAUDE.md`
 - summary of tracker or local requirements relevant to the branch
+- any repo-facing documentation surfaces that may require collateral updates
 - required output schema for every finding
 
 Required finding schema:
@@ -173,6 +176,7 @@ Type normalization target:
 - `Bug`
 - `Plan Deviation`
 - `Tests`
+- `Documentation`
 - `Code Quality`
 
 ---
@@ -187,6 +191,7 @@ Launch one isolated subagent per review profile:
 3. Plan-conformance reviewer
 4. Test-gap reviewer
 5. Maintainability / reviewer-likelihood reviewer
+6. Documentation-consistency reviewer
 
 Rules:
 - each subagent gets the shared execution brief plus only its profile-specific mission
@@ -201,6 +206,7 @@ Recommended profile missions:
 - Plan-conformance reviewer: compare implemented behavior to tracker or local contract
 - Test-gap reviewer: identify weak, missing, or misleading verification coverage
 - Maintainability / reviewer-likelihood reviewer: surface naming, layering, consistency, and review-friction issues
+- Documentation-consistency reviewer: check whether changed behavior, repo instructions, install steps, release docs, command surfaces, and workflow artifacts remain synchronized across `AGENTS.md`, `README.md`, `CLAUDE.md`, `PUBLISHING.md`, command wrappers, prompt symlinks, and plugin metadata when any one of those surfaces changes
 
 ---
 
@@ -235,7 +241,7 @@ Required pre-loop format:
 **Branch**: {branch}
 **Source of Truth**: {tracker-first | local-artifacts-only | diff-only}
 **Files Changed**: {count}
-**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability
+**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability, documentation-consistency
 
 ### Findings Summary
 - Critical: {count}
@@ -248,6 +254,7 @@ Required pre-loop format:
 - Bugs: {count}
 - Plan Deviations: {count}
 - Tests: {count}
+- Documentation: {count}
 - Code Quality: {count}
 
 ### Findings Index
@@ -355,7 +362,7 @@ Format:
 **Date**: {date}
 **Branch**: {branch}
 **Source of Truth**: {tracker-first | local-artifacts-only | diff-only}
-**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability
+**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability, documentation-consistency
 **Files Changed**: {count}
 
 ## Findings Summary
@@ -368,6 +375,7 @@ Format:
 - Bugs: {count}
 - Plan Deviations: {count}
 - Tests: {count}
+- Documentation: {count}
 - Code Quality: {count}
 
 ## Findings
@@ -402,7 +410,7 @@ Format:
 
 - Ran on a feature branch against `main`
 - Loaded repo instructions and resolved source-of-truth mode correctly
-- Launched all five review profiles with isolated prompts
+- Launched all six review profiles with isolated prompts
 - Produced a normalized, de-duplicated findings set with provenance
 - Collected one explicit decision per issue until completion or stop
 - Routed any fixes through `superpowers:systematic-debugging`

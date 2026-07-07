@@ -15,6 +15,19 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Fixed
 - None.
 
+## [1.20.1] - 2026-07-07
+
+### Added
+- Added a dedicated documentation-consistency reviewer to `skills/feature-qa-review/SKILL.md` so QA review can explicitly inspect collateral docs and public-facing workflow surfaces.
+
+### Changed
+- Updated `skills/feature-qa-review/SKILL.md` to always load `README.md` during QA review context gathering and to load `PUBLISHING.md` when release, install, command-surface, plugin, or repo-instruction files changed.
+- Updated `skills/feature-qa-review/SKILL.md` so the shared QA execution brief explicitly carries repo-facing documentation surfaces that may require collateral updates.
+- Expanded `skills/feature-qa-review/SKILL.md` review-profile list, summary templates, and success criteria from five reviewers to six reviewers.
+
+### Fixed
+- Fixed a systemic QA-review gap where documentation-consistency drift could be missed when a branch changed files like `AGENTS.md` without corresponding `README.md`, `CLAUDE.md`, `PUBLISHING.md`, or other public-surface updates.
+
 ## [1.20.0] - 2026-07-06
 
 ### Added
