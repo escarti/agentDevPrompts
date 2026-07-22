@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Complete feature workflow with research, planning, automated execution, commit-bound QA, documentation finalization, ready-PR publication, and review follow-up.",
-    "version": "1.20.1",
+    "version": "1.21.0",
     "license": "MIT"
   },
   "plugins": [
@@ -17,7 +17,7 @@
         "url": "https://github.com/escarti/agentDevPrompts.git"
       },
       "description": "Complete feature workflow with mandatory commit-bound QA, documentation finalization, approved ready-PR publication, development logging, and PR review/fix support.",
-      "version": "1.20.1",
+      "version": "1.21.0",
       "author": {
         "name": "Eduardo Escarti"
       }
