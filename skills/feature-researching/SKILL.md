@@ -1,6 +1,6 @@
 ---
 name: feature-researching
-description: Use as the single feature-workflow entry point to classify idea definition, refine intent when needed, and produce a grounded feature specification
+description: Use when beginning feature work from a rough idea, partial specification, or detailed request before implementation planning
 ---
 
 # Feature Research
@@ -18,9 +18,10 @@ description: Use as the single feature-workflow entry point to classify idea def
 
 Its responsibilities are:
 - Classify the incoming request as low-, medium-, or high-definition
-- Run an explicit conversational refinement phase before any `Z01_*` writing when the idea is too underdefined for repo-grounded research
+- Investigate the repository and distinguish established decisions from open product or technical bifurcations
+- Run a conversational sparring loop for every meaningful bifurcation not settled by the prompt or repository evidence
 - Use `superpowers:brainstorming` as an internal refinement step when deeper product/design refinement is needed
-- Produce repo-grounded research artifacts: `Z01_{feature}_research.md` and, when required, `Z01_CLARIFY_{feature}_research.md`
+- Produce one complete repo-grounded research artifact: `Z01_{feature}_research.md`
 
 **This skill produces a grounded feature specification, not an implementation plan.**
 
@@ -33,11 +34,10 @@ update_plan({
     {"step": "Step 0: Verify session mode and Superpowers dependencies", "status": "in_progress"},
     {"step": "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", "status": "pending"},
     {"step": "Step 2: Classify request definition level", "status": "pending"},
-    {"step": "Step 3: Route low/medium/high definition requests appropriately", "status": "pending"},
-    {"step": "Step 4: Explore code and repo touchpoints", "status": "pending"},
-    {"step": "Step 5: Create Z01 research file (grounded feature specification)", "status": "pending"},
-    {"step": "Step 6: Create or update Z01_CLARIFY for blocking ambiguities", "status": "pending"},
-    {"step": "Step 7: Verify research/planning boundary and completion gate", "status": "pending"}
+    {"step": "Step 3: Discover and resolve meaningful bifurcations conversationally", "status": "pending"},
+    {"step": "Step 4: Explore code and repo touchpoints; return to Step 3 for newly discovered bifurcations", "status": "pending"},
+    {"step": "Step 5: Assemble candidate Z01 content without writing the artifact", "status": "pending"},
+    {"step": "Step 6: Verify provenance, completeness, and boundary; write Z01 only after the gate passes", "status": "pending"}
   ]
 })
 ```
@@ -48,16 +48,34 @@ update_plan({
 
 ```
 NO RESEARCH WITHOUT READING AGENTS.MD FIRST
-NO LOW-DEFINITION INPUT WITHOUT A USER-FACING REFINEMENT CHECKPOINT BEFORE Z01
+NO AUTONOMOUS CHOICE BETWEEN MEANINGFULLY DIFFERENT PRODUCT OR TECHNICAL PATHS
+NO Z01 WHILE A KNOWN MEANINGFUL BIFURCATION REMAINS UNRESOLVED
+NO Z01_CLARIFY FILE; CLARIFICATION HAPPENS LIVE IN THE RESEARCH CONVERSATION
 NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
-NO HANDOFF TO PLANNING WHILE BLOCKING AMBIGUITIES REMAIN
+NO HANDOFF TO PLANNING UNTIL Z01 IS COMPLETE
 ```
 
 **If Superpowers dependencies are unavailable:** Stop and report that the required marketplace-installed Superpowers skills are missing.
 
 **If Z01 depends on external docs for core requirements:** Copy or summarize the required source context into Z01 and rewrite it to be self-contained.
 
-**If the request remains product-ambiguous after conversational refinement or medium-definition clarification:** Escalate to `superpowers:brainstorming`.
+**If the request remains broadly product-ambiguous after conversational sparring:** Escalate to `superpowers:brainstorming`.
+
+## Decision Provenance Contract
+
+Every material research decision must have one of these provenances:
+
+1. **User-specified**: the initial prompt or a later user response selects the direction.
+2. **Repository-determined**: repository instructions, documented contracts, or established constraints leave no credible alternative.
+3. **Open bifurcation**: two or more credible paths remain after inspecting the prompt and repository evidence.
+
+Adopt user-specified and repository-determined decisions. For every open bifurcation, investigate, recommend, and ask; do not choose.
+
+A bifurcation is meaningful when its alternatives materially affect user-visible behavior, scope, architecture, component boundaries, APIs, schemas, persistence, security, permissions, privacy, failure behavior, compatibility, migration, operations, dependencies, delivery complexity, maintainability, testing strategy, acceptance criteria, or costly-to-reverse future flexibility.
+
+This rule applies equally to product and technical decisions. Model confidence, a preferred recommendation, time pressure, or a high-definition prompt does not establish provenance.
+
+Routine facts and mechanically determined details are not bifurcations. Immaterial implementation details that are readily reversible belong in planning or implementation, not in a research assumption.
 
 ## Research Output Contract
 
@@ -66,15 +84,16 @@ NO HANDOFF TO PLANNING WHILE BLOCKING AMBIGUITIES REMAIN
 It must:
 - Stand on its own for planning
 - Be grounded in current repo behavior and constraints
+- Contain only resolved material decisions and record their provenance
 - Surface edge cases, risks, dependencies, and test criteria
 - Record likely touchpoints and possible downstream adaptations
-- Make explicit which assumptions are safe for planning versus which ambiguities still block planning
 
 It must **not**:
 - Lock exact edit line ranges
 - Contain a pseudo-implementation plan
 - Promise that implementation can begin without planning
 - Turn planning into a formatting-only step
+- Contain unresolved options, open questions, or agent-selected design assumptions
 
 ## Workflow Steps
 
@@ -114,7 +133,7 @@ Before code exploration or artifact creation, classify the incoming request:
 **Low definition**
 - Only a couple of lines or an intention statement
 - No clear behavior, scope boundaries, or success criteria
-- Not enough specificity to research against the repo responsibly
+- Requires broad intent decisions before repo-grounded research can converge
 
 **Medium definition**
 - Some desired behavior is described
@@ -123,25 +142,33 @@ Before code exploration or artifact creation, classify the incoming request:
 
 **High definition**
 - Desired behavior, scope, and success criteria are mostly clear
-- Research can proceed directly after repo inspection
+- Most decisions already have prompt or repository provenance
 - Still verify the request does not hide unresolved product intent behind detailed wording
 
-Record the chosen classification and a short reason in Z01 under `Definition Level and Triage Result` after refinement is complete and `Z01_*` is created.
+Definition level controls discovery depth, not whether collaboration occurs. Record the chosen classification and a short reason in Z01 under `Definition Level and Triage Result` after the decision loop is complete.
 
 ---
 
-### Step 3: Route Based on Definition Level
+### Step 3: Run the Conversational Sparring Loop
 
-For any route that is still idea-level or product-ambiguous, there must be an explicit user-facing refinement checkpoint before `Z01_*` is written.
+Use the definition level only to decide where discovery begins:
+- **Low definition**: begin with broad intent and scope bifurcations, then narrow into repo-grounded technical choices.
+- **Medium definition**: identify missing material decisions and spar on them before finalizing research.
+- **High definition**: move efficiently through established decisions, but still surface any meaningful product or technical gaps hidden by detailed wording.
 
-That checkpoint must happen inside `feature-researching`, and must include:
-- A short restatement of the problem in your own words
-- 2-3 viable approaches with a recommendation
-- The likely building blocks, repo touchpoints, and integration areas you expect to inspect
-- The main tradeoffs, risks, or open decisions
-- A direct confirmation question such as `Does this direction look right before I write the research doc?`
+For each open bifurcation, present this compact decision brief:
 
-Do not write `Z01_*` until that checkpoint has happened and the direction is clear enough to ground in the repo.
+1. **Evidence and patterns**: relevant prompt constraints, repository patterns, and any tension between them.
+2. **Viable options**: two or more credible paths; do not invent false alternatives.
+3. **Consequences**: material tradeoffs and downstream effects.
+4. **Recommendation**: the preferred direction and why.
+5. **Decision request**: one direct question asking the user to choose or refine the direction.
+
+Handle exactly one decision per turn. If several concerns are inseparable, express them as constraints or consequences within one composite decision and still ask only one question. Stop after the decision request and wait for the user's answer. Record the answer, continue discovery, and repeat until no known open bifurcation remains.
+
+The agent owns evidence gathering. Read the repository, eliminate contradicted options, identify relevant patterns, and form an informed recommendation before asking. Do not shift raw investigation work to the user.
+
+Do not write Z01 during this loop. If the conversation is interrupted, keep research in progress and resume at the unresolved decision; do not externalize questions into a clarification file.
 
 #### Low-definition requests
 
@@ -154,7 +181,7 @@ Critical constraints for that invocation:
 - The goal is to refine product intent enough for repo-grounded research
 - Do NOT treat brainstorming output as the final workflow artifact
 - Do NOT hand off directly to planning from the brainstorming flow
-- Do NOT skip the visible refinement checkpoint and jump straight to document writing
+- Return to the Step 3 sparring loop after brainstorming
 
 Tell the dependency:
 - It is being used to refine intent only
@@ -162,11 +189,11 @@ Tell the dependency:
 - Refined requirements must be merged back into `Z01_{feature}_research.md`
 - If brainstorming writes a spec because its own workflow requires it, treat that file as temporary input and fold the needed context into Z01
 
-After refinement completes, continue with Step 4.
+After broad intent is resolved, continue with Step 4. Return to this step for every new meaningful bifurcation found during repo exploration.
 
 #### Medium-definition requests
 
-Ask **1-3 targeted clarification questions** inside `feature-researching` before repo exploration when that will materially sharpen research.
+Ask targeted decision questions inside `feature-researching` before repo exploration when they will materially sharpen research.
 
 Use those questions to resolve:
 - Scope boundaries
@@ -175,16 +202,13 @@ Use those questions to resolve:
 - Contract assumptions
 - Compatibility expectations
 
-If the request is still idea-level rather than spec-level after those answers, provide the same explicit refinement checkpoint used for low-definition requests before writing `Z01_*`.
-
 After the answers:
 - If the request is now clear enough for research, continue with Step 4
 - If ambiguity remains primarily product/design-level, escalate to `superpowers:brainstorming` using the same internal-refinement constraints as low-definition requests
 
 #### High-definition requests
 
-Proceed directly to Step 4 only when the request is actually decision-ready.
-If the wording looks detailed but the product direction is still not locked, run a short refinement checkpoint first instead of drafting `Z01_*` immediately.
+Proceed to Step 4 after resolving known open bifurcations. Detailed wording is not permission to fill gaps: if a meaningful product or technical path lacks user or repository provenance, run the same sparring loop first.
 
 ---
 
@@ -205,11 +229,20 @@ Document:
 
 Prefer likely touchpoints and integration boundaries over false precision. Exact edit ranges belong in planning unless they are genuinely obvious and important for risk analysis.
 
+For every material choice found during exploration, apply the Decision Provenance Contract:
+- if the prompt specifies it, record it as user-specified
+- if repository evidence leaves no credible alternative, record it as repository-determined and cite the evidence
+- if credible alternatives remain, return to Step 3 and spar with the user before continuing toward Z01
+
+Do not call an option repository-determined merely because it is common, familiar, simpler, or recommended. When the repository contains multiple viable patterns and no governing instruction selects one, that is an open bifurcation.
+
 ---
 
-### Step 5: Create Research File
+### Step 5: Assemble Candidate Research Content
 
-Only begin this step after any required refinement checkpoint is complete and the requested direction is clear enough to research responsibly.
+Only begin this step after repo exploration is complete and all known meaningful bifurcations are resolved in conversation.
+
+Assemble the complete candidate Z01 content in the current response context. Do not create or update the artifact yet; persistence happens only after the Step 6 gate passes.
 
 **Scan for ongoing directory:**
 - Check for existing Z01 files
@@ -243,7 +276,12 @@ One paragraph: what is being proposed and why it matters.
 ## Definition Level and Triage Result
 - Classification: low | medium | high
 - Why it was classified this way
-- Whether brainstorming or targeted clarification was used
+- Whether brainstorming or conversational sparring was used
+
+## Resolved Decisions and Provenance
+- Decision
+- Provenance: user-specified | repository-determined
+- Supporting prompt statement, user response, or repository evidence
 
 ## Current State in the Repo
 - What exists today
@@ -282,10 +320,6 @@ One paragraph: what is being proposed and why it matters.
 ## Known Limitations / Explicit Non-Goals
 - Constraints accepted for now
 - Things this research intentionally does not solve
-
-## Open Assumptions Chosen for Planning
-- Non-blocking assumptions that planning may rely on
-- Assumptions that must be revisited if new evidence appears
 ```
 
 **Self-contained requirement (MANDATORY):**
@@ -296,43 +330,9 @@ One paragraph: what is being proposed and why it matters.
 
 ---
 
-### Step 6: Create or Update CLARIFY File
+### Step 6: Verify and Write the Complete Research Artifact
 
-**File**: `{ONGOING_DIR}/Z01_CLARIFY_{feature}_research.md`
-
-Use this file only for **blocking ambiguities** that remain after routing and repo exploration.
-
-Blocking categories include:
-- User-visible behavior or scope ambiguity
-- Data contract ambiguity
-- Permission or security ambiguity
-- External dependency or upstream/downstream contract uncertainty
-- Compatibility or migration ambiguity
-- Test oracle ambiguity
-
-**Do not** create CLARIFY entries for non-blocking unknowns. Keep those in Z01 under `Open Assumptions Chosen for Planning`.
-
-**Structure for each blocking item:**
-
-```markdown
-Question: {concise blocking question}
-Why this matters: {short explanation of the planning risk}
-Options considered:
-- Option A
-- Option B
-Recommended default: {recommended direction if the user does not care strongly}
-User response:
-```
-
-**Critical:** Leave `User response:` blank until answered.
-
-**When incorporating answered questions:** Delete fully answered CLARIFY files or remove incorporated entries if only some were answered.
-
----
-
-### Step 7: Verify Research/Planning Boundary and Completion Gate
-
-Check `Z01_{feature}_research.md` for boundary violations.
+Check the candidate Z01 content for completeness and boundary violations before writing the file.
 
 Move or remove anything that looks like:
 - exact implementation task breakdown
@@ -340,39 +340,39 @@ Move or remove anything that looks like:
 - code-level execution instructions
 - hard requirements for exact edit line ranges
 - claims that planning has no meaningful decisions left
+- unresolved options, questions, bifurcations, or assumptions
+- material decisions without user-specified or repository-determined provenance
 
-Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists with unresolved items.
-
-**Unresolved means ANY of the following:**
-- The file still contains at least one `Question:` entry
-- Any `User response:` is blank
-- Answers were provided but not yet incorporated into `Z01_{feature}_research.md`
-
-**If unresolved CLARIFY exists:**
-1. Keep research todo as `in_progress`
-2. Report only: `Waiting for Z01_CLARIFY_{feature}_research.md answers/incorporation before planning.`
-3. Do NOT invoke or suggest `feature-planning` yet
+Research is **NOT complete** while a known meaningful bifurcation remains unresolved. Keep the research workflow in progress, return to the live Step 3 sparring loop, and do not create or hand off Z01.
 
 **Only mark research complete when:**
-1. Clarification answers are incorporated into `Z01_{feature}_research.md`
-2. `Z01_CLARIFY_{feature}_research.md` is deleted (or has no remaining entries)
+1. Every material decision is user-specified or repository-determined
+2. Z01 contains no unresolved options, questions, or agent-selected design assumptions
 3. Z01 is self-contained and grounded
 4. Z01 contains behavior, risks, dependencies, edge cases, and acceptance criteria
 5. Z01 stays on the research side of the research/planning boundary
+
+Only after all five checks pass, write the candidate content to `{ONGOING_DIR}/Z01_{feature}_research.md`. Artifact creation is the final action of this gate, not an input to it.
 
 ## Red Flags - You're Failing If:
 
 - **Did NOT read AGENTS.md/CLAUDE.md/README/docs FIRST**
 - **Stopped this skill due to missing Plan mode**
-- **Skipped the explicit user-facing refinement checkpoint for a rough or product-ambiguous request**
+- **Chose a meaningful product or technical path without user or repository provenance**
+- **Treated a recommendation, confidence, simplicity, or time pressure as permission to decide**
+- **Called a choice repository-determined while multiple viable repo patterns remained**
+- **Skipped the live sparring loop because the request was classified as high definition**
 - **Treated brainstorming as a separate workflow owner or canonical artifact instead of an internal refinement step**
 - **Allowed brainstorming artifacts to replace Z01 as the primary research artifact**
 - **Skipped classification of the request as low/medium/high definition**
-- **Wrote `Z01_*` before presenting approaches/building blocks/tradeoffs for an idea-level request**
-- **Used more than 3 initial clarification questions for a medium-definition request before deciding whether to escalate**
-- **Stored non-blocking unknowns in Z01_CLARIFY instead of Z01 assumptions**
-- **Marked research done while Z01_CLARIFY still has unresolved items**
+- **Presented options without evidence, consequences, a recommendation, and a direct decision request**
+- **Asked more than one decision question in a turn instead of framing one composite decision**
+- **Wrote Z01 while a known meaningful bifurcation remained unresolved**
+- **Persisted a candidate Z01 before the Step 6 completeness gate passed**
+- **Created a Z01 clarification file or question backlog instead of continuing the conversation**
+- **Stored unresolved choices or agent-selected design assumptions in Z01**
 - **No triage result recorded in Z01**
+- **No decision provenance recorded in Z01**
 - **No edge cases or failure modes captured**
 - **No dependency/adaptation warnings captured**
 - **Z01 depends on external docs for core requirements**
@@ -383,15 +383,18 @@ Research is **NOT complete** while `Z01_CLARIFY_{feature}_research.md` exists wi
 | Excuse | Reality |
 |--------|---------|
 | **"This is only a rough idea, research can't start"** | **NO.** Research is now the single entry point. Classify it and route internally. |
-| **"I already know enough to write Z01 from this rough prompt"** | **NO.** Rough or idea-level requests require a visible refinement checkpoint before artifact creation. |
+| **"The prompt is detailed, so I can fill in the remaining technical choices"** | **NO.** Definition level does not authorize choices without user or repository provenance. |
+| **"I am highly confident this is the best option"** | **NO.** Confidence supports a recommendation; it does not convert an open bifurcation into a decision. |
+| **"This is the simplest or most conventional path"** | **NO.** Simplicity and convention are tradeoff evidence, not user approval or a repository constraint. |
+| **"The repository uses this pattern in several places"** | **NO.** If another viable pattern also exists and no governing instruction selects one, surface the bifurcation. |
 | **"Brainstorming should own the whole flow for vague requests"** | **NO.** Brainstorming is an internal refinement tool here. Workflow and artifact ownership remain with research. |
-| **"Medium ambiguity means ask every question now"** | **NO.** Ask 1-3 high-leverage questions, then decide whether to continue or escalate. |
-| **"If I keep the brainstorm short, it doesn't need options or tradeoffs"** | **NO.** The refinement checkpoint must still surface approaches, building blocks, and tradeoffs clearly enough for user confirmation. |
+| **"I can put the unresolved choice in Z01 and let planning settle it"** | **NO.** Z01 is created only after all known meaningful bifurcations are resolved. |
+| **"A clarification file lets me keep moving"** | **NO.** Research clarification is live. Keep the workflow in progress and wait for the user's decision. |
+| **"If I keep the conversation short, it doesn't need options or tradeoffs"** | **NO.** Every decision brief includes evidence, viable options, consequences, a recommendation, and one direct question. |
 | **"The repo touchpoints are obvious, I'll skip documenting risks"** | **NO.** Surfacing compatibility and adaptation risks is a core deliverable of research. |
 | **"Exact file edits belong in research so planning stays easy"** | **NO.** That collapses the stage boundary. Research should identify likely touchpoints, not replace planning. |
-| **"Questions need no context in CLARIFY"** | **NO.** Blocking questions should include why they matter and the recommended default. |
-| **"If a guess is reasonable, no need to mention it"** | **NO.** Non-blocking guesses belong in `Open Assumptions Chosen for Planning`. |
-| **"Research is done because Z01 exists"** | **NO.** Done state depends on resolved blocking ambiguities and a clean research/planning boundary. |
+| **"The user said to make sensible defaults"** | **NO.** That does not authorize material product or technical decisions with credible alternatives. |
+| **"Research is done because Z01 exists"** | **NO.** Z01 is valid only when its material decisions have provenance and no unresolved choices remain. |
 
 ## Success Criteria
 
@@ -399,16 +402,20 @@ You followed the workflow if:
 - ✓ Read AGENTS.md/CLAUDE.md/README/docs FIRST
 - ✓ Verified Superpowers dependencies before proceeding
 - ✓ Classified the request as low, medium, or high definition
-- ✓ Used an explicit conversational refinement checkpoint before `Z01_*` for low-definition and product-ambiguous requests
-- ✓ Presented approaches, likely building blocks/touchpoints, and tradeoffs before writing `Z01_*` when the idea was rough
+- ✓ Applied the Decision Provenance Contract to product and technical decisions at every definition level
+- ✓ Gathered repo evidence autonomously before asking the user to decide
+- ✓ Used a live sparring loop for every meaningful open bifurcation
+- ✓ Presented evidence, viable options, consequences, a recommendation, and one direct decision request
+- ✓ Asked exactly one decision question per turn
 - ✓ Used brainstorming internally for deeper refinement without surrendering workflow or artifact ownership
 - ✓ Recorded the triage result in Z01
+- ✓ Recorded resolved material decisions and their provenance in Z01
 - ✓ Produced a self-contained Z01 grounded in repo behavior and constraints
 - ✓ Captured current state, proposed behavior, edge cases, risks, dependencies, and acceptance criteria
 - ✓ Used likely touchpoints/integration points instead of forcing planning-level edit detail
-- ✓ Put non-blocking unknowns into Z01 assumptions
-- ✓ Used contextualized Z01_CLARIFY entries only for blocking ambiguities
-- ✓ Kept research in progress until Z01_CLARIFY was fully resolved and removed
+- ✓ Kept research conversational and in progress until all known meaningful bifurcations were resolved
+- ✓ Created no Z01 clarification file or unresolved-question backlog
+- ✓ Created Z01 only after the decision loop completed
 - ✓ Handed planning a grounded feature spec rather than a pseudo-plan
 
 ## When to Use
@@ -417,7 +424,7 @@ Use when:
 - You have a rough idea, partial spec, or well-defined feature request
 - You need one entry point that can refine intent and then ground the work in the repo
 - You need to surface integration risks, edge cases, constraints, and test criteria before planning
-- You want a short collaborative framing step before a persistent research artifact is written for rough requests
+- You want an evidence-led sparring partner for unresolved product and technical choices before a persistent research artifact is written
 
 **Don't use when:**
 - The change is trivial enough that no research artifact is needed
@@ -425,11 +432,11 @@ Use when:
 
 ## Handoff to Planning
 
-If CLARIFY has unresolved items:
-1. Announce: `Research not complete yet. Waiting for Z01_CLARIFY answers/incorporation.`
-2. Keep research workflow open (do not hand off)
+If any meaningful bifurcation is unresolved:
+1. Keep the live research conversation and progress plan open.
+2. Do not create Z01 or hand off to planning.
 
-When CLARIFY is fully resolved and removed:
+When all known meaningful bifurcations are resolved and Step 6 writes the validated Z01:
 1. Announce: `Research complete. Z01_research.md ready for planning.`
 2. Then proceed to planning workflow
 
@@ -439,5 +446,4 @@ When CLARIFY is fully resolved and removed:
 - Current repo state and likely touchpoints
 - Edge cases, failure modes, and compatibility risks
 - Test and acceptance criteria
-- Blocking decisions already resolved
-- Explicit assumptions safe to carry into planning
+- Resolved material decisions with user or repository provenance

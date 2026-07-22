@@ -116,7 +116,7 @@ Read in this order:
 3. `README.md` when it exists
 4. `PUBLISHING.md` when it exists
 5. accepted `Z06_{feature}_qa_review.md`
-6. `Z01_{feature}_research.md` and answered research clarification when present
+6. `Z01_{feature}_research.md` when present
 7. `Z02_{feature}_plan.md` and answered plan clarification when present
 8. tracker requirements when tracker context is authoritative
 9. `Z99_implementation_status.md` in local-plan mode

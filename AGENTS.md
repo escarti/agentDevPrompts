@@ -33,7 +33,7 @@ Standalone:
 ## Workflow Artifacts
 
 - Use `docs/ai/ongoing/` for temporary workflow files.
-- Common artifacts: `Z01_*`, `Z01_CLARIFY_*`, `Z02_*`, `Z03_*`, `Z04_*`, `Z05_*`.
+- Common artifacts: `Z01_*`, `Z02_*`, `Z03_*`, `Z04_*`, `Z05_*`.
 - Additional review artifact: `Z06_{feature}_qa_review.md`.
 - Feature slugs: `snake_case` (max 50 chars).
 - PR slugs: `kebab-case` (max 50 chars).
