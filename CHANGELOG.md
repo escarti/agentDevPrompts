@@ -10,10 +10,13 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
-- None.
+- Changed `feature-qa-review` into the mandatory commit-bound gate after implementation, with five isolated code-focused profiles and explicit `PASS` or `BLOCKED` output in Z06.
+- Changed `feature-finishing` from a duplicate code-review pass into a documentation-consistency, change-recording, and ready-for-review PR publication gate.
+- Moved documentation-consistency ownership from QA review to feature finishing.
 
 ### Fixed
-- None.
+- Prevented `feature-implementing` from jumping directly to `feature-finishing`; only an explicitly accepted clean QA `PASS` may launch finishing.
+- Prevented stale QA verdicts, unresolved findings, non-documentation drift, unrelated worktree changes, or missing publication approval from entering the final PR flow.
 
 ## [1.20.1] - 2026-07-07
 

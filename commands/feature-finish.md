@@ -1,5 +1,5 @@
 ---
-description: Perform final quality check using structured workflow with custom patterns
+description: Finalize documentation and publish an approved ready-for-review PR
 ---
 
 Use the feature-workflow:feature-finishing skill exactly as written
