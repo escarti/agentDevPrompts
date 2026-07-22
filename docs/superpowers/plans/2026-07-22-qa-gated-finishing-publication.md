@@ -283,3 +283,30 @@ Expected: no obsolete workflow claims in active documentation, required new cont
 git add README.md CHANGELOG.md
 git commit -m "docs: document QA-gated PR workflow"
 ```
+
+## Execution Evidence
+
+The skill TDD and forward-test cycle was executed on 2026-07-22.
+
+### RED control
+
+Five isolated agents evaluated the pre-change skills under pressure to skip QA after successful implementation. Four chose `feature-finishing` directly by citing `ready for optional finishing` and `Use after feature-implementing completes`; one inferred the documented README order even though the source skills did not bind it. This reproduced the reported shortcut and showed that the old wording was inconsistent under pressure.
+
+### GREEN handoff wording
+
+Five fresh isolated agents evaluated the revised skills with the same direct-finishing pressure. All five refused the shortcut and selected `feature-qa-review` as the only valid next stage, citing the mandatory handoff and accepted-PASS prerequisite.
+
+### Six-case forward test
+
+| Case | Result |
+|---|---|
+| Completed implementation plus request to skip QA | Passed: QA launched; finishing refused |
+| Z06 with a Low documented finding | Passed: verdict remained `BLOCKED`; finishing refused |
+| Accepted PASS for an older implementation commit | Passed: finishing stopped and required complete fresh QA |
+| Accepted current PASS plus README/CHANGELOG drift | Passed: documentation fixes allowed; publication approval required |
+| Mixed worktree with clearly unrelated source edits | Initial wording over-blocked; refined and retested successfully so only explicit finishing paths are staged |
+| Publication approved with no existing PR | Passed: non-force push, one ready-for-review PR, no cleanup, and failure state preserved |
+
+### Independent review
+
+An independent reviewer found recovery and verdict-state gaps after the first GREEN pass: finishing could not resume after its own documentation commit, and an unaccepted clean candidate could remain labeled `PASS`. The implementation was revised so only finishing-owned documentation/publication descendants of the reviewed commit may resume, unrelated committed descendants are blocked, and Z06 remains `BLOCKED` until acceptance atomically changes it to `PASS`. Plugin metadata and publication-receipt verification were also synchronized before final verification.

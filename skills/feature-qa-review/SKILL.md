@@ -32,7 +32,7 @@ update_plan({
     {"step": "Step 7: Synthesize, normalize, and de-duplicate findings", "status": "pending"},
     {"step": "Step 8: Present findings and collect one decision per issue", "status": "pending"},
     {"step": "Step 9: Execute selected finding actions", "status": "pending"},
-    {"step": "Step 10: Run fresh verification and determine PASS or BLOCKED", "status": "pending"},
+    {"step": "Step 10: Run fresh verification and determine whether the run is a clean candidate", "status": "pending"},
     {"step": "Step 11: Create Z06 QA gate documentation", "status": "pending"},
     {"step": "Step 12: Ask for PASS acceptance and hand off to feature-finishing", "status": "pending"}
   ]
@@ -46,7 +46,7 @@ After each step, mark it completed and move `in_progress` to the next step.
 ```text
 ANY FINDING IN THIS RUN -> BLOCKED
 ANY FAILED OR MISSING REQUIRED VERIFICATION -> BLOCKED
-ANY CODE CHANGE AFTER THE REVIEWED COMMIT -> COMPLETE FRESH QA RERUN
+ANY IMPLEMENTATION OR NON-DOCUMENTATION CHANGE AFTER THE REVIEWED COMMIT -> COMPLETE FRESH QA RERUN
 PASS WITHOUT EXPLICIT USER ACCEPTANCE -> FINISHING REMAINS BLOCKED
 ONLY AN ACCEPTED PASS MAY LAUNCH FEATURE-FINISHING
 ```
@@ -261,23 +261,24 @@ If the loop stops, mark remaining findings `Undecided`.
 
 Regardless of actions, any finding discovered in this run fixes the final verdict at `BLOCKED`. Do not rerun only the reporting profile and do not continue to finishing.
 
-### Step 10: Run Fresh Verification and Determine Verdict
+### Step 10: Run Fresh Verification and Determine the Clean Candidate State
 
 Run fresh verification against the reviewed commit:
 - always run `git diff --check`
 - run verification commands required by the tracker, Z02, AGENTS.md, or project tooling
 - inspect full output and exit status
 
-Determine exactly one verdict:
+Set `Clean Candidate: Yes` only when:
 
-`PASS` only when:
 - all five profiles returned `No findings`
 - every result was inspected
 - all required verification passed
 - HEAD still equals `Reviewed Commit`
 - no uncommitted implementation changes appeared during review
 
-`BLOCKED` when any condition above is false, any finding existed in this run, or the review stopped early.
+Otherwise set `Clean Candidate: No`.
+
+The persisted verdict remains `BLOCKED` until a clean candidate is explicitly accepted in Step 12. A clean candidate is not yet a final `PASS`.
 
 ### Step 11: Create Z06 QA Gate Documentation
 
@@ -292,7 +293,8 @@ Required header:
 **Branch**: {branch}
 **Reviewed Commit**: {full SHA}
 **Source of Truth**: {tracker-first | local-artifacts-only | diff-only}
-**Verdict**: PASS | BLOCKED
+**Clean Candidate**: Yes | No
+**Verdict**: BLOCKED
 **User Acceptance**: Not accepted
 **Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability
 **Files Changed**: {count}
@@ -304,28 +306,28 @@ Then include:
 - every finding and its decision/disposition
 - failed or missing profile results
 - unresolved recommendations
-- explicit rerun requirement when verdict is `BLOCKED`
+- explicit rerun requirement when `Clean Candidate` is `No`
 
 ### Step 12: Accept PASS and Hand Off to Finishing
 
-If the verdict is `BLOCKED`:
+If `Clean Candidate` is `No`:
 - do not ask to proceed to finishing
 - do not invoke or suggest finishing as an alternative
 - report the blocker and the requirement for a complete fresh QA run
 
-If the verdict is `PASS`, present the reviewed commit and verification summary, then ask:
+If `Clean Candidate` is `Yes`, present the reviewed commit and verification summary, then ask:
 
 ```text
-QA returned PASS for {reviewed commit}. Accept this QA verdict and continue to feature-finishing?
+QA produced a clean candidate for {reviewed commit}. Accept it as PASS and continue to feature-finishing?
 1) Accept and continue
 2) Do not accept
 ```
 
 Only after explicit `Accept and continue`:
-1. Update Z06 to `**User Acceptance**: Accepted`.
+1. Update Z06 to `**Verdict**: PASS` and `**User Acceptance**: Accepted`.
 2. Invoke `feature-workflow:feature-finishing` with the Z06 path, branch, reviewed commit, feature slug, and ongoing directory.
 
-If the user does not accept, leave Z06 as `Not accepted` and stop. Finishing remains blocked.
+If the user does not accept, leave Z06 as `Verdict: BLOCKED` and `User Acceptance: Not accepted`, then stop. Finishing remains blocked.
 
 ## Red Flags
 
@@ -339,6 +341,7 @@ If the user does not accept, leave Z06 as `Not accepted` and stop. Finishing rem
 - Trusted missing, malformed, or uninspected subagent output
 - Issued `PASS` after any finding existed in the run
 - Issued `PASS` with failed or missing verification
+- Issued `PASS` before explicit user acceptance
 - Reused a prior profile result after code changed
 - Treated a fix as permission to skip the complete fresh QA rerun
 - Launched finishing without explicit user acceptance
@@ -365,5 +368,6 @@ If the user does not accept, leave Z06 as `Not accepted` and stop. Finishing rem
 - Made any finding fix the verdict at `BLOCKED`
 - Ran fresh required verification
 - Created Z06 with verdict, reviewed commit, user acceptance, verification, and dispositions
-- Required a complete fresh QA rerun after any code change or finding
+- Kept a clean candidate `BLOCKED` until explicit acceptance atomically changed it to `PASS`
+- Required a complete fresh QA rerun after any implementation/non-documentation change or finding
 - Invoked `feature-finishing` only after a clean `PASS` was explicitly accepted

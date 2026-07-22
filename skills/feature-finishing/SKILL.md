@@ -78,15 +78,35 @@ Locate the matching `{ONGOING_DIR}/Z06_{feature}_qa_review.md`. Require all of:
 - successful required verification recorded
 - matching feature branch and feature slug
 
-At finishing entry, `git rev-parse HEAD` must equal the Z06 `Reviewed Commit`. Classify every uncommitted path as finishing-owned, clearly unrelated user work, or provenance-ambiguous. Feature-owned or provenance-ambiguous non-documentation implementation changes block finishing.
+At finishing entry, verify the Z06 `Reviewed Commit` is an ancestor of HEAD:
 
-If Z06 is missing, `BLOCKED`, not accepted, contains findings, or names a different code commit:
+```bash
+git merge-base --is-ancestor <reviewed-commit> HEAD
+git diff --name-only <reviewed-commit>..HEAD
+git diff --name-only
+```
+
+Classify committed history separately from uncommitted worktree state:
+- every commit after the reviewed commit must be finishing-owned documentation/publication work
+- an unrelated, feature-implementation, or provenance-ambiguous committed descendant blocks finishing because it would be included in the push; ask the user to isolate or rebase that history
+- uncommitted paths may be classified as finishing-owned, clearly unrelated user work, feature implementation work, or provenance-ambiguous
+- feature implementation or provenance-ambiguous uncommitted changes block finishing
+
+Documentation/publication-only commits created by a prior finishing attempt are valid and allow the workflow to resume.
+
+If Z06 is missing, `BLOCKED`, not accepted, contains findings, the reviewed commit is not an ancestor of HEAD, or post-QA history contains implementation changes:
 - stop immediately
 - do not audit or edit documentation
 - route back to a complete fresh `feature-qa-review`
 - do not treat user urgency or prior test results as an exception
 
 Clearly unrelated user changes may remain in the worktree only when their provenance and exclusion are unambiguous. Record them in the publication summary, exclude them from documentation comparisons and verification claims, and never stage, discard, or rewrite them. If provenance or QA freshness is ambiguous, stop and ask the user to isolate the change before continuing.
+
+Resumption rules:
+- after a documentation/finalization commit, resume at the earliest incomplete finishing step without requiring new QA
+- after a successful push but failed PR creation, preserve the pushed branch and retry PR discovery/creation after prerequisites recover
+- when a PR already exists, verify its repository, head branch, and base branch are the intended values before updating it
+- never repeat, amend, or discard a successful finishing commit merely to reconstruct state
 
 ### Step 2: Load Repository Instructions and Feature Context
 
@@ -260,6 +280,8 @@ Resolve:
 - remote repository
 - existing PR for the current head branch, if any
 
+If an existing PR is found, verify it targets the resolved repository, uses the current feature branch as head, and uses `main` as base before proposing any mutation.
+
 Present:
 - branch and base
 - implementation and finalization commits
@@ -315,9 +337,12 @@ Do not clean up the branch or worktree after opening the PR; reviewers may reque
 
 After the PR exists:
 1. Update Z05 with `Approval: Approved`, the finalization commit, pushed branch, `PR State: Ready for review`, and the PR URL.
-2. Commit only the updated Z05 as a publication receipt when the artifact is tracked.
-3. Push that receipt commit without force.
-4. Confirm the ready-for-review PR includes the receipt commit.
+2. Inspect `git status --short` and `git diff -- <Z05 path>`.
+3. Run `git diff --check -- <Z05 path>`.
+4. Commit only the updated Z05 as a publication receipt when the artifact is tracked.
+5. Verify the receipt commit contains only Z05.
+6. Push that receipt commit without force.
+7. Confirm the ready-for-review PR includes the receipt commit.
 
 If the ongoing artifact directory is intentionally ignored or Z05 is not tracked, report the publication details without forcing it into version control.
 
@@ -326,6 +351,8 @@ If the ongoing artifact directory is intentionally ignored or Z05 is not tracked
 - Started without an accepted Z06 `PASS`
 - Accepted a Z06 containing any finding
 - Ignored a stale `Reviewed Commit`
+- Rejected valid documentation-only finishing commits when resuming after the reviewed commit
+- Allowed an unrelated committed descendant of the reviewed commit into the publication branch
 - Repeated QA's bug, security, test-gap, plan, or maintainability reviews
 - Changed implementation code, tests, schemas, runtime configuration, or executable workflow logic during finishing
 - Failed to route non-documentation work back through fresh QA
@@ -346,6 +373,7 @@ If the ongoing artifact directory is intentionally ignored or Z05 is not tracked
 |--------|---------|
 | "Finishing can catch anything QA missed." | No. Finishing owns documentation consistency; code concerns return to fresh QA. |
 | "The reviewed commit is close enough." | No. The gate is commit-bound; non-documentation drift requires complete fresh QA. |
+| "HEAD must always equal the reviewed commit." | Only at the start of the first finishing attempt. On resume, the reviewed commit must be an ancestor and all later feature-owned changes must be documentation/publication-only. |
 | "This tiny code fix does not need QA again." | Any implementation change invalidates the accepted verdict. |
 | "The user asked for a PR, so push approval is implied." | No. Publication requires the explicit final approval in Step 9. |
 | "A draft PR is safer by default." | The approved workflow requires ready-for-review after clean QA and final approval. |
@@ -355,7 +383,7 @@ If the ongoing artifact directory is intentionally ignored or Z05 is not tracked
 ## Success Criteria
 
 - Started on a feature branch with a matching accepted Z06 `PASS`
-- Verified the accepted QA commit matched the entry code revision
+- Verified the accepted QA commit was an ancestor of HEAD and every committed descendant was finishing-owned documentation/publication work
 - Audited every affected documentation surface and recorded reasons
 - Corrected only documentation and publication metadata drift
 - Routed any required implementation change back to complete fresh QA
