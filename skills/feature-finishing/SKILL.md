@@ -78,7 +78,7 @@ Locate the matching `{ONGOING_DIR}/Z06_{feature}_qa_review.md`. Require all of:
 - successful required verification recorded
 - matching feature branch and feature slug
 
-At finishing entry, `git rev-parse HEAD` must equal the Z06 `Reviewed Commit`. Also require no uncommitted non-documentation implementation changes.
+At finishing entry, `git rev-parse HEAD` must equal the Z06 `Reviewed Commit`. Classify every uncommitted path as finishing-owned, clearly unrelated user work, or provenance-ambiguous. Feature-owned or provenance-ambiguous non-documentation implementation changes block finishing.
 
 If Z06 is missing, `BLOCKED`, not accepted, contains findings, or names a different code commit:
 - stop immediately
@@ -86,7 +86,7 @@ If Z06 is missing, `BLOCKED`, not accepted, contains findings, or names a differ
 - route back to a complete fresh `feature-qa-review`
 - do not treat user urgency or prior test results as an exception
 
-Unrelated user changes must never be staged, discarded, or rewritten. If an uncommitted non-documentation change makes QA freshness ambiguous, stop and ask the user to isolate it before continuing.
+Clearly unrelated user changes may remain in the worktree only when their provenance and exclusion are unambiguous. Record them in the publication summary, exclude them from documentation comparisons and verification claims, and never stage, discard, or rewrite them. If provenance or QA freshness is ambiguous, stop and ask the user to isolate the change before continuing.
 
 ### Step 2: Load Repository Instructions and Feature Context
 
@@ -171,7 +171,8 @@ After editing, inspect `git status --short` and `git diff`. Separate finishing-o
 First verify QA freshness:
 - the accepted QA commit remains an ancestor of HEAD
 - all changes after the accepted QA commit are documentation/publication-only
-- no uncommitted non-documentation implementation changes exist
+- no feature-owned or provenance-ambiguous uncommitted non-documentation implementation changes exist
+- every clearly unrelated user change is identified, excluded from finishing scope, and preserved untouched
 
 If any post-QA change affects implementation behavior, stop and require complete fresh QA.
 
