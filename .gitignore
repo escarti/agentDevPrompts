@@ -17,4 +17,5 @@ docs/ai/ongoing/*
 .idea/
 
 .codex-subagents/
+.worktrees/
 .obsidian
