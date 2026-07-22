@@ -33,7 +33,8 @@ update_plan({
     {"step": "Step 8: Delegate only the current batch to the chosen execution controller", "status": "pending"},
     {"step": "Step 9: Verify the batch outcome and update the live execution tracker", "status": "pending"},
     {"step": "Step 10: Ask approval before the next batch if work remains", "status": "pending"},
-    {"step": "Step 11: Enforce the mode-specific completion gate", "status": "pending"}
+    {"step": "Step 11: Enforce the mode-specific completion gate", "status": "pending"},
+    {"step": "Step 12: Hand off directly to feature-qa-review", "status": "pending"}
   ]
 })
 ```
@@ -412,6 +413,25 @@ If the active mode fails its completion gate:
 - keep the workflow in progress
 - do not claim implementation is complete
 
+### Step 12: Hand Off Directly to Feature QA Review
+
+After Step 11 passes, invoke `feature-workflow:feature-qa-review` on the current feature branch. This handoff is mandatory and is the only valid next feature-workflow stage.
+
+Pass a compact handoff containing:
+- active feature branch
+- implementation source mode: `local-plan` or `tracker`
+- feature slug
+- `ONGOING_DIR`
+- final implementation commit from `git rev-parse HEAD`
+- tracker entrypoint when tracker mode is active
+
+Hard gate:
+- do not invoke, suggest, or hand off to `feature-finishing` from `feature-implementing`
+- do not describe finishing or documenting as an alternative next step
+- do not treat implementation verification as a substitute for the independent QA review
+- if `feature-qa-review` is unavailable, interrupted, or returns `BLOCKED`, return control and report that the workflow cannot advance to finishing
+- only `feature-qa-review` may launch `feature-finishing`, and only after it records a clean `PASS` for the reviewed commit and the user accepts that verdict
+
 ## Red Flags
 
 You are failing if you:
@@ -427,6 +447,9 @@ You are failing if you:
 - asked for or relied on execution modes other than the two allowed options
 - delegated the full remaining plan instead of only the current batch
 - passed full artifact dumps instead of a compact execution brief
+- skipped the mandatory `feature-qa-review` handoff after the implementation completion gate
+- invoked or suggested `feature-finishing` directly from implementation
+- treated implementation tests or executor review loops as equivalent to the independent QA gate
 
 Local-plan mode red flags:
 - failed to create or reconcile `Z99_implementation_status.md` before execution-mode selection
@@ -468,6 +491,8 @@ Tracker mode red flags:
 | "Pass the whole plan for convenience." | No. The wrapper owns batching and approval. |
 | "Approval between batches slows things down." | No. Batch approval is a core workflow guarantee. |
 | "A done task without proof is good enough." | No. Both modes require proof before completion. |
+| "Implementation tests passed, so finishing can start now." | No. Implementation completion must hand off to `feature-qa-review`; only an accepted clean QA `PASS` may launch finishing. |
+| "QA review is optional because finishing performs another review." | No. Finishing is downstream of QA and cannot be invoked directly from implementation. |
 
 ## Success Criteria
 
@@ -490,6 +515,9 @@ You followed the workflow if:
 - sent a compact execution brief
 - required a structured batch outcome before updating live progress
 - preserved dependency order and verification expectations
+- invoked `feature-workflow:feature-qa-review` after the mode-specific completion gate passed
+- passed the branch, source mode, feature slug, ongoing directory, and final implementation commit into QA
+- did not invoke or suggest `feature-finishing` directly
 
 Local-plan mode success requires:
 - created or reconciled `Z99_implementation_status.md`
@@ -533,10 +561,12 @@ Do not use when:
 1. feature-researching  -> Z01_research + Z01_CLARIFY
 2. feature-planning     -> Z02_plan and/or tracker artifacts + Z02_CLARIFY
 3. feature-implementing -> local Z02 + Z99 OR tracker-native execution from published tracker items
+4. feature-qa-review    -> commit-bound PASS or BLOCKED verdict in Z06
 ```
 
 After this skill:
 - local-plan mode leaves all Z99 tasks done with proof, validated per-task commit SHAs, and a persisted `Feature branch:`
 - tracker mode leaves all child items done with validated commit proof on the inferable tracker branch
 - final verification has passed
-- implementation is ready for optional finishing and documenting steps
+- `feature-qa-review` has been invoked as the mandatory next stage
+- finishing remains blocked until QA records a clean `PASS` for the reviewed commit and the user explicitly accepts it

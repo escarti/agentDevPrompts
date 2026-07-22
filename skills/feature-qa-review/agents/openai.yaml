@@ -1,4 +1,4 @@
 interface:
   display_name: "Feature QA Review"
-  short_description: "Multi-profile QA review for feature branches."
-  default_prompt: "Use $feature-qa-review to review the current feature branch exactly as written."
+  short_description: "Commit-bound QA gate for feature branches."
+  default_prompt: "Use $feature-qa-review after implementation to produce and handle the QA verdict for the current feature branch."
