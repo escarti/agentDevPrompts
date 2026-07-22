@@ -1,7 +1,7 @@
 {
   "name": "feature-workflow",
   "version": "1.20.1",
-  "description": "Complete feature development workflow: research, planning, automated execution, QA review, and logging. Extends superpowers by obra with context-aware wrappers.",
+  "description": "Complete feature workflow with research, planning, automated execution, commit-bound QA, documentation finalization, ready-PR publication, and review follow-up.",
   "author": {
     "name": "Eduardo Escarti",
     "email": "necatus9@gmail.com"

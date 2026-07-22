@@ -83,7 +83,7 @@ Temporary artifacts are written to `docs/ai/ongoing/`.
 - `Z02_{feature}_plan.md`
 - `Z02_CLARIFY_{feature}_plan.md`
 - `Z03_*`, `Z04_*`, `Z05_*` for PR/finishing flows
-- `Z06_{feature}_qa_review.md` for multi-profile QA review output
+- `Z06_{feature}_qa_review.md` for the commit-bound QA verdict, verification evidence, findings, and user acceptance
 
 Filename sanitizer patterns:
 

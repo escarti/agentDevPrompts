@@ -10,10 +10,15 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
+- Changed `feature-qa-review` into the mandatory commit-bound gate after implementation, with five isolated code-focused profiles and explicit `PASS` or `BLOCKED` output in Z06.
+- Changed `feature-finishing` from a duplicate code-review pass into a documentation-consistency, change-recording, and ready-for-review PR publication gate.
+- Moved documentation-consistency ownership from QA review to feature finishing.
 - Reworked `feature-researching` as an evidence-led sparring workflow: meaningful product and technical bifurcations now require live user decisions unless the prompt or repository evidence already determines the direction.
 - Made `Z01_*_research.md` a complete research artifact created only after all known meaningful bifurcations are resolved, with explicit decision provenance.
 
 ### Fixed
+- Prevented `feature-implementing` from jumping directly to `feature-finishing`; only an explicitly accepted clean QA `PASS` may launch finishing.
+- Prevented stale QA verdicts, unresolved findings, non-documentation drift, unrelated worktree changes, or missing publication approval from entering the final PR flow.
 - Closed autonomy loopholes that allowed high-definition prompts, model confidence, recommendations, or open assumptions to silently resolve unspecified feature decisions.
 
 ### Removed

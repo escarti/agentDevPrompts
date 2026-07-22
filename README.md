@@ -124,9 +124,11 @@ Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-resear
 1. Start with `feature-workflow:feature-researching`
 2. Plan with `feature-workflow:feature-planning`
 3. Implement with `feature-workflow:feature-implementing`
-4. Review with `feature-workflow:feature-qa-review`
-5. Finish with `feature-workflow:feature-finishing`
-6. Document with `feature-workflow:feature-documenting`
+4. Pass the mandatory fresh gate with `feature-workflow:feature-qa-review`
+5. Finalize documentation and publish with `feature-workflow:feature-finishing`
+6. Optionally consolidate temporary artifacts with `feature-workflow:feature-documenting`
+
+The implementation-to-publication chain is enforced, not advisory. `feature-implementing` must invoke QA and cannot invoke finishing directly. QA records a `PASS` or `BLOCKED` verdict for one exact commit in `Z06`; any finding or later implementation change requires a complete fresh QA run. Only an explicitly accepted clean `PASS` may launch finishing. Finishing then audits documentation, records the change, obtains final publication approval, pushes without force, and opens a ready-for-review PR against `main`.
 
 ### Quick Guide (Intended Use)
 
@@ -134,10 +136,10 @@ Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-resear
 | --- | --- | --- | --- | --- |
 | 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Act as an evidence-led sparring partner: investigate the repo, surface unresolved product and technical bifurcations, and create research only after the user resolves them | Rough idea, partial spec, or detailed request | Complete `Z01_*_research.md` |
 | 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Complete Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
-| 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute from the canonical Z02 plan with local `Z99` tracking, or execute tracker-natively from an approved published tracker graph | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + verification + handoff to documentation |
-| 4. Multi-profile QA review | `feature-workflow:feature-qa-review` | Run a tracker-aware, subagent-driven QA review on the feature branch and capture explicit issue dispositions | Implemented code + tracker or Z01/Z02 context | Findings synthesis, issue decisions, and `Z06_{feature}_qa_review.md` |
-| 5. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
-| 6. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
+| 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute from the canonical Z02 plan with local `Z99` tracking, or execute tracker-natively from an approved published tracker graph | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + verification + mandatory QA handoff |
+| 4. Commit-bound QA gate | `feature-workflow:feature-qa-review` | Run five isolated code-focused review profiles against one feature-branch commit and require a fresh clean result | Implemented code + tracker or Z01/Z02 context | Accepted `PASS` or `BLOCKED`, verification evidence, and `Z06_{feature}_qa_review.md` |
+| 5. Documentation and publication gate | `feature-workflow:feature-finishing` | Validate the accepted QA commit, remove documentation drift, record changes, and publish only after final approval | Accepted clean Z06 + implementation and documentation context | `Z05_*`, finalization commit, pushed branch, and ready-for-review PR |
+| 6. Optional artifact consolidation | `feature-workflow:feature-documenting` | Consolidate temporary workflow artifacts into a development log and update an existing PR when requested | Z-files and completed workflow results | Dev log, cleanup commit, and optional PR update |
 
 `feature-researching` uses decision provenance at every definition level. A decision may be adopted when the prompt specifies it or repository evidence leaves no credible alternative. When multiple meaningful product or technical paths remain, research presents the evidence and repo patterns, viable options, consequences, and a recommendation, then asks the user to decide one bifurcation at a time.
 
@@ -177,6 +179,17 @@ Implementation mode after planning:
 - Those commits must already exist before the workflow asks the user whether to continue with the next batch.
 - Batching does not relax commit isolation: by the end of implementation, the feature branch must contain at least one attributable, followable commit per Z02 task or published child issue/task, with additional fix commits allowed when needed.
 - A tracker child item is done only after the workflow validates the returned commit SHA on the epic branch and verification was reported.
+- After the local-plan or tracker completion gate passes, implementation must invoke `feature-qa-review` and must not invoke or suggest `feature-finishing` directly.
+
+QA and finishing gates:
+- QA binds the review to the full current commit SHA and runs bug, security, plan-conformance, test-gap, and maintainability profiles in isolation.
+- Any finding makes that QA run `BLOCKED`, regardless of severity or whether it is fixed immediately.
+- Fixes and any other implementation changes require a new commit and a complete fresh five-profile QA run.
+- A clean `PASS` still requires explicit user acceptance before QA can invoke finishing.
+- Finishing checks the accepted Z06 and reviewed commit before editing documentation.
+- Finishing owns documentation consistency and change recording; it does not repeat QA's code-review profiles.
+- Any required non-documentation change stops finishing and routes the work back through fresh QA.
+- Finishing stages only intended files, asks for explicit publication approval, pushes without force, and opens a ready-for-review PR against `main`.
 
 Clarification gates:
 - Research stays conversational and does not create Z01 while meaningful product or technical bifurcations remain unresolved.
@@ -185,7 +198,7 @@ Clarification gates:
 
 Additional temporary artifacts may be created in PR/finish flows:
 - `Z03_*`, `Z04_*`, `Z05_*` in the same ongoing directory
-- `Z06_{feature}_qa_review.md` for multi-profile QA review output
+- `Z06_{feature}_qa_review.md` for the commit-bound QA verdict, verification, findings, and user acceptance
 
 ## Prompt Install Scripts (Codex and Copilot)
 
@@ -233,7 +246,8 @@ agentDevPrompts/
 
 - `feature-planning` wraps superpowers `writing-plans`.
 - `feature-implementing` wraps superpowers `executing-plans`.
-- `feature-finishing` and `feature-pr-fixing` leverage superpowers debugging workflows.
+- `feature-finishing` owns post-QA documentation consistency and approved ready-for-review PR publication.
+- `feature-pr-fixing` leverages superpowers debugging workflows.
 - Keep version fields synchronized before release (see `AGENTS.md`, `CLAUDE.md`, and `PUBLISHING.md`).
 
 ## Attribution

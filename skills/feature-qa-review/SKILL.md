@@ -1,6 +1,6 @@
 ---
 name: feature-qa-review
-description: Use after feature-implementing to run a tracker-aware, multi-profile QA review on the current feature branch, synthesize subagent findings, and drive an issue-by-issue decision loop with optional fix, documentation, or tracker follow-up actions.
+description: Use after feature-implementing completes on a feature branch and before any finishing or publication work begins.
 ---
 
 # Feature Workflow: QA Review Feature Branch
@@ -9,12 +9,13 @@ description: Use after feature-implementing to run a tracker-aware, multi-profil
 
 **STOP. Before doing ANYTHING else:**
 
-1. Create a progress plan (see below)
-2. Mark Step 1 as `in_progress`
-3. Confirm you are on a non-`main` feature branch
-4. Gather source-of-truth context before launching any review subagent
+1. Create the progress plan below.
+2. Mark Step 1 as `in_progress`.
+3. Confirm the current branch is not `main`.
+4. Capture the exact commit to review.
+5. Rebuild review context from source artifacts before launching subagents.
 
-**This workflow may run in the same session as implementation. Do not require fresh context, but do rebuild review context from source artifacts instead of trusting chat memory.**
+This is the mandatory independent gate between `feature-implementing` and `feature-finishing`. It may run in the same session as implementation, but it must use fresh source and branch evidence rather than chat memory.
 
 ## MANDATORY FIRST ACTION: Create Progress Plan
 
@@ -23,20 +24,34 @@ update_plan({
   "explanation": "Tracking feature QA review workflow",
   "plan": [
     {"step": "Step 1: Confirm collaboration mode and review target", "status": "in_progress"},
-    {"step": "Step 2: Detect branch, diff scope, feature slug, and ongoing directory", "status": "pending"},
+    {"step": "Step 2: Detect branch, reviewed commit, diff scope, feature slug, and ongoing directory", "status": "pending"},
     {"step": "Step 3: Read AGENTS.md first and CLAUDE.md if it exists", "status": "pending"},
     {"step": "Step 4: Resolve tracker-first or local-artifacts source-of-truth mode", "status": "pending"},
     {"step": "Step 5: Build the shared QA execution brief", "status": "pending"},
-    {"step": "Step 6: Launch the review-profile subagents", "status": "pending"},
+    {"step": "Step 6: Launch the five review-profile subagents", "status": "pending"},
     {"step": "Step 7: Synthesize, normalize, and de-duplicate findings", "status": "pending"},
     {"step": "Step 8: Present findings and collect one decision per issue", "status": "pending"},
-    {"step": "Step 9: Execute queued fix, documentation, or tracker follow-up actions", "status": "pending"},
-    {"step": "Step 10: Create Z06 QA review documentation", "status": "pending"}
+    {"step": "Step 9: Execute selected finding actions", "status": "pending"},
+    {"step": "Step 10: Run fresh verification and determine whether the run is a clean candidate", "status": "pending"},
+    {"step": "Step 11: Create Z06 QA gate documentation", "status": "pending"},
+    {"step": "Step 12: Ask for PASS acceptance and hand off to feature-finishing", "status": "pending"}
   ]
 })
 ```
 
-**After each step:** Mark completed and move `in_progress` to the next step.
+After each step, mark it completed and move `in_progress` to the next step.
+
+## Gate Invariant
+
+```text
+ANY FINDING IN THIS RUN -> BLOCKED
+ANY FAILED OR MISSING REQUIRED VERIFICATION -> BLOCKED
+ANY IMPLEMENTATION OR NON-DOCUMENTATION CHANGE AFTER THE REVIEWED COMMIT -> COMPLETE FRESH QA RERUN
+PASS WITHOUT EXPLICIT USER ACCEPTANCE -> FINISHING REMAINS BLOCKED
+ONLY AN ACCEPTED PASS MAY LAUNCH FEATURE-FINISHING
+```
+
+Finding severity and disposition do not weaken this gate. Fixing a finding does not convert the current run to `PASS`; commit the fix and run every QA profile again against the new commit.
 
 ## Workflow Steps
 
@@ -46,72 +61,73 @@ This workflow can run in Default mode or Plan mode.
 
 Decision handling rules:
 1. Use `request_user_input` when available.
-2. Otherwise use strict prose choices and accept only explicit numeric or exact-label responses.
-3. Do not invent silent default decisions once the issue loop begins.
+2. Otherwise use strict prose choices and accept only an explicit number or exact label.
+3. Do not invent silent defaults after findings or a candidate `PASS` are presented.
 
-Target rules:
-- review only the current feature branch in v1
-- compare the branch against `main`
-- if the current branch is `main`, stop and report: `Cannot run feature-qa-review from main. Switch to the feature branch first.`
+Review only the current feature branch against `main`.
 
----
+If the current branch is `main`, stop and report:
 
-### Step 2: Detect Branch, Diff Scope, Feature Slug, and Ongoing Directory
+```text
+Cannot run feature-qa-review from main. Switch to the feature branch first.
+```
+
+### Step 2: Detect Branch, Reviewed Commit, Diff Scope, Feature Slug, and Ongoing Directory
 
 Run:
 
 ```bash
 git branch --show-current
+git rev-parse HEAD
+git status --short
 git diff main --name-only
 git diff main
 ```
 
+Record the full `git rev-parse HEAD` value as `Reviewed Commit`.
+
+Stop before review if tracked implementation changes are uncommitted. A commit-bound verdict cannot cover uncommitted code. Do not stage or discard unrelated user changes.
+
 Extract:
-- current branch name
+- current branch
+- reviewed commit
 - changed-file list
 - likely feature slug
 - `ONGOING_DIR`
 
 Feature slug discovery order:
-1. `Z02_{feature}_plan.md` in an active ongoing directory
-2. `Z01_{feature}_research.md` if `Z02` is missing
-3. normalize the current branch suffix into workflow `snake_case`
+1. `Z02_{feature}_plan.md` in the active ongoing directory
+2. `Z01_{feature}_research.md` when Z02 is missing
+3. normalized current branch suffix
 
 Ongoing directory lookup order:
-- existing workflow artifact directory already in use for the feature
+- the existing workflow artifact directory for the feature
 - `docs/ai/ongoing/`
 - `.ai/ongoing/`
 - `docs/ongoing/`
 
-If no changed files exist versus `main`, continue. A clean diff is a valid QA outcome and should still produce `Z06`.
-
----
+A branch with no changed files versus `main` is still reviewable and must still produce Z06.
 
 ### Step 3: Read Project Instructions
 
 Read in this order:
 1. `AGENTS.md`
-2. `CLAUDE.md` if it exists
-3. `README.md` if it exists
-4. `PUBLISHING.md` when release, install, command-surface, plugin, or repo-instruction files changed
+2. `CLAUDE.md` when it exists
+3. `README.md` when it exists
+4. `PUBLISHING.md` when release, install, command, plugin, or repository-instruction files changed
 
-Extract:
-- repository-specific workflow rules
-- command and skill naming expectations
-- temporary artifact naming rules
-- tracker publication expectations already used by the feature workflow
-- documentation surfaces that must stay synchronized when changed together
+Extract repository constraints, verification expectations, workflow artifact rules, and tracker conventions.
 
----
+Documentation drift is owned by `feature-finishing`. Read documentation here only to understand the implementation contract; do not launch a documentation-consistency review profile.
 
-### Step 4: Resolve Tracker-First or Local-Artifacts Source-of-Truth Mode
+### Step 4: Resolve Source-of-Truth Mode
 
-Tracker is authoritative when tracker context exists. Otherwise local artifacts are authoritative.
+Tracker context is authoritative when it exists. Otherwise use local artifacts.
 
 Tracker discovery order:
-1. tracker entrypoint explicitly provided by the user
-2. published GitHub or Jira references embedded in the active `Z02_*_plan.md`
-3. tracker identifiers or URLs recorded in `Z99_implementation_status.md`
+1. entrypoint explicitly supplied by `feature-implementing` or the user
+2. GitHub or Jira references in the active `Z02_*_plan.md`
+3. tracker identifiers or URLs in `Z99_implementation_status.md`
 
 Local artifact discovery order:
 1. `Z01_{feature}_research.md`
@@ -119,36 +135,23 @@ Local artifact discovery order:
 3. `Z02_CLARIFY_{feature}_plan.md` when answers are present
 4. `Z99_implementation_status.md`
 
-Tracker-mode rules:
-- use tracker requirements as the expected-behavior contract
-- treat local `Z01` and `Z02` files as supporting implementation history only
-- load only the tracker fields needed to understand requirements, phase order, dependencies, and acceptance expectations
-
-Local-artifacts mode rules:
-- use `Z01` and `Z02` as the expected-behavior contract
-- use `Z99` as execution evidence and completed-task context
-
-If neither tracker context nor local workflow artifacts exist:
-- continue in diff-only mode
-- note `No plan or tracker context found`
-
----
+Use one mode:
+- `tracker-first`: tracker requirements are the expected-behavior contract; local files are supporting history.
+- `local-artifacts-only`: Z01 and Z02 are the expected-behavior contract; Z99 is execution evidence.
+- `diff-only`: no tracker or workflow artifacts exist; review the branch diff and note `No plan or tracker context found`.
 
 ### Step 5: Build the Shared QA Execution Brief
 
-Before launching subagents, create one shared execution brief that every review profile receives.
-
-The brief must include:
+Every review subagent receives the same base brief:
 - target branch
 - comparison target: `main`
-- source-of-truth mode: `tracker-first`, `local-artifacts-only`, or `diff-only`
-- feature slug
-- ongoing directory
+- full reviewed commit SHA
+- source-of-truth mode
+- feature slug and ongoing directory
 - changed-file scope
-- review constraints from `AGENTS.md` and `CLAUDE.md`
-- summary of tracker or local requirements relevant to the branch
-- any repo-facing documentation surfaces that may require collateral updates
-- required output schema for every finding
+- applicable AGENTS.md and CLAUDE.md constraints
+- relevant tracker or local requirements
+- required finding schema
 
 Required finding schema:
 
@@ -164,83 +167,61 @@ suggested_action
 reported_by
 ```
 
-Severity normalization target:
-- `Critical`
-- `High`
-- `Medium`
-- `Low`
+Allowed severities: `Critical`, `High`, `Medium`, `Low`.
 
-Type normalization target:
-- `Security`
-- `Bug`
-- `Plan Deviation`
-- `Tests`
-- `Documentation`
-- `Code Quality`
+Allowed types: `Security`, `Bug`, `Plan Deviation`, `Tests`, `Code Quality`.
 
----
+### Step 6: Launch Five Isolated Review Profiles
 
-### Step 6: Launch the Review-Profile Subagents
+Use `feature-workflow:use-sub-agent` patterns for launch, timeout, and result inspection.
 
-Use `feature-workflow:use-sub-agent` patterns for launch, timeout, and log inspection.
-
-Launch one isolated subagent per review profile:
+Launch one isolated subagent per profile:
 1. Bug hunter
 2. Security reviewer
 3. Plan-conformance reviewer
 4. Test-gap reviewer
 5. Maintainability / reviewer-likelihood reviewer
-6. Documentation-consistency reviewer
 
 Rules:
-- each subagent gets the shared execution brief plus only its profile-specific mission
-- do not leak conclusions from one profile into another profile prompt
-- keep prompts focused on the branch diff and the resolved source-of-truth contract
-- require each subagent to return either `No findings` or a list of findings in the required schema
-- inspect every subagent log before trusting the output
+- give each subagent the shared brief plus only its profile mission
+- do not leak conclusions between profiles
+- keep review scope tied to the reviewed commit and comparison diff
+- require exactly `No findings` or findings in the required schema
+- inspect every subagent result before trusting it
+- treat missing, timed-out, malformed, or uninspected output as a failed profile, not `No findings`
 
-Recommended profile missions:
-- Bug hunter: attack runtime behavior, edge cases, and broken assumptions
-- Security reviewer: trace trust boundaries, exposure risks, validation gaps, and exploitability
-- Plan-conformance reviewer: compare implemented behavior to tracker or local contract
-- Test-gap reviewer: identify weak, missing, or misleading verification coverage
-- Maintainability / reviewer-likelihood reviewer: surface naming, layering, consistency, and review-friction issues
-- Documentation-consistency reviewer: check whether changed behavior, repo instructions, install steps, release docs, command surfaces, and workflow artifacts remain synchronized across `AGENTS.md`, `README.md`, `CLAUDE.md`, `PUBLISHING.md`, command wrappers, prompt symlinks, and plugin metadata when any one of those surfaces changes
+Profile missions:
+- Bug hunter: runtime behavior, edge cases, and broken assumptions
+- Security reviewer: trust boundaries, exposure, validation, and exploitability
+- Plan-conformance reviewer: implementation versus tracker or local contract
+- Test-gap reviewer: weak, missing, or misleading verification coverage
+- Maintainability reviewer: naming, layering, consistency, and likely review friction
 
----
+### Step 7: Synthesize Findings
 
-### Step 7: Synthesize, Normalize, and De-Duplicate Findings
-
-Merge all subagent outputs into one canonical findings set.
+Merge all outputs into one canonical set.
 
 Rules:
-- normalize severities and issue types to the Step 5 taxonomy
-- de-duplicate overlapping findings across profiles
-- preserve provenance in `reported_by`
-- prefer the strongest concrete rationale and repro details when combining duplicates
-- keep findings tied to exact files and tight line ranges whenever possible
-- if two profiles disagree on severity, keep the higher severity and note the provenance
+- normalize types and severities to the Step 5 taxonomy
+- de-duplicate overlaps while preserving `reported_by`
+- keep the strongest concrete rationale and reproduction details
+- tie findings to exact files and tight line ranges when possible
+- use the higher severity when profiles disagree and preserve provenance
 
-If every profile returns `No findings`:
-- print a zero-findings summary
-- skip the per-issue loop
-- continue to Step 10
+If every profile returns `No findings`, continue to Step 10. Otherwise continue to Step 8 and set the eventual verdict to `BLOCKED`.
 
----
+### Step 8: Present Findings and Collect Decisions
 
-### Step 8: Present Findings and Collect One Decision Per Issue
-
-Show the aggregate summary first, then the full numbered findings index before any issue-by-issue loop begins.
-
-Required pre-loop format:
+Show the aggregate summary and complete numbered index before presenting any individual finding.
 
 ```markdown
 ## Feature QA Review: {Feature Name}
 
 **Branch**: {branch}
+**Reviewed Commit**: {full SHA}
 **Source of Truth**: {tracker-first | local-artifacts-only | diff-only}
 **Files Changed**: {count}
-**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability, documentation-consistency
+**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability
 
 ### Findings Summary
 - Critical: {count}
@@ -248,169 +229,144 @@ Required pre-loop format:
 - Medium: {count}
 - Low: {count}
 
-### Issues by Type
-- Security: {count}
-- Bugs: {count}
-- Plan Deviations: {count}
-- Tests: {count}
-- Documentation: {count}
-- Code Quality: {count}
-
 ### Findings Index
-1. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}] {reported_by}
-2. ...
+1. {Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}] {reported_by}
 ```
 
-If there are zero findings, print `Findings Index: None`.
+Then handle one finding at a time. Preferred structured choices:
 
-Then present one finding at a time.
+1. `Fix and rerun QA` — fix this issue, commit it, and keep this run blocked.
+2. `Record follow-up` — leave code unchanged and keep this run blocked.
+3. `Stop` — stop the loop and keep this run blocked.
 
-Detailed finding format:
+If the user asks for explanation, provide it and ask about the same finding again.
 
-```markdown
-## Feature QA Review: {Feature Name}
+Do not mutate code or trackers while collecting decisions.
 
-Finding {n}: {Issue Type} - {Description}
-- File: {file}:{line-start}-{line-end}
-- Severity: {Critical | High | Medium | Low}
-- Reported by: {bug hunter, security reviewer}
-- Why this is a real issue: {rationale}
-- How to trigger: {repro}
-- Suggested action: {suggested_action}
-```
+### Step 9: Execute Finding Actions
 
-Then ask how to handle that one finding.
-
-Preferred structured input:
-```typescript
-request_user_input({
-  questions: [{
-    question: "How should I handle Finding {n}?",
-    header: "Finding {n}",
-    options: [
-      {label: "Fix now", description: "Fix this issue immediately in Step 9"},
-      {label: "Add to fix queue", description: "Queue this issue for later fixing in Step 9"},
-      {label: "Create tracker follow-up", description: "Create or queue a tracker item for this issue in Step 9"},
-      {label: "Document only", description: "Record the issue in Z06 without a code or tracker action"},
-      {label: "Explain more", description: "Provide more context before deciding"},
-      {label: "Stop cycle", description: "Stop the issue loop and continue to execution or documentation"}
-    ]
-  }]
-})
-```
-
-Strict prose fallback:
-- `How should I handle Finding {n}? Reply with 1, 2, 3, 4, 5, or 6.`
-- `1) Fix now`
-- `2) Add to fix queue`
-- `3) Create tracker follow-up`
-- `4) Document only`
-- `5) Explain more`
-- `6) Stop cycle`
-
-Rules:
-- ask about one finding at a time
-- stop output after the question
-- wait for the explicit decision
-- do not move to the next finding before the current one is resolved
-- do not fix code or mutate tracker items during Step 8
-- if the user chooses `Explain more`, update the explanation and ask again for the same finding
-
----
-
-### Step 9: Execute Queued Fix, Documentation, or Tracker Follow-Up Actions
-
-After the decision loop finishes:
-
-For each `Fix now` or `Add to fix queue`:
-1. Invoke `superpowers:systematic-debugging` before editing code.
+For `Fix and rerun QA`:
+1. Invoke `superpowers:systematic-debugging` before editing.
 2. Apply the smallest safe fix.
-3. Run targeted verification for that finding.
-4. Record the outcome for `Z06`.
+3. Run targeted verification.
+4. Commit the fix on the feature branch.
+5. Record that a complete fresh QA run is required.
 
-For each `Create tracker follow-up`:
-1. Reuse the resolved tracker context if one exists.
-2. Create the smallest appropriate follow-up item only when the required tracker tools are available and the target is unambiguous.
-3. If tracker mutation is unavailable or ambiguous, record a ready-to-file follow-up entry in `Z06` instead of guessing.
+For `Record follow-up`:
+- create the smallest tracker follow-up only when the target and mutation tools are unambiguous
+- otherwise write a ready-to-file follow-up into Z06
 
-For each `Document only`:
-1. Leave the code unchanged.
-2. Carry the finding directly into `Z06`.
+If the loop stops, mark remaining findings `Undecided`.
 
-If the loop stopped early:
-- do not auto-handle remaining findings
-- mark them as undecided in `Z06`
+Regardless of actions, any finding discovered in this run fixes the final verdict at `BLOCKED`. Do not rerun only the reporting profile and do not continue to finishing.
 
----
+### Step 10: Run Fresh Verification and Determine the Clean Candidate State
 
-### Step 10: Create Z06 QA Review Documentation
+Run fresh verification against the reviewed commit:
+- always run `git diff --check`
+- run verification commands required by the tracker, Z02, AGENTS.md, or project tooling
+- inspect full output and exit status
 
-Always create `Z06`, even when there are zero findings.
+Set `Clean Candidate: Yes` only when:
 
-**Location:** `{ONGOING_DIR}/Z06_{feature}_qa_review.md`
+- all five profiles returned `No findings`
+- every result was inspected
+- all required verification passed
+- HEAD still equals `Reviewed Commit`
+- no uncommitted implementation changes appeared during review
 
-If no feature slug can be derived safely:
-- ask the user, or
-- fall back to a normalized branch-derived slug
+Otherwise set `Clean Candidate: No`.
 
-Format:
+The persisted verdict remains `BLOCKED` until a clean candidate is explicitly accepted in Step 12. A clean candidate is not yet a final `PASS`.
+
+### Step 11: Create Z06 QA Gate Documentation
+
+Always create `{ONGOING_DIR}/Z06_{feature}_qa_review.md`.
+
+Required header:
 
 ```markdown
 # Feature QA Review: {Feature Name}
 
 **Date**: {date}
 **Branch**: {branch}
+**Reviewed Commit**: {full SHA}
 **Source of Truth**: {tracker-first | local-artifacts-only | diff-only}
-**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability, documentation-consistency
+**Clean Candidate**: Yes | No
+**Verdict**: BLOCKED
+**User Acceptance**: Not accepted
+**Review Profiles**: bug hunter, security, plan-conformance, test-gap, maintainability
 **Files Changed**: {count}
-
-## Findings Summary
-- Total: {count}
-- Critical: {count}
-- High: {count}
-- Medium: {count}
-- Low: {count}
-- Security: {count}
-- Bugs: {count}
-- Plan Deviations: {count}
-- Tests: {count}
-- Documentation: {count}
-- Code Quality: {count}
-
-## Findings
-
-### Finding {n}: {Type} - {Description}
-- **File**: {file}:{line}
-- **Severity**: {severity}
-- **Reported by**: {reported_by}
-- **Why this is real**: {rationale}
-- **How to trigger**: {repro}
-- **Decision**: {Fix now | Add to fix queue | Create tracker follow-up | Document only | Undecided}
-- **Disposition**: {Fixed | Queued | Tracker item created | Tracker follow-up drafted | Documented only | Stopped early}
-- **Tracker Link or ID**: {optional}
-
-## Unresolved Recommendations
-- {remaining follow-up work}
+**Verification**: {commands and outcomes}
 ```
+
+Then include:
+- finding counts by severity and type
+- every finding and its decision/disposition
+- failed or missing profile results
+- unresolved recommendations
+- explicit rerun requirement when `Clean Candidate` is `No`
+
+### Step 12: Accept PASS and Hand Off to Finishing
+
+If `Clean Candidate` is `No`:
+- do not ask to proceed to finishing
+- do not invoke or suggest finishing as an alternative
+- report the blocker and the requirement for a complete fresh QA run
+
+If `Clean Candidate` is `Yes`, present the reviewed commit and verification summary, then ask:
+
+```text
+QA produced a clean candidate for {reviewed commit}. Accept it as PASS and continue to feature-finishing?
+1) Accept and continue
+2) Do not accept
+```
+
+Only after explicit `Accept and continue`:
+1. Update Z06 to `**Verdict**: PASS` and `**User Acceptance**: Accepted`.
+2. Invoke `feature-workflow:feature-finishing` with the Z06 path, branch, reviewed commit, feature slug, and ongoing directory.
+
+If the user does not accept, leave Z06 as `Verdict: BLOCKED` and `User Acceptance: Not accepted`, then stop. Finishing remains blocked.
 
 ## Red Flags
 
-- Started reviewing before creating the progress plan
-- Ran on `main`
-- Used chat memory as the contract instead of rebuilding context from source artifacts
-- Ignored tracker context when it existed
-- Launched subagents without a shared execution brief
-- Trusted subagent output without inspecting logs
-- Presented findings one by one before showing the full findings index
-- Fixed code or mutated tracker items during the decision loop
-- Skipped `Z06_{feature}_qa_review.md`
+- Ran from `main`
+- Reviewed uncommitted implementation changes
+- Failed to bind the run to a full commit SHA
+- Used chat memory instead of source artifacts
+- Ignored authoritative tracker context
+- Launched fewer or more than the five defined profiles
+- Kept documentation consistency as a QA profile
+- Trusted missing, malformed, or uninspected subagent output
+- Issued `PASS` after any finding existed in the run
+- Issued `PASS` with failed or missing verification
+- Issued `PASS` before explicit user acceptance
+- Reused a prior profile result after code changed
+- Treated a fix as permission to skip the complete fresh QA rerun
+- Launched finishing without explicit user acceptance
+- Skipped Z06
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "The finding was fixed, so this run can pass." | No. The reviewed commit changed; commit the fix and rerun all five profiles. |
+| "Only the profile that found the issue needs to rerun." | No. Code changes can affect every concern; the complete QA review must be fresh. |
+| "A Low finding can be documented and still pass." | No. Any finding makes this run `BLOCKED`, regardless of severity or disposition. |
+| "Implementation tests already passed." | Implementation verification does not replace independent QA profiles and fresh QA verification. |
+| "The user asked to move quickly, so acceptance is implied." | No. Finishing requires explicit acceptance of the commit-bound `PASS`. |
+| "Finishing can check documentation while QA runs." | No. Finishing starts only after an accepted `PASS`. |
 
 ## Success Criteria
 
-- Ran on a feature branch against `main`
-- Loaded repo instructions and resolved source-of-truth mode correctly
-- Launched all six review profiles with isolated prompts
-- Produced a normalized, de-duplicated findings set with provenance
-- Collected one explicit decision per issue until completion or stop
-- Routed any fixes through `superpowers:systematic-debugging`
-- Created `Z06_{feature}_qa_review.md` with the final disposition of every finding
+- Reviewed a named feature branch against `main`
+- Bound the run to a full reviewed commit SHA
+- Loaded repository instructions and the correct source-of-truth contract
+- Launched and inspected exactly five isolated review profiles
+- Produced a normalized findings set with provenance
+- Made any finding fix the verdict at `BLOCKED`
+- Ran fresh required verification
+- Created Z06 with verdict, reviewed commit, user acceptance, verification, and dispositions
+- Kept a clean candidate `BLOCKED` until explicit acceptance atomically changed it to `PASS`
+- Required a complete fresh QA rerun after any implementation/non-documentation change or finding
+- Invoked `feature-finishing` only after a clean `PASS` was explicitly accepted
