@@ -132,16 +132,18 @@ Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-resear
 
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
-| 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Accept a rough idea, partial spec, or detailed request; start with a short collaborative refinement step when the request is rough; then ground the feature in the repo and surface blind spots | Rough idea, partial spec, or detailed request | `Z01_*_research.md` (final) and optional `Z01_CLARIFY_*_research.md` |
-| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Finalized spec + resolved clarify answers + Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
+| 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Act as an evidence-led sparring partner: investigate the repo, surface unresolved product and technical bifurcations, and create research only after the user resolves them | Rough idea, partial spec, or detailed request | Complete `Z01_*_research.md` |
+| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Complete Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute from the canonical Z02 plan with local `Z99` tracking, or execute tracker-natively from an approved published tracker graph | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + verification + handoff to documentation |
 | 4. Multi-profile QA review | `feature-workflow:feature-qa-review` | Run a tracker-aware, subagent-driven QA review on the feature branch and capture explicit issue dispositions | Implemented code + tracker or Z01/Z02 context | Findings synthesis, issue decisions, and `Z06_{feature}_qa_review.md` |
 | 5. Final quality check | `feature-workflow:feature-finishing` | Run a fresh-context quality pass before documenting/merge prep | Implemented code + plan/research context | Findings summary and/or fixes, plus finish artifact (`Z05_*`) when applicable |
 | 6. Documentation and cleanup | `feature-workflow:feature-documenting` | Consolidate artifacts and clean temporary workflow files | Z-files and implementation results | Dev log + PR-ready summary |
 
-`feature-researching` now starts with a short collaborative framing step for rough or idea-level requests before it writes any `Z01_*` artifact. That refinement checkpoint should summarize the problem, present 2-3 viable approaches with a recommendation, call out likely building blocks or repo touchpoints, and confirm direction with the user first.
+`feature-researching` uses decision provenance at every definition level. A decision may be adopted when the prompt specifies it or repository evidence leaves no credible alternative. When multiple meaningful product or technical paths remain, research presents the evidence and repo patterns, viable options, consequences, and a recommendation, then asks the user to decide one bifurcation at a time.
 
-`feature-researching` may still invoke `superpowers:brainstorming` internally for low-definition inputs or for medium-definition requests that still have product-level ambiguity after 1-3 targeted clarification questions. Brainstorming remains an internal refinement step in this workflow: it can help shape the direction, but `feature-researching` still owns the stage, the user-facing checkpoint, and the canonical `Z01_*` artifact.
+Clarification happens live inside the research conversation. `feature-researching` does not create a `Z01_CLARIFY` question backlog or write a partial Z01. If the conversation pauses, research remains in progress and resumes at the unresolved decision. The final `Z01_*` artifact is created only after all known meaningful bifurcations are resolved.
+
+`feature-researching` may still invoke `superpowers:brainstorming` internally for low-definition inputs or deeper product-level ambiguity. Brainstorming remains an internal refinement step: it can help shape the direction, but `feature-researching` still owns the stage, the live decision loop, and the canonical `Z01_*` artifact.
 
 Use the full flow for large features where discovery, planning, and execution need strict structure.
 
@@ -151,7 +153,6 @@ For small features or bug fixes, you can start in the middle:
 
 Common temporary artifacts:
 - `docs/ai/ongoing/Z01_{feature}_research.md`
-- `docs/ai/ongoing/Z01_CLARIFY_{feature}_research.md`
 - `docs/ai/ongoing/Z02_{feature}_plan.md`
 - `docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md` (only when planning discovers new blockers)
 
@@ -178,9 +179,9 @@ Implementation mode after planning:
 - A tracker child item is done only after the workflow validates the returned commit SHA on the epic branch and verification was reported.
 
 Clarification gates:
-- Research is not complete while `Z01_CLARIFY_*_research.md` has unresolved questions.
+- Research stays conversational and does not create Z01 while meaningful product or technical bifurcations remain unresolved.
 - Planning is not complete while `Z02_CLARIFY_*_plan.md` has unresolved questions.
-- The workflow must stay in the current stage and wait; do not jump to the next stage until clarify items are incorporated and clarify file is removed (or emptied).
+- The workflow must stay in the current stage and wait; research resumes the live sparring loop, while planning incorporates its clarify items and removes or empties the Z02 clarify file.
 
 Additional temporary artifacts may be created in PR/finish flows:
 - `Z03_*`, `Z04_*`, `Z05_*` in the same ongoing directory
@@ -237,7 +238,7 @@ agentDevPrompts/
 
 ## Attribution
 
-This plugin builds on [superpowers](https://github.com/obra/superpowers) by [Jesse Vincent](https://github.com/obra). The feature-workflow skills add structured research/clarification artifacts and workflow-specific orchestration around those core skills.
+This plugin builds on [superpowers](https://github.com/obra/superpowers) by [Jesse Vincent](https://github.com/obra). The feature-workflow skills add conversational research, structured planning artifacts, and workflow-specific orchestration around those core skills.
 
 ## License
 

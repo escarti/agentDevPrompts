@@ -115,10 +115,9 @@ Tracker discovery order:
 
 Local artifact discovery order:
 1. `Z01_{feature}_research.md`
-2. `Z01_CLARIFY_{feature}_research.md` when answers are present
-3. `Z02_{feature}_plan.md`
-4. `Z02_CLARIFY_{feature}_plan.md` when answers are present
-5. `Z99_implementation_status.md`
+2. `Z02_{feature}_plan.md`
+3. `Z02_CLARIFY_{feature}_plan.md` when answers are present
+4. `Z99_implementation_status.md`
 
 Tracker-mode rules:
 - use tracker requirements as the expected-behavior contract

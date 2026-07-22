@@ -24,7 +24,7 @@ update_plan({
   "explanation": "Tracking feature implementation workflow",
   "plan": [
     {"step": "Step 1: Find the implementation source, entrypoint, and feature name", "status": "in_progress"},
-    {"step": "Step 2: Check for unresolved clarifications", "status": "pending"},
+    {"step": "Step 2: Check for unresolved planning clarifications", "status": "pending"},
     {"step": "Step 3: Load context (AGENTS.md, CLAUDE.md, Z01, source artifacts)", "status": "pending"},
     {"step": "Step 4: Split into local-plan mode or tracker mode and build the live execution model", "status": "pending"},
     {"step": "Step 5: Establish or validate the feature branch", "status": "pending"},
@@ -76,31 +76,26 @@ Feature name extraction:
 
 Ongoing directory rules:
 - local-plan mode: the plan's ongoing directory is authoritative
-- tracker mode: if a matching ongoing directory already exists, keep using it for Z01 and clarify lookup
+- tracker mode: if a matching ongoing directory already exists, keep using it for Z01 and planning-source lookup
 - otherwise default to `docs/ai/ongoing/`
 
-### Step 2: Check for Unresolved Clarifications
+### Step 2: Check for Unresolved Planning Clarifications
 
 Check `ONGOING_DIR` for:
-- `Z01_CLARIFY_{feature}_research.md`
 - `Z02_CLARIFY_{feature}_plan.md`
-
-If `Z01_CLARIFY` exists:
-- read it
-- if any `User response:` field is blank, STOP and report: "Cannot implement with unanswered research questions. Please answer all questions in Z01_CLARIFY_{feature}_research.md first."
 
 If `Z02_CLARIFY` exists:
 - read it
 - if any `User response:` field is blank, STOP and report: "Cannot implement with unanswered plan questions. Please answer all questions in Z02_CLARIFY_{feature}_plan.md first."
 
-Proceed only when all clarifications are resolved.
+Proceed only when all planning clarifications are resolved.
 
 ### Step 3: Load Context Files
 
 Read all available context in this order:
 
 1. `AGENTS.md`, then `CLAUDE.md` if it exists
-2. `Z01_{feature}_research.md`, then `Z01_CLARIFY_{feature}_research.md` if answered
+2. `Z01_{feature}_research.md`
 3. Planning source:
    - local-plan mode: `Z02_{feature}_plan.md`, then `Z02_CLARIFY_{feature}_plan.md` if answered
    - tracker mode: parent issue or epic body, all child issues or tasks, and only the tracker metadata needed to preserve phase order, task order, dependencies, and verification expectations
@@ -415,7 +410,7 @@ If the active mode fails its completion gate:
 ## Red Flags
 
 You are failing if you:
-- proceeded with unanswered `Z01_CLARIFY` or `Z02_CLARIFY` questions
+- proceeded with unanswered `Z02_CLARIFY` questions
 - skipped `AGENTS.md`
 - skipped `CLAUDE.md` when it exists after `AGENTS.md`
 - accepted an invalid tracker entrypoint
@@ -474,7 +469,7 @@ Tracker mode red flags:
 You followed the workflow if:
 - verified a supported implementation source exists
 - applied the correct source preference when both local and tracker sources existed
-- blocked on unresolved clarification files
+- blocked on unresolved planning clarification files
 - read `AGENTS.md`
 - read `CLAUDE.md` when present
 - read the relevant Z01 and planning-source context
@@ -517,20 +512,20 @@ Use when:
 - `Z02_{feature}_plan.md` exists in the ongoing directory, or
 - a GitHub parent roadmap issue plus child issues created from `feature-planning` exists, or
 - a Jira epic plus child tasks created from `feature-planning` exists
-- all clarifications are resolved
+- all planning clarifications are resolved
 - the chosen source preserves enough structure to execute safely
 - you want workflow-owned batching, explicit execution-mode selection, and proof-based completion
 
 Do not use when:
 - no supported source exists
 - tracker artifacts do not preserve planning parity
-- clarifications are unresolved
+- planning clarifications are unresolved
 - the work is a simple one-step change
 
 ## Integration With Feature Workflow
 
 ```text
-1. feature-researching  -> Z01_research + Z01_CLARIFY
+1. feature-researching  -> complete Z01_research
 2. feature-planning     -> Z02_plan and/or tracker artifacts + Z02_CLARIFY
 3. feature-implementing -> local Z02 + Z99 OR tracker-native execution from published tracker items
 ```

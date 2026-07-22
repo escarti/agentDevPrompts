@@ -1,6 +1,6 @@
 ---
 name: feature-planning
-description: Use after research (Z01 files exist) to create implementation plan - follow structured workflow
+description: Use after complete Z01 research exists and the feature needs an implementation plan
 ---
 
 # Feature Workflow: Plan Implementation
@@ -68,7 +68,6 @@ Rules:
 
 Required inputs:
 - `Z01_{feature}_research.md`
-- `Z01_CLARIFY_{feature}_research.md` if it exists
 
 If multiple `Z01_*_research.md` files exist:
 - use the one the user asked for
@@ -78,14 +77,23 @@ If no `Z01_{feature}_research.md` exists:
 - stop and direct the user to `feature-researching` first
 - do not proceed without research unless the user explicitly overrides this workflow
 
-If `Z01_CLARIFY_{feature}_research.md` exists:
-- read it
-- if any `User response:` field is blank, stop and report: `Cannot plan with unanswered questions. Please answer all questions in Z01_CLARIFY_{feature}_research.md first.`
+Z01 is a completed research artifact. Before planning, verify it contains:
+- summary and self-contained source requirements
+- definition-level triage result
+- a decision-provenance record for material product and technical choices
+- current repository behavior, relevant touchpoints, constraints, and existing patterns
+- resolved feature behavior and explicit non-goals
+- edge cases and failure behavior
+- dependencies, compatibility risks, and potential adaptations
+- testing expectations and acceptance criteria
+- no open questions, unresolved bifurcations, competing options without a selection, or agent-selected design assumptions
+
+If Z01 is incomplete, stop and report: `Research artifact is incomplete. Resume feature-workflow:feature-researching and resolve the remaining decisions conversationally before planning.`
 
 Extract from Z01:
 - grounded behavior and explicit non-goals
 - repo touchpoints and constraints
-- answered clarifications
+- resolved decisions and their provenance
 - risks, dependencies, compatibility concerns, and acceptance criteria
 
 ---
@@ -262,7 +270,7 @@ Report to the user:
 ## Red Flags
 
 - Proceeded without `Z01_{feature}_research.md`
-- Planned with unanswered `Z01_CLARIFY`
+- Planned from a Z01 with unresolved decisions or missing decision provenance
 - Failed to pass repo constraints into `writing-plans`
 - Saved `Z02` to the wrong directory or with the wrong feature slug
 - Accepted a plan with missing phase metadata
@@ -287,7 +295,7 @@ Report to the user:
 
 - Read `AGENTS.md` and `CLAUDE.md` if present
 - Required `Z01` research before planning
-- Blocked on unresolved `Z01_CLARIFY`
+- Rejected incomplete Z01 research and routed unresolved decisions back to live feature research
 - Invoked `superpowers:writing-plans`
 - Enforced the `Z02_{feature}_plan.md` path and feature slug
 - Verified `## Phase N`, `**Phase Goal:**`, `**Phase Verification:**`, `**Phase Boundary Rule:**`, and `**Phase:** Phase N`
@@ -307,10 +315,11 @@ Report to the user:
 
 Use when:
 - `Z01_{feature}_research.md` exists
-- research clarifications are resolved
+- Z01 contains complete research with resolved, provenance-backed material decisions
 - you need a `Z02` plan artifact that is ready for `feature-implementing`
 
 Don't use when:
 - no `Z01` research exists
-- research or planning clarifications are unresolved
+- Z01 still contains unresolved research decisions
+- planning clarifications are unresolved
 - the work is already fully planned in the required `Z02` format

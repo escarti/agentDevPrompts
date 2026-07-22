@@ -10,10 +10,14 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
-- None.
+- Reworked `feature-researching` as an evidence-led sparring workflow: meaningful product and technical bifurcations now require live user decisions unless the prompt or repository evidence already determines the direction.
+- Made `Z01_*_research.md` a complete research artifact created only after all known meaningful bifurcations are resolved, with explicit decision provenance.
 
 ### Fixed
-- None.
+- Closed autonomy loopholes that allowed high-definition prompts, model confidence, recommendations, or open assumptions to silently resolve unspecified feature decisions.
+
+### Removed
+- Removed the `Z01_CLARIFY_*_research.md` artifact and its downstream planning, implementation, QA, documentation, and repository-guidance dynamics. Research clarification now happens only in the live conversation.
 
 ## [1.20.1] - 2026-07-07
 

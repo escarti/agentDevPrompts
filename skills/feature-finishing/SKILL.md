@@ -88,7 +88,7 @@ Find workflow planning artifacts in common locations:
 Rules:
 - Default to `docs/ai/ongoing/` for this repository when no alternate ongoing location is already in use.
 - Read `Z01_{feature}_research.md` and `Z02_{feature}_plan.md` when they exist.
-- If supporting clarify files exist and contain answered context, read the incorporated answers as needed.
+- If `Z02_CLARIFY_{feature}_plan.md` exists and contains answered planning context, read the incorporated answers as needed.
 
 Extract:
 - feature name from `Z02_{feature}_plan.md` when available

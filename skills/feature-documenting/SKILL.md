@@ -124,9 +124,6 @@ One paragraph describing what was built and why.
 ## Research Phase
 [Content from Z01_{feature}_research.md]
 
-### Clarifications Resolved
-[Content from Z01_CLARIFY_{feature}_research.md if it exists]
-
 ## Planning Phase
 [Content from Z02_{feature}_plan.md]
 
