@@ -560,7 +560,7 @@ Add `commands/fix-small-issue.md` and `skills/fixing-small-issues/` to the READM
 Change `.claude-plugin/plugin.json` description to:
 
 ```json
-"description": "Feature and small-fix workflows with research, planning, automated execution, commit-bound QA, streamlined issue fixing, documentation finalization, ready-PR publication, and review follow-up."
+"description": "Feature workflows with research, planning, automated execution, commit-bound QA, documentation finalization, and ready-PR publication, plus streamlined issue fixing and review follow-up."
 ```
 
 Use the same text for `.claude-plugin/marketplace.json` `metadata.description`.

@@ -17,7 +17,7 @@ Quality and PR workflow:
 - `feature-pr-fixing` (requires superpowers)
 
 Bootstrap helper:
-- `load-superpowers` (loads required superpowers skills before feature-* skills that depend on them)
+- `load-superpowers` (loads required superpowers skills before repository workflows that depend on them)
 
 Utility:
 - `use-sub-agent` (orchestrates headless `codex --yolo exec` subagents with safe parallel/log patterns)
@@ -171,6 +171,8 @@ The workflow:
 5. Allows at most three executions of either phase, blocking before a fourth.
 
 It accepts a GitHub issue or a direct misbehavior report, creates no Z artifacts, and does not use the feature QA/finishing pipeline. GitHub issue comments remain one or two sentences.
+
+### Full feature workflow details
 
 Common temporary artifacts:
 - `docs/ai/ongoing/Z01_{feature}_research.md`
