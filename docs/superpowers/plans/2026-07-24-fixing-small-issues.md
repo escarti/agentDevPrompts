@@ -168,7 +168,7 @@ Direct-report branch: bugfix/<bug-slug>
 Bug slug: lowercase snake_case, unsafe branch characters removed, maximum 50 characters
 Default base: main
 Allowed pre-branch actions: read instructions, resolve minimal source identity, inspect git state
-Pause conditions: detached HEAD, unrelated branch, unclear provenance, unrelated dirty changes
+Pause conditions: detached HEAD, unrelated branch, unclear provenance, any dirty working tree state
 Resume condition: current branch exactly matches the inferred bugfix branch
 ```
 

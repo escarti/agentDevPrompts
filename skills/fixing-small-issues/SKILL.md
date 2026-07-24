@@ -25,7 +25,13 @@ Add no other stages. Use `feature-workflow:use-sub-agent`. Agents are fresh, seq
 
 Features/gaps route to `feature-workflow:feature-researching`. Product ambiguity, broad refactoring, contracts, migrations, security, data-loss, or feature-like scope route to Human Intervention.
 
+NO PHASE 1 BEFORE THE BUGFIX BRANCH EXISTS
+NO FIX WITHOUT AN EVIDENCE-BACKED ROOT CAUSE
+NO PHASE 2 WORKSPACE CHANGE WITHOUT AN ATTRIBUTABLE COMMIT
+NO SUCCESS CLAIM WITHOUT INDEPENDENT FRESH VERIFICATION
 NO FOURTH SPAWN OF EITHER PHASE
+NO RESET OR HISTORY REWRITE TO DISCARD A FAILED ATTEMPT
+NO Z-ARTIFACT OR FEATURE-QA PIPELINE FOR THIS WORKFLOW
 
 No Z artifacts, tracker/phased plans, batch approvals, or feature-QA/multi-profile pipeline. Never reset/rewrite attempts. Push, PR, merge, issue close, labels, or assignment require explicit request; comments follow the contract below.
 
