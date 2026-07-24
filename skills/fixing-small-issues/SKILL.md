@@ -103,7 +103,7 @@ Residual risks:
 
 ## Step 5: Validate the Resolution Checkpoint and Commit
 
-Validate log/exit status:
+Always validate log, exit, checkpoint, and clean `git status --short`. For `blocked`, unchanged `retryable`, `escalate`, or unchanged `diagnosis-invalidated` without a commit, route normally. Only when Phase 2 returns changed work/a commit:
 
 1. Confirm expected-branch commit.
 2. Inspect scope/residue/unrelated diff.
@@ -112,7 +112,7 @@ Validate log/exit status:
 5. Keep useful partial commit before retry.
 6. Reject with `git revert`, never `git reset`.
 7. On invalidated diagnosis, revert then Phase 1.
-8. Require clean `git status --short` after the Phase 2 commit and any revert.
+8. Require clean `git status --short` after the commit and any revert.
 
 ## Step 6: Route Completion, Retry, Re-Diagnosis, or Human Intervention
 
