@@ -9,6 +9,7 @@ Use this skill before any repository workflow that depends on marketplace Superp
 - `feature-researching`
 - `feature-planning`
 - `feature-implementing`
+- `feature-qa-review`
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
