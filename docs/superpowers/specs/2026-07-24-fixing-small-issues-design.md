@@ -1,8 +1,8 @@
-# Bugfix Coordinating Design
+# Fixing Small Issues Design
 
 ## Summary
 
-Add one public `bugfix-coordinating` skill for short, bounded bugfixes and small corrective improvements. It preserves a research, planning, implementation, and verification discipline without using the feature workflow's Z01/Z02/Z99/Z06 artifacts, phased PR plans, batch approvals, or multi-profile QA gate.
+Add one public `fixing-small-issues` skill for short, bounded bugfixes, hotfixes, regressions, failing tests, and small corrective improvements. It preserves a research, planning, implementation, and verification discipline without using the feature workflow's Z01/Z02/Z99/Z06 artifacts, phased PR plans, batch approvals, or multi-profile QA gate.
 
 The coordinator stays context-light by delegating diagnosis and implementation to fresh sequential sub-agents. It retains only structured checkpoints, attempt counters, risk decisions, and concise user-facing status.
 
@@ -28,8 +28,8 @@ The coordinator stays context-light by delegating diagnosis and implementation t
 
 ## Public Surface
 
-- Skill: `feature-workflow:bugfix-coordinating`
-- Thin command wrapper: `/bugfix-coordinate`
+- Skill: `feature-workflow:fixing-small-issues`
+- Thin command wrapper: `/fix-small-issue`
 
 The skill is the single workflow owner. Phase 1 and Phase 2 are internal sub-agent roles, not additional public skills or commands.
 
@@ -274,8 +274,8 @@ The coordinator finishes with a concise summary of the root cause, fix, commit, 
 
 Implementation is expected to add or update:
 
-- `skills/bugfix-coordinating/SKILL.md`
-- `commands/bugfix-coordinate.md`
+- `skills/fixing-small-issues/SKILL.md`
+- `commands/fix-small-issue.md`
 - `skills/load-superpowers/SKILL.md`
 - `AGENTS.md`
 - `CLAUDE.md`
