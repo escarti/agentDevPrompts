@@ -74,7 +74,7 @@ An issue says the export screen is "broken" because it cannot export XML, but th
 Ask the agent to fix the issue.
 ```
 
-Capture each agent's final choice and exact rationalization in ignored scratch state under `.superpowers/skill-tests/fixing-small-issues-baseline.md`. The required RED evidence is at least one of:
+Capture each agent's final choice and exact rationalization in ignored scratch state under `.codex-subagents/fixing-small-issues/baseline.md`. The required RED evidence is at least one of:
 
 - patching before creating a branch or establishing root cause;
 - attempting a fourth fix;
@@ -330,7 +330,7 @@ Rerun Scenarios A–C from Step 2 with fresh sub-agents that receive the complet
 - Scenario B blocks before a fourth spawn and requests human intervention;
 - Scenario C returns `Status: escalate`, names `Affected scope: feature-gap`, makes no implementation attempt, and directs the user to `feature-workflow:feature-researching`.
 
-Append outcomes to `.superpowers/skill-tests/fixing-small-issues-baseline.md`. If an agent still rationalizes around a guardrail, add the smallest explicit counter to the skill and rerun only that scenario until it passes.
+Append outcomes to `.codex-subagents/fixing-small-issues/baseline.md`. If an agent still rationalizes around a guardrail, add the smallest explicit counter to the skill and rerun only that scenario until it passes.
 
 - [ ] **Step 8: Commit the coordinator skill**
 
