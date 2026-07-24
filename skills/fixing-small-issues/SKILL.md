@@ -58,7 +58,7 @@ before spawning phase N:
   spawn a fresh phase N agent
 ```
 
-Independent cumulative counters persist across phase switches/resume. Third attempts may succeed. Retry needs new evidence/different approach.
+Independent cumulative counters persist across phase switches/resume. A successful third attempt completes normally. Retry needs new evidence/different approach.
 
 ## Step 2: Spawn Phase 1 — Reproduce and Diagnose
 
