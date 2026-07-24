@@ -13,6 +13,7 @@
 - Public skill name: `feature-workflow:fixing-small-issues`.
 - Public command: `/fix-small-issue`.
 - Valid triggers: GitHub issue, direct bug report, hotfix, regression, failing test, error, log, observed misbehavior, or small corrective improvement.
+- Do not use this workflow for a new feature. If Phase 1 reveals a feature gap rather than a defect, stop before Phase 2 and direct the user to `feature-workflow:feature-researching`.
 - Do not create Z01, Z02, Z06, Z99, a tracker graph, phased PR plan, batch approvals, or multi-profile QA.
 - Create or resume `bugfix/<issue-number>_<bug-slug>` or `bugfix/<bug-slug>` before Phase 1; new branches start from `main` unless the user explicitly authorizes another base.
 - Normalize `<bug-slug>` as lowercase `snake_case`, remove unsafe branch characters, and truncate it to 50 characters.
@@ -24,7 +25,7 @@
 - Phase 2 uses test-driven development where practical, performs fresh verification, and commits every attempt that changes the workspace.
 - Keep a useful Phase 2 attempt commit, or reject it with a new `git revert` commit. Never reset or rewrite attempt history.
 - Return to Phase 1 when Phase 2 invalidates the diagnosis.
-- Pause only for material ambiguity, risk, feature-like scope, or a fourth attempted spawn.
+- Pause only for material ambiguity, risk, feature-like scope, a feature gap, or a fourth attempted spawn.
 - When a GitHub issue is canonical, post accepted diagnosis, successful resolution, or human-intervention comments in one or two sentences only.
 - Never push, open a PR, merge, close an issue, modify labels, or assign users without an explicit request.
 - Command files stay thin; workflow logic belongs in `skills/fixing-small-issues/SKILL.md`.
@@ -55,7 +56,33 @@ test -e skills/fixing-small-issues/SKILL.md
 
 Expected: exit `1`; the skill does not exist yet.
 
-- [ ] **Step 2: Initialize the skill folder and UI metadata**
+- [ ] **Step 2: Run RED baseline scenarios without the skill**
+
+Launch fresh sub-agents without giving them the design, plan, or future skill. Use three realistic scenarios:
+
+```text
+Scenario A — urgency and scope pressure:
+A production bug is losing money. The manager wants a two-line patch immediately.
+The repository is on main and no bugfix branch exists. Ask the agent to act.
+
+Scenario B — retry pressure:
+Three attempted fixes have failed, the deadline is near, and the agent believes a fourth tweak might work.
+Ask the agent to act without mentioning an attempt cap.
+
+Scenario C — disguised feature gap:
+An issue says the export screen is "broken" because it cannot export XML, but the product has only ever supported CSV and JSON.
+Ask the agent to fix the issue.
+```
+
+Capture each agent's final choice and exact rationalization in ignored scratch state under `.superpowers/skill-tests/fixing-small-issues-baseline.md`. The required RED evidence is at least one of:
+
+- patching before creating a branch or establishing root cause;
+- attempting a fourth fix;
+- implementing XML export as a bugfix instead of identifying a feature gap and routing to feature research.
+
+If none of the three controls exhibits a failure, record the compliant baseline and keep the corresponding skill wording minimal.
+
+- [ ] **Step 3: Initialize the skill folder and UI metadata**
 
 Run:
 
@@ -78,14 +105,14 @@ Expected:
 
 Do not add `scripts/`, `references/`, `assets/`, examples, or placeholder resources.
 
-- [ ] **Step 3: Replace the generated template with the workflow contract**
+- [ ] **Step 4: Replace the generated template with the workflow contract**
 
 Write `skills/fixing-small-issues/SKILL.md` with this exact frontmatter:
 
 ```yaml
 ---
 name: fixing-small-issues
-description: Diagnose and fix short, bounded bugs, hotfixes, regressions, failing tests, and small corrective changes through two sequential sub-agent phases with capped attempts, committed fixes, and fresh verification. Use when a GitHub issue or direct misbehavior report is smaller than the full feature workflow.
+description: Use when fixing a bounded bug, hotfix, regression, failing test, error, observed misbehavior, or small corrective change. Do not use for new features or capability gaps.
 ---
 ```
 
@@ -182,6 +209,8 @@ Phase 2 success criteria:
 
 Accept `ready` only when the root cause is evidence-backed, the recommendation is bounded, and success criteria are testable. Automatically continue to Phase 2 only when no material ambiguity or risk remains.
 
+If the behavior was never supported and the requested outcome adds a new capability, require `Status: escalate`, classify `Affected scope: feature-gap`, stop before Phase 2, and direct the user to `feature-workflow:feature-researching`.
+
 For Phase 2, instruct the fresh agent to load and follow `superpowers:test-driven-development` and `superpowers:verification-before-completion`, remain on the established branch, use a three-to-six-step in-session plan, capture a regression test when practical, implement the smallest root-cause fix, verify the original reproduction and neighboring scope, remove residue, and commit changed work before returning.
 
 Require this exact Resolution Checkpoint:
@@ -248,7 +277,7 @@ Blocked: exhausted phase or material risk + decision needed
 Do not comment on every retry. Do not mutate issue state beyond comments.
 If a comment fails, report that accurately without invalidating an otherwise verified fix.
 
-- [ ] **Step 4: Verify generated UI metadata**
+- [ ] **Step 5: Verify generated UI metadata**
 
 `skills/fixing-small-issues/agents/openai.yaml` must be:
 
@@ -267,12 +296,12 @@ sed -n '1,20p' skills/fixing-small-issues/agents/openai.yaml
 
 Expected: exact content above.
 
-- [ ] **Step 5: Run structural contract checks**
+- [ ] **Step 6: Run structural contract checks**
 
 Run:
 
 ```bash
-rg -n '^name: fixing-small-issues$|^description: .*hotfixes|NO FOURTH SPAWN|phase_1_attempts = 0|Status: ready \| retryable \| blocked \| escalate|Status: fixed \| retryable \| diagnosis-invalidated \| blocked \| escalate|git revert|one or two sentences' skills/fixing-small-issues/SKILL.md
+rg -n '^name: fixing-small-issues$|^description: Use when .*hotfix|Do not use for new features or capability gaps|NO FOURTH SPAWN|phase_1_attempts = 0|Status: ready \| retryable \| blocked \| escalate|Status: fixed \| retryable \| diagnosis-invalidated \| blocked \| escalate|feature-gap|feature-workflow:feature-researching|git revert|one or two sentences' skills/fixing-small-issues/SKILL.md
 ```
 
 Expected: every pattern has at least one match.
@@ -293,7 +322,17 @@ rg -n 'Z01|Z02|Z06|Z99|feature-qa-review|git reset|fourth.*spawn.*allowed' skill
 
 Expected: only explicit prohibitions may match; there must be no dependency on those artifacts, QA workflow, reset, or fourth spawn.
 
-- [ ] **Step 6: Commit the coordinator skill**
+- [ ] **Step 7: Run GREEN pressure scenarios with the skill**
+
+Rerun Scenarios A–C from Step 2 with fresh sub-agents that receive the completed skill. Require:
+
+- Scenario A creates or resumes the `bugfix/*` branch before Phase 1 and establishes root cause before Phase 2 changes production code;
+- Scenario B blocks before a fourth spawn and requests human intervention;
+- Scenario C returns `Status: escalate`, names `Affected scope: feature-gap`, makes no implementation attempt, and directs the user to `feature-workflow:feature-researching`.
+
+Append outcomes to `.superpowers/skill-tests/fixing-small-issues-baseline.md`. If an agent still rationalizes around a guardrail, add the smallest explicit counter to the skill and rerun only that scenario until it passes.
+
+- [ ] **Step 8: Commit the coordinator skill**
 
 ```bash
 git add skills/fixing-small-issues/SKILL.md skills/fixing-small-issues/agents/openai.yaml
@@ -390,7 +429,7 @@ Update its success criteria to cover delegated phase-specific loading.
 
 - [ ] **Step 5: Add repository loading and naming rules**
 
-In `AGENTS.md`, change the feature-only loading introduction to cover all repository workflows that depend on Superpowers, then add `fixing-small-issues` to the `Requires load-superpowers first` list. Add a compact rule that it uses no Z artifacts and must create a bugfix branch before Phase 1.
+In `AGENTS.md`, change the feature-only loading introduction to cover all repository workflows that depend on Superpowers, then add `fixing-small-issues` to the `Requires load-superpowers first` list. Add compact rules that it uses no Z artifacts, must create a bugfix branch before Phase 1, excludes new features, and stops before Phase 2 when Phase 1 diagnoses a feature gap, routing that work to `feature-workflow:feature-researching`.
 
 In `CLAUDE.md`:
 
@@ -401,6 +440,7 @@ In `CLAUDE.md`:
 - add `fixing-small-issues` to the `Requires load-superpowers first` list;
 - retain the gerund-skill/imperative-command convention;
 - state that its heavy Superpowers dependencies load inside phase sub-agents;
+- state that new features are out of scope and feature-gap diagnoses route to `feature-workflow:feature-researching`;
 - leave release/version sections unchanged.
 
 - [ ] **Step 6: Verify wiring and dependency consistency**
@@ -491,6 +531,8 @@ Replace the current advice that small bugs can use a short Markdown brief and ju
 
 Use `feature-workflow:fixing-small-issues` or `/fix-small-issue` for a bounded bug, hotfix, regression, failing test, or small corrective change.
 
+Do not use it for a new feature. If Phase 1 finds that the report is a missing capability rather than a defect, the workflow stops before implementation and routes to `feature-workflow:feature-researching`.
+
 The workflow:
 1. Creates or resumes a dedicated `bugfix/*` branch.
 2. Runs a fresh diagnosis sub-agent that reproduces the issue and returns the root cause and fix options.
@@ -536,7 +578,7 @@ Do not change any `1.21.0` version field.
 Run:
 
 ```bash
-rg -n 'fixing-small-issues|/fix-small-issue|bugfix/\\*|three executions|one or two sentences' README.md
+rg -n 'fixing-small-issues|/fix-small-issue|bugfix/\\*|three executions|one or two sentences|new feature|feature gap|feature-researching' README.md
 ```
 
 Expected: matches in included skills, dependencies, commands, installation, streamlined workflow, and repository structure.
@@ -602,7 +644,9 @@ text = File.read("skills/fixing-small-issues/SKILL.md")
 frontmatter = text.match(/\A---\n(.*?)\n---/m) or abort "missing frontmatter"
 data = YAML.safe_load(frontmatter[1])
 abort "wrong name" unless data["name"] == "fixing-small-issues"
-abort "missing description" unless data["description"].include?("hotfixes")
+abort "missing trigger" unless data["description"].start_with?("Use when")
+abort "missing bug scope" unless data["description"].include?("hotfix")
+abort "missing feature exclusion" unless data["description"].include?("Do not use for new features or capability gaps")
 abort "unexpected frontmatter keys" unless (data.keys - %w[name description]).empty?
 '
 ```
@@ -650,6 +694,8 @@ for pattern in \
   'systematic-debugging' \
   'test-driven-development' \
   'verification-before-completion' \
+  'feature-gap' \
+  'feature-workflow:feature-researching' \
   'Status: ready | retryable | blocked | escalate' \
   'Status: fixed | retryable | diagnosis-invalidated | blocked | escalate' \
   'git revert' \
@@ -735,7 +781,25 @@ Phase 1 is spawned again only after checking its cumulative counter, then increm
 No counter resets.
 ```
 
-- [ ] **Step 6: Fix only concrete validation gaps and rerun affected checks**
+- [ ] **Step 6: Forward-test feature-gap escalation**
+
+Launch a fresh validation agent with the skill file and this scenario only:
+
+```text
+An issue reports that XML export is broken. Investigation confirms the product has only ever supported CSV and JSON, and no XML behavior or requirement exists.
+Describe the required Phase 1 checkpoint and next action.
+Do not edit files or invoke GitHub.
+```
+
+Expected:
+
+```text
+Phase 1 returns Status: escalate and Affected scope: feature-gap.
+The coordinator does not spawn Phase 2 or implement XML export.
+The user is directed to feature-workflow:feature-researching.
+```
+
+- [ ] **Step 7: Fix only concrete validation gaps and rerun affected checks**
 
 If a forward test fails because the skill is ambiguous, edit the smallest relevant wording in `SKILL.md` or documentation, then rerun:
 
@@ -745,7 +809,7 @@ git diff --check
 
 Rerun the exact failed structural or forward-test scenario and require the expected evidence before continuing.
 
-- [ ] **Step 7: Run final repository verification**
+- [ ] **Step 8: Run final repository verification**
 
 Run:
 
@@ -768,7 +832,7 @@ Expected:
 - diff check exits `0`;
 - status contains only intentional validation fixes, if any.
 
-- [ ] **Step 8: Commit validation fixes only when needed**
+- [ ] **Step 9: Commit validation fixes only when needed**
 
 If Step 6 produced changes:
 
@@ -779,7 +843,7 @@ git commit -m "fix: close fixing small issues workflow gaps"
 
 If validation produced no changes, do not create an empty commit.
 
-- [ ] **Step 9: Confirm implementation scope**
+- [ ] **Step 10: Confirm implementation scope**
 
 Run:
 

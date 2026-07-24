@@ -20,6 +20,7 @@ The coordinator stays context-light by delegating diagnosis and implementation t
 
 ## Non-Goals
 
+- Implement new features or fill product capability gaps.
 - Replace the feature workflow for broad, architectural, security-sensitive, migration-heavy, or product-ambiguous work.
 - Create local Z artifacts or tracker task graphs.
 - Run multiple review profiles for ordinary small fixes.
@@ -124,6 +125,8 @@ Phase 2 success criteria:
 
 The coordinator accepts `ready` only when the root cause is evidence-backed, the recommendation is bounded, and the success criteria are testable.
 
+If investigation shows that the reported behavior is not a regression or defect but a missing capability, classify it as a feature gap, return `Status: escalate`, and do not enter Phase 2.
+
 ## Phase 1 Transition Gate
 
 After an accepted Diagnosis Checkpoint:
@@ -132,7 +135,7 @@ After an accepted Diagnosis Checkpoint:
 - Retry Phase 1 when new investigation has a credible path and no human decision is required.
 - Pause for ambiguity when expected behavior or materially different fixes require a user choice.
 - Pause for risk when the work involves contracts, migrations, security, data loss, broad refactoring, or feature-like scope.
-- Recommend the feature workflow when the diagnosed scope is no longer a small bugfix.
+- Stop and direct the user to `feature-workflow:feature-researching` when the request is a new feature, the diagnosis reveals a feature gap, or the scope is no longer a small bugfix.
 
 ## Phase 2: Plan, Fix, and Verify
 
@@ -299,3 +302,4 @@ The coordinator should reuse the repository's sub-agent launch, timeout, log-val
 10. Dirty, detached, or ambiguous branch state pauses before any phase agent starts.
 11. Feature-like scope or material security, migration, contract, or data risk pauses for human intervention.
 12. GitHub comments remain one or two sentences and exclude detailed logs or checkpoint payloads.
+13. A bug report that Phase 1 identifies as a feature gap stops before Phase 2 and routes to `feature-workflow:feature-researching`.
