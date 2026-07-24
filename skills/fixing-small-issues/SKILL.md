@@ -7,7 +7,7 @@ description: Use when fixing a bounded bug, hotfix, regression, failing test, er
 
 ## Mandatory First Action: Create the Coordinator Plan
 
-Create the coordinator plan before agent launch:
+Before launch, create:
 
 ```text
 Step 0: Load instructions, resolve source, and create/resume bugfix branch
@@ -19,36 +19,25 @@ Step 5: Keep or revert the returned commit
 Step 6: Loop, block, or complete
 ```
 
-Do not add feature-workflow stages. **REQUIRED SUB-SKILL:** Use `feature-workflow:use-sub-agent` for launch, timeout, exit status, and logs. Attempts are fresh, sequential, and phase-bounded.
-
-Inspect every log for completion and final checkpoint before trust. Retain only checkpoints/counters; load the complete exploratory log into coordinator context only if its checkpoint is missing, malformed, contradictory, or untrustworthy.
+Add no other stages. Use `feature-workflow:use-sub-agent`. Agents are fresh, sequential, single-phase. Inspect every log for completion/final checkpoint before trust. Retain checkpoints/counters; load the complete exploratory log only if its checkpoint is missing, malformed, contradictory, or untrustworthy.
 
 ## Scope and Iron Laws
 
-Route new features and capability gaps to `feature-workflow:feature-researching`; pause for product ambiguity, broad refactoring, contracts, migrations, security, data-loss risk, or feature-like scope.
+Features/gaps route to `feature-workflow:feature-researching`. Product ambiguity, broad refactoring, contracts, migrations, security, data-loss, or feature-like scope route to Human Intervention.
 
-NO PHASE 1 BEFORE THE BUGFIX BRANCH EXISTS
-NO FIX WITHOUT AN EVIDENCE-BACKED ROOT CAUSE
-NO PHASE 2 WORKSPACE CHANGE WITHOUT AN ATTRIBUTABLE COMMIT
-NO SUCCESS CLAIM WITHOUT INDEPENDENT FRESH VERIFICATION
 NO FOURTH SPAWN OF EITHER PHASE
-NO RESET OR HISTORY REWRITE TO DISCARD A FAILED ATTEMPT
-NO Z-ARTIFACT OR FEATURE-QA PIPELINE FOR THIS WORKFLOW
 
-Do not create tracker graphs, phased PR plans, batch approvals, or multi-profile QA.
+No Z artifacts, tracker/phased plans, batch approvals, or feature-QA/multi-profile pipeline. Never reset/rewrite attempts. Push, PR, merge, issue close, labels, or assignment require explicit request; comments follow the contract below.
 
 ## Step 0: Load Instructions, Resolve Source, and Create the Branch
 
-Read repository instructions. Source priority: explicit GitHub issue; contextual issue; direct report. For an issue, read body and relevant comments with connected GitHub tools before branching. If unreadable, request the source as an external blocker; never guess. Direct reports need no tracker.
+Read instructions. Source priority: explicitly supplied GitHub issue; GitHub issue unambiguously identified by task context; direct report. Multiple/ambiguous contextual issues require clarification before branch/comment. For canonical issues, GitHub-read body/comments before branching; unreadable source is an external blocker. Never guess. Direct reports remain in-task; create no tracker.
 
-Create or resume:
+- Branches: issue `bugfix/<issue-number>_<bug-slug>`; direct `bugfix/<bug-slug>`
+- Slug: lowercase snake_case, unsafe characters removed, maximum 50 characters
+- Base: `main` unless user-authorized otherwise
 
-- Issue: `bugfix/<issue-number>_<bug-slug>`
-- Direct report: `bugfix/<bug-slug>`
-- Slug: lowercase snake_case, unsafe branch characters removed, maximum 50 characters
-- Default base: `main`, unless the user authorizes another
-
-Pre-branch actions: instruction loading, minimal source resolution, git safety inspection. Resume only the exact inferred branch. Detached HEAD, unrelated branch, unclear provenance, or unrelated dirty changes require pause; preserve user changes.
+Pre-branch: instructions, minimal source resolution, read-only git inspection only. Resume only the exact branch. Detached HEAD, unrelated branch, unclear provenance, or any dirty tree pauses before agents; preserve all user changes.
 
 ## Step 1: Initialize Attempt State
 
@@ -63,15 +52,15 @@ before spawning phase N:
   spawn a fresh phase N agent
 ```
 
-Counters are independent and cumulative; phase switches do not reset them and task resume preserves them. Third attempts may succeed. Retry only with new evidence or a different approach.
+Independent cumulative counters persist across phase switches/resume. Third attempts may succeed. Retry needs new evidence/different approach.
 
 ## Step 2: Spawn Phase 1 — Reproduce and Diagnose
 
-Pass only source, branch, repository constraints, attempt number, latest accepted checkpoint, and retry evidence. Require on-branch `superpowers:systematic-debugging`: expected/actual behavior, reproduction or deterministic evidence, tested hypotheses, causal chain, fix options, and success criteria. No production fix or tracked changes; remove instrumentation.
+Pass only source, branch, constraints, attempt, checkpoint, retry evidence. On-branch, use `superpowers:systematic-debugging`: expected/actual behavior, reproduction/evidence, tested hypotheses, causal root cause, options, success criteria. No production fix/tracked changes; remove instrumentation.
 
 ## Step 3: Validate and Publish the Diagnosis Checkpoint
 
-Apply the log contract, check exit status, and require clean Phase 1 `git status --short` plus:
+Validate log, exit, and clean `git status --short`. Require:
 
 ```text
 Status: ready | retryable | blocked | escalate
@@ -85,11 +74,11 @@ Risk flags:
 Phase 2 success criteria:
 ```
 
-Accept `ready` only for evidence-backed cause, bounded recommendation, testable criteria, and no material ambiguity/risk. New capability: `Status: escalate`, `Affected scope: feature-gap`, stop before Phase 2, route to `feature-workflow:feature-researching`. `blocked` routes to Human Intervention. Automatically comment on accepted issue diagnoses.
+`ready` = evidence-backed root cause, bounded fix, testable criteria, no ambiguity/risk. Feature gap = `Status: escalate`, `Affected scope: feature-gap`; stop before Phase 2, route to `feature-workflow:feature-researching`. `blocked` -> Human Intervention. Auto-comment accepted issue diagnosis.
 
 ## Step 4: Spawn Phase 2 — Plan, Fix, Verify, and Commit
 
-Pass the diagnosis. Require on-branch `superpowers:test-driven-development`, `superpowers:verification-before-completion`, and a three-to-six-step plan. Capture a failing regression when practical or preserve manual reproduction; make the smallest root-cause fix; run original and neighboring verification; remove residue; commit changed work before return.
+Pass diagnosis. On-branch, use `superpowers:test-driven-development`, `superpowers:verification-before-completion`, and a three-to-six-step plan. Write a failing regression first. Use precise manual reproduction only when no existing automated harness can express the regression without disproportionate new infrastructure; record why in `Regression coverage`. Make the smallest root-cause fix; verify original/neighbors; remove residue; commit.
 
 Require:
 
@@ -104,19 +93,19 @@ Verification commands and results:
 Residual risks:
 ```
 
-A blocked agent needs no artificial empty commit. `fixed` and changed `retryable` work require an attributable commit on the exact bugfix branch.
+`blocked` needs no empty commit. `fixed`/changed `retryable` require an attributable exact-branch commit.
 
 ## Step 5: Validate the Resolution Checkpoint and Commit
 
-Apply the log contract and exit-status check, then:
+Validate log/exit status:
 
-1. Confirm the commit exists on the expected branch.
-2. Inspect its diff for scope, residue, and unrelated changes.
-3. Rerun the original reproduction and proportionate verification.
-4. Keep a successful commit.
-5. Keep useful partial progress before a Phase 2 retry.
-6. Reject a wrong attempt with `git revert`, never `git reset`.
-7. Revert and return to Phase 1 when diagnosis is invalidated.
+1. Confirm expected-branch commit.
+2. Inspect scope/residue/unrelated diff.
+3. Rerun original/proportionate verification.
+4. Keep success.
+5. Keep useful partial commit before retry.
+6. Reject with `git revert`, never `git reset`.
+7. On invalidated diagnosis, revert then Phase 1.
 
 ## Step 6: Route Completion, Retry, Re-Diagnosis, or Human Intervention
 
@@ -132,7 +121,7 @@ Phase 2 blocked -> Human Intervention
 Phase 2 ambiguity/risk/escalate -> Human Intervention
 ```
 
-For any Human Intervention route, return:
+On Human Intervention, return:
 
 ```text
 Blocked phase:
@@ -148,18 +137,18 @@ Recommended human decision:
 
 ## GitHub Comment Contract
 
-For a canonical issue, automatically post each applicable public comment in one or two sentences:
+For canonical issues, automatically post in one or two sentences:
 
 - Diagnosis: reproduction + root cause + intended fix
-- Resolution: implemented fix + passing verification
-- Blocked: exhausted phase or material risk + decision needed
+- Resolution: fix + passing verification
+- Blocked: exhausted phase/risk + needed decision
 
-Never comment on internal retries. Correct a superseded diagnosis once. Mutate no issue state beyond comments. Report comment failure without invalidating a verified fix.
+Skip retries; correct a superseded diagnosis once. Only comments mutate automatically. Report failure accurately; it does not invalidate a verified fix.
 
 ## Completion Contract
 
-Complete after reproduction, regression/manual verification, and neighboring checks pass; diff is clean/scoped; bugfix commit accepted; risks resolved; resolution comment posted or failure reported. Report cause, fix, commit, verification, residual risk. Push/PR/merge/closure require explicit request.
+Complete after Step 5, resolved risks, and resolution comment/failure report. Report cause, fix, commit, verification, risk.
 
 ## Red Flags
 
-Stop on violated laws, untrusted results, or unrelated workspace changes.
+Stop on any violated gate.
