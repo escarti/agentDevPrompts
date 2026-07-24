@@ -112,6 +112,7 @@ Validate log/exit status:
 5. Keep useful partial commit before retry.
 6. Reject with `git revert`, never `git reset`.
 7. On invalidated diagnosis, revert then Phase 1.
+8. Require clean `git status --short` after the Phase 2 commit and any revert.
 
 ## Step 6: Route Completion, Retry, Re-Diagnosis, or Human Intervention
 
@@ -153,7 +154,7 @@ Skip retries; correct a superseded diagnosis once. Only comments mutate automati
 
 ## Completion Contract
 
-Complete after Step 5, resolved risks, and resolution comment/failure report. Report cause, fix, commit, verification, risk.
+Complete after Step 5 with resolved risks and clean workspace. For a canonical GitHub issue, also require the resolution comment or an accurately reported failure; direct reports require no tracker comment. Report cause, fix, commit, verification, risk.
 
 ## Red Flags
 
