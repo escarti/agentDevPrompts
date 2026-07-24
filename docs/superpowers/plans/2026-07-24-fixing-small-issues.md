@@ -658,7 +658,7 @@ Run:
 ```bash
 ruby -e '
 require "yaml"
-data = YAML.safe_load_file("skills/fixing-small-issues/agents/openai.yaml")
+data = YAML.safe_load(File.read("skills/fixing-small-issues/agents/openai.yaml"))
 text = data.dig("interface", "short_description")
 abort "bad short description" unless text.length.between?(25, 64)
 prompt = data.dig("interface", "default_prompt")
