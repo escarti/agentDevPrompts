@@ -7,21 +7,25 @@ description: Use when fixing a bounded bug, hotfix, regression, failing test, er
 
 ## Mandatory First Action: Create the Coordinator Plan
 
-Create and maintain a coordinator plan before launching an agent. Keep only these states; do not add feature-workflow stages:
+Create the coordinator plan before agent launch:
 
-1. Step 0: Load instructions, resolve source, and create/resume bugfix branch
-2. Step 1: Initialize phase_1_attempts=0 and phase_2_attempts=0
-3. Step 2: Run and validate Phase 1
-4. Step 3: Post accepted diagnosis comment when an issue exists
-5. Step 4: Run and validate Phase 2
-6. Step 5: Keep or revert the returned commit
-7. Step 6: Loop, block, or complete
+```text
+Step 0: Load instructions, resolve source, and create/resume bugfix branch
+Step 1: Initialize phase_1_attempts=0 and phase_2_attempts=0
+Step 2: Run and validate Phase 1
+Step 3: Post accepted diagnosis comment when an issue exists
+Step 4: Run and validate Phase 2
+Step 5: Keep or revert the returned commit
+Step 6: Loop, block, or complete
+```
 
-Use `feature-workflow:use-sub-agent` for agent launch, timeout, log, and exit-status handling. Run one fresh agent per attempt, sequentially; Phase 1 and Phase 2 never run in parallel. Retain only accepted checkpoints and counters in coordinator context. Pass agents only their stated inputs, not prior transcripts or exploratory logs. Agents stop after their assigned phase and never spawn the next attempt.
+Do not add feature-workflow stages. **REQUIRED SUB-SKILL:** Use `feature-workflow:use-sub-agent` for launch, timeout, exit status, and logs. Attempts are fresh, sequential, and phase-bounded.
+
+Inspect every log for completion and final checkpoint before trust. Retain only checkpoints/counters; load the complete exploratory log into coordinator context only if its checkpoint is missing, malformed, contradictory, or untrustworthy.
 
 ## Scope and Iron Laws
 
-Use this workflow only for a bounded defect or corrective change. Do not use it for a new feature, an ambiguous product decision, a capability gap, broad refactoring, a migration, security-sensitive work, contract changes, or data-loss risk. Pause for a human decision when scope or risk becomes material.
+Route new features and capability gaps to `feature-workflow:feature-researching`; pause for product ambiguity, broad refactoring, contracts, migrations, security, data-loss risk, or feature-like scope.
 
 NO PHASE 1 BEFORE THE BUGFIX BRANCH EXISTS
 NO FIX WITHOUT AN EVIDENCE-BACKED ROOT CAUSE
@@ -31,30 +35,22 @@ NO FOURTH SPAWN OF EITHER PHASE
 NO RESET OR HISTORY REWRITE TO DISCARD A FAILED ATTEMPT
 NO Z-ARTIFACT OR FEATURE-QA PIPELINE FOR THIS WORKFLOW
 
-Do not create local planning artifacts, tracker graphs, phased PR plans, batch approvals, or multi-profile review. Do not push, open a PR, merge, close an issue, change labels, or assign users without an explicit request.
+Do not create tracker graphs, phased PR plans, batch approvals, or multi-profile QA.
 
 ## Step 0: Load Instructions, Resolve Source, and Create the Branch
 
-Read repository instructions first. Resolve the canonical source in this priority order:
+Read repository instructions. Source priority: explicit GitHub issue; contextual issue; direct report. For an issue, read body and relevant comments with connected GitHub tools before branching. If unreadable, request the source as an external blocker; never guess. Direct reports need no tracker.
 
-1. Explicitly supplied GitHub issue.
-2. GitHub issue unambiguously identified by task context.
-3. Direct misbehavior report, failing test, error, log, or observed behavior.
+Create or resume:
 
-When an issue is canonical, use connected GitHub issue tools to read its body and relevant comments before creating the branch. If it cannot be read, do not guess its contents; request the missing source as an external blocker. For a direct report, keep checkpoints in the Codex task and do not force tracker creation.
+- Issue: `bugfix/<issue-number>_<bug-slug>`
+- Direct report: `bugfix/<bug-slug>`
+- Slug: lowercase snake_case, unsafe branch characters removed, maximum 50 characters
+- Default base: `main`, unless the user authorizes another
 
-Derive the branch before investigation:
-
-- Issue branch: `bugfix/<issue-number>_<bug-slug>`
-- Direct-report branch: `bugfix/<bug-slug>`
-- Bug slug: lowercase snake_case, unsafe branch characters removed, maximum 50 characters
-- Default base: `main`
-
-Only read instructions, resolve minimal source identity, and inspect git state before branch creation. New branches start from `main` unless the user explicitly authorizes another base. Resume only when the current branch exactly matches the inferred bugfix branch. Pause before any phase agent on detached HEAD, an unrelated branch, unclear provenance, or unrelated dirty changes. Never discard user changes silently.
+Pre-branch actions: instruction loading, minimal source resolution, git safety inspection. Resume only the exact inferred branch. Detached HEAD, unrelated branch, unclear provenance, or unrelated dirty changes require pause; preserve user changes.
 
 ## Step 1: Initialize Attempt State
-
-Initialize once per coordinator run:
 
 ```text
 phase_1_attempts = 0
@@ -67,19 +63,15 @@ before spawning phase N:
   spawn a fresh phase N agent
 ```
 
-Counters are independent and cumulative. Switching phases never resets them; resuming the same coordinator task preserves them. A successful third attempt completes normally. A retry requires new failure evidence or a meaningfully different investigation or correction; do not repeat an unchanged failed approach.
+Counters are independent and cumulative; phase switches do not reset them and task resume preserves them. Third attempts may succeed. Retry only with new evidence or a different approach.
 
 ## Step 2: Spawn Phase 1 — Reproduce and Diagnose
 
-Use the attempt gate, then instruct a fresh Phase 1 agent to load and follow `superpowers:systematic-debugging`. Require it to remain on the established branch; establish expected and actual behavior; create the smallest practical reproduction or equivalent deterministic evidence; inspect relevant code, tests, history, and nearby patterns; test competing hypotheses; identify the causal chain; compare credible fixes; and define Phase 2 success criteria.
-
-Phase 1 makes no production fix, removes temporary instrumentation, and returns no tracked changes. Pass only the canonical problem source, branch identity, repository constraints, attempt number, the latest accepted checkpoint, and new retry evidence.
+Pass only source, branch, repository constraints, attempt number, latest accepted checkpoint, and retry evidence. Require on-branch `superpowers:systematic-debugging`: expected/actual behavior, reproduction or deterministic evidence, tested hypotheses, causal chain, fix options, and success criteria. No production fix or tracked changes; remove instrumentation.
 
 ## Step 3: Validate and Publish the Diagnosis Checkpoint
 
-After return, check the agent exit status, confirm a complete final checkpoint exists, and verify `git status --short` contains no Phase 1 tracked changes. Load the complete sub-agent log only when the final checkpoint is missing, malformed, contradictory, or untrustworthy.
-
-Require this exact checkpoint:
+Apply the log contract, check exit status, and require clean Phase 1 `git status --short` plus:
 
 ```text
 Status: ready | retryable | blocked | escalate
@@ -93,19 +85,13 @@ Risk flags:
 Phase 2 success criteria:
 ```
 
-Accept `ready` only when the root cause is evidence-backed, the recommendation is bounded, and the success criteria are testable. Continue to Phase 2 automatically only when no material ambiguity or risk remains.
-
-If the reported behavior was never supported and the outcome adds a new capability, require `Status: escalate`, set `Affected scope: feature-gap`, stop before Phase 2, and direct the user to `feature-workflow:feature-researching`.
-
-For an accepted issue-backed diagnosis, post the terse diagnosis comment described below. Do not post comments for internal retries.
+Accept `ready` only for evidence-backed cause, bounded recommendation, testable criteria, and no material ambiguity/risk. New capability: `Status: escalate`, `Affected scope: feature-gap`, stop before Phase 2, route to `feature-workflow:feature-researching`. `blocked` routes to Human Intervention. Automatically comment on accepted issue diagnoses.
 
 ## Step 4: Spawn Phase 2 — Plan, Fix, Verify, and Commit
 
-Use the attempt gate, then pass the accepted Diagnosis Checkpoint to a fresh Phase 2 agent. Require it to load and follow `superpowers:test-driven-development` and `superpowers:verification-before-completion`, remain on the established branch, and create a compact three-to-six-step in-session plan.
+Pass the diagnosis. Require on-branch `superpowers:test-driven-development`, `superpowers:verification-before-completion`, and a three-to-six-step plan. Capture a failing regression when practical or preserve manual reproduction; make the smallest root-cause fix; run original and neighboring verification; remove residue; commit changed work before return.
 
-Require the agent to capture a failing regression test when practical; otherwise preserve the exact manual reproduction. It must implement the smallest sound root-cause fix, limit adjacent refactoring to correctness or testability, rerun the original reproduction, run regression and relevant neighboring verification, remove diagnostic residue and unrelated changes, and commit changed work on the active bugfix branch before returning.
-
-Require this exact checkpoint:
+Require:
 
 ```text
 Status: fixed | retryable | diagnosis-invalidated | blocked | escalate
@@ -118,37 +104,35 @@ Verification commands and results:
 Residual risks:
 ```
 
-A blocked agent may return without an artificial empty commit. A `fixed` result or changed `retryable` work is invalid without an attributable commit on the exact bugfix branch.
+A blocked agent needs no artificial empty commit. `fixed` and changed `retryable` work require an attributable commit on the exact bugfix branch.
 
 ## Step 5: Validate the Resolution Checkpoint and Commit
 
-Treat the returned result as untrusted until its exit status and complete final Resolution Checkpoint are valid. Then:
+Apply the log contract and exit-status check, then:
 
-1. Confirm the returned commit exists on the expected bugfix branch.
-2. Inspect the commit diff for scope, residue, and unrelated changes.
+1. Confirm the commit exists on the expected branch.
+2. Inspect its diff for scope, residue, and unrelated changes.
 3. Rerun the original reproduction and proportionate verification.
 4. Keep a successful commit.
 5. Keep useful partial progress before a Phase 2 retry.
-6. Reject a wrong attempt with `git revert`, never reset.
-7. Revert and return to Phase 1 when the diagnosis is invalidated.
-
-Never rewrite, reset, or silently discard attempt history. If a changed attempt is rejected, create an explicit revert commit before retrying or returning to diagnosis.
+6. Reject a wrong attempt with `git revert`, never `git reset`.
+7. Revert and return to Phase 1 when diagnosis is invalidated.
 
 ## Step 6: Route Completion, Retry, Re-Diagnosis, or Human Intervention
-
-Route only as follows:
 
 ```text
 Phase 1 ready -> Phase 2
 Phase 1 retryable -> Phase 1, subject to the attempt gate
+Phase 1 blocked -> Human Intervention
 Phase 1 ambiguity/risk/escalate -> Human Intervention
 Phase 2 fixed and independently verified -> Complete
 Phase 2 retryable with valid diagnosis -> Phase 2, subject to the attempt gate
 Phase 2 diagnosis-invalidated -> revert if needed, then Phase 1
+Phase 2 blocked -> Human Intervention
 Phase 2 ambiguity/risk/escalate -> Human Intervention
 ```
 
-For an attempt cap, ambiguity, material risk, feature gap, or blocked result, stop and return this exact Human Intervention Checkpoint:
+For any Human Intervention route, return:
 
 ```text
 Blocked phase:
@@ -164,26 +148,18 @@ Recommended human decision:
 
 ## GitHub Comment Contract
 
-Keep public comments separate from internal checkpoints. Each comment is one or two sentences only:
+For a canonical issue, automatically post each applicable public comment in one or two sentences:
 
 - Diagnosis: reproduction + root cause + intended fix
 - Resolution: implemented fix + passing verification
 - Blocked: exhausted phase or material risk + decision needed
 
-Do not comment on every retry. If a diagnosis is superseded, post one short correction. Do not mutate issue state beyond comments. If a comment fails, report it accurately without invalidating an otherwise verified fix.
+Never comment on internal retries. Correct a superseded diagnosis once. Mutate no issue state beyond comments. Report comment failure without invalidating a verified fix.
 
 ## Completion Contract
 
-Complete only when the original reproduction no longer fails, regression coverage or documented manual verification passes, relevant neighboring verification passes, the final diff is scoped and clean, the accepted fix commit exists on the bugfix branch, and no unresolved risk remains. When an issue is canonical, post the terse resolution comment or report its failure.
-
-Finish with the root cause, fix, commit, verification, and residual risk. Keep push, PR creation, merge, and issue closure as separate explicit actions.
+Complete after reproduction, regression/manual verification, and neighboring checks pass; diff is clean/scoped; bugfix commit accepted; risks resolved; resolution comment posted or failure reported. Report cause, fix, commit, verification, residual risk. Push/PR/merge/closure require explicit request.
 
 ## Red Flags
 
-- Investigating or spawning Phase 1 before the bugfix branch exists
-- Treating an unsupported capability as a defect
-- Starting Phase 2 without an evidence-backed root cause
-- Spawning a fourth attempt, resetting counters, or repeating an unchanged failed approach
-- Accepting changed Phase 2 work without its commit on the expected branch
-- Using `git reset` or history rewriting to remove a failed attempt
-- Claiming success without fresh independent verification
+Stop on violated laws, untrusted results, or unrelated workspace changes.
