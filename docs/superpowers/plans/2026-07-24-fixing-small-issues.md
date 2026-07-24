@@ -74,7 +74,7 @@ An issue says the export screen is "broken" because it cannot export XML, but th
 Ask the agent to fix the issue.
 ```
 
-Capture each agent's final choice and exact rationalization in ignored scratch state under `.superpowers/skill-tests/fixing-small-issues-baseline.md`. The required RED evidence is at least one of:
+Capture each agent's final choice and exact rationalization in ignored scratch state under `.codex-subagents/fixing-small-issues/baseline.md`. The required RED evidence is at least one of:
 
 - patching before creating a branch or establishing root cause;
 - attempting a fourth fix;
@@ -168,7 +168,7 @@ Direct-report branch: bugfix/<bug-slug>
 Bug slug: lowercase snake_case, unsafe branch characters removed, maximum 50 characters
 Default base: main
 Allowed pre-branch actions: read instructions, resolve minimal source identity, inspect git state
-Pause conditions: detached HEAD, unrelated branch, unclear provenance, unrelated dirty changes
+Pause conditions: detached HEAD, unrelated branch, unclear provenance, any dirty working tree state
 Resume condition: current branch exactly matches the inferred bugfix branch
 ```
 
@@ -330,7 +330,7 @@ Rerun Scenarios A–C from Step 2 with fresh sub-agents that receive the complet
 - Scenario B blocks before a fourth spawn and requests human intervention;
 - Scenario C returns `Status: escalate`, names `Affected scope: feature-gap`, makes no implementation attempt, and directs the user to `feature-workflow:feature-researching`.
 
-Append outcomes to `.superpowers/skill-tests/fixing-small-issues-baseline.md`. If an agent still rationalizes around a guardrail, add the smallest explicit counter to the skill and rerun only that scenario until it passes.
+Append outcomes to `.codex-subagents/fixing-small-issues/baseline.md`. If an agent still rationalizes around a guardrail, add the smallest explicit counter to the skill and rerun only that scenario until it passes.
 
 - [ ] **Step 8: Commit the coordinator skill**
 
@@ -560,7 +560,7 @@ Add `commands/fix-small-issue.md` and `skills/fixing-small-issues/` to the READM
 Change `.claude-plugin/plugin.json` description to:
 
 ```json
-"description": "Feature and small-fix workflows with research, planning, automated execution, commit-bound QA, streamlined issue fixing, documentation finalization, ready-PR publication, and review follow-up."
+"description": "Feature workflows with research, planning, automated execution, commit-bound QA, documentation finalization, and ready-PR publication, plus streamlined issue fixing and review follow-up."
 ```
 
 Use the same text for `.claude-plugin/marketplace.json` `metadata.description`.
@@ -658,7 +658,7 @@ Run:
 ```bash
 ruby -e '
 require "yaml"
-data = YAML.safe_load_file("skills/fixing-small-issues/agents/openai.yaml")
+data = YAML.safe_load(File.read("skills/fixing-small-issues/agents/openai.yaml"))
 text = data.dig("interface", "short_description")
 abort "bad short description" unless text.length.between?(25, 64)
 prompt = data.dig("interface", "default_prompt")

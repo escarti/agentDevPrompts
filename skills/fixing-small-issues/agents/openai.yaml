@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix Small Issues"
+  short_description: "Diagnose and fix bounded code issues"
+  default_prompt: "Use $fixing-small-issues to diagnose, fix, commit, and verify this bounded bug or small corrective change."

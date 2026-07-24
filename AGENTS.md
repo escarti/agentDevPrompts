@@ -16,7 +16,7 @@ Codex agent instructions for this repository. This repo is a local skill library
 
 ## Skill Loading Rule
 
-Before feature skills that depend on superpowers, run `load-superpowers` first.
+Before repository workflows that depend on Superpowers, run `load-superpowers` first.
 
 Requires `load-superpowers` first:
 - `feature-researching`
@@ -26,9 +26,12 @@ Requires `load-superpowers` first:
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
+- `fixing-small-issues`
 
 Standalone:
 - `feature-documenting`
+
+`fixing-small-issues` uses no Z artifacts, creates or resumes its bugfix branch before Phase 1, and excludes new features. If Phase 1 diagnoses a feature gap, stop before Phase 2 and route the work to `feature-workflow:feature-researching`.
 
 ## Workflow Artifacts
 
