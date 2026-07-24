@@ -5,7 +5,7 @@
     "email": "necatus9@gmail.com"
   },
   "metadata": {
-    "description": "Complete feature workflow with research, planning, automated execution, commit-bound QA, documentation finalization, ready-PR publication, and review follow-up.",
+    "description": "Feature and small-fix workflows with research, planning, automated execution, commit-bound QA, streamlined issue fixing, documentation finalization, ready-PR publication, and review follow-up.",
     "version": "1.21.0",
     "license": "MIT"
   },
@@ -16,7 +16,7 @@
         "source": "url",
         "url": "https://github.com/escarti/agentDevPrompts.git"
       },
-      "description": "Complete feature workflow with mandatory commit-bound QA, documentation finalization, approved ready-PR publication, development logging, and PR review/fix support.",
+      "description": "Feature and small-fix workflows with mandatory commit-bound QA for features, streamlined issue fixing, documentation finalization, approved ready-PR publication, development logging, and PR review/fix support.",
       "version": "1.21.0",
       "author": {
         "name": "Eduardo Escarti"

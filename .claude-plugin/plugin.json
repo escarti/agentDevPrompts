@@ -1,7 +1,7 @@
 {
   "name": "feature-workflow",
   "version": "1.21.0",
-  "description": "Complete feature workflow with research, planning, automated execution, commit-bound QA, documentation finalization, ready-PR publication, and review follow-up.",
+  "description": "Feature and small-fix workflows with research, planning, automated execution, commit-bound QA, streamlined issue fixing, documentation finalization, ready-PR publication, and review follow-up.",
   "author": {
     "name": "Eduardo Escarti",
     "email": "necatus9@gmail.com"

@@ -1,6 +1,6 @@
 # Feature Workflow - Claude Code Skills
 
-Research-driven feature development workflow for Claude Code, with superpowers integration for planning, implementation, QA review, finishing, and PR handling.
+Research-driven feature development and streamlined small-fix workflows for Claude Code, with superpowers integration for planning, implementation, QA review, finishing, and PR handling.
 
 ## Included Skills
 
@@ -22,6 +22,9 @@ Bootstrap helper:
 Utility:
 - `use-sub-agent` (orchestrates headless `codex --yolo exec` subagents with safe parallel/log patterns)
 
+Small-fix workflow:
+- `fixing-small-issues` (requires superpowers; coordinates two isolated diagnosis/fix phases)
+
 ## Dependencies
 
 Install [superpowers](https://github.com/obra/superpowers) from the marketplace/plugin system for:
@@ -32,6 +35,7 @@ Install [superpowers](https://github.com/obra/superpowers) from the marketplace/
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
+- `fixing-small-issues`
 
 `feature-documenting` is standalone.
 
@@ -51,6 +55,7 @@ Run `load-superpowers` before:
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
+- `fixing-small-issues`
 
 ## Installation
 
@@ -76,6 +81,7 @@ Expected commands:
 - `/feature-finish`
 - `/feature-prreview`
 - `/feature-prfix`
+- `/fix-small-issue`
 
 ### Option 2: Manual Skill Symlinks (Development)
 
@@ -90,6 +96,7 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-documenting ~/.claude/s
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-finishing ~/.claude/skills/feature-finishing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-reviewing ~/.claude/skills/feature-pr-reviewing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-fixing ~/.claude/skills/feature-pr-fixing
+ln -s ~/Projects/Personal/agentDevPrompts/skills/fixing-small-issues ~/.claude/skills/fixing-small-issues
 ln -s ~/Projects/Personal/agentDevPrompts/skills/load-superpowers ~/.claude/skills/load-superpowers
 ln -s ~/Projects/Personal/agentDevPrompts/skills/use-sub-agent ~/.claude/skills/use-sub-agent
 ```
@@ -117,7 +124,7 @@ rm -rf ~/.codex/superpowers
 find ~/.codex/skills -maxdepth 1 \( -type l -o -type d \) | rg '/superpowers$'
 ```
 
-Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-researching`, `feature-planning`, `feature-implementing`, `feature-qa-review`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
+Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-researching`, `feature-planning`, `feature-implementing`, `feature-qa-review`, `fixing-small-issues`, `load-superpowers`, and `use-sub-agent`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
 
 ## Workflow
 
@@ -134,6 +141,7 @@ The implementation-to-publication chain is enforced, not advisory. `feature-impl
 
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
+| Streamlined small fixes | `feature-workflow:fixing-small-issues` | Reproduce, diagnose, fix, commit, and verify through two context-isolated phases | GitHub issue or direct misbehavior report | Verified commit on a `bugfix/*` branch |
 | 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Act as an evidence-led sparring partner: investigate the repo, surface unresolved product and technical bifurcations, and create research only after the user resolves them | Rough idea, partial spec, or detailed request | Complete `Z01_*_research.md` |
 | 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Complete Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute from the canonical Z02 plan with local `Z99` tracking, or execute tracker-natively from an approved published tracker graph | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + verification + mandatory QA handoff |
@@ -149,9 +157,20 @@ Clarification happens live inside the research conversation. `feature-researchin
 
 Use the full flow for large features where discovery, planning, and execution need strict structure.
 
-For small features or bug fixes, you can start in the middle:
-- Skip directly to planning or implementation when you already have a clear input.
-- A small bug can be handled with a short markdown brief (issue, desired end state, and test approach) and then passed directly to implementation.
+### Small fixes
+
+Use `feature-workflow:fixing-small-issues` or `/fix-small-issue` for a bounded bug, hotfix, regression, failing test, or small corrective change.
+
+Do not use it for a new feature. If Phase 1 finds that the report is a missing capability rather than a defect, the workflow stops before Phase 2 implementation and routes to `feature-workflow:feature-researching`.
+
+The workflow:
+1. Creates or resumes a dedicated `bugfix/*` branch.
+2. Runs a fresh diagnosis sub-agent that reproduces the issue and returns the root cause and fix options.
+3. Runs a fresh implementation sub-agent that plans, tests, fixes, verifies, and commits.
+4. Keeps the coordinator context small by retaining only structured checkpoints.
+5. Allows at most three executions of either phase, blocking before a fourth.
+
+It accepts a GitHub issue or a direct misbehavior report, creates no Z artifacts, and does not use the feature QA/finishing pipeline. GitHub issue comments remain one or two sentences.
 
 Common temporary artifacts:
 - `docs/ai/ongoing/Z01_{feature}_research.md`
@@ -220,6 +239,7 @@ agentDevPrompts/
 │   ├── marketplace.json
 │   └── plugin.json
 ├── commands/
+│   └── fix-small-issue.md
 ├── prompts/   (symlinks to commands for Codex prompt compatibility)
 ├── scripts/
 ├── skills/
@@ -231,6 +251,7 @@ agentDevPrompts/
 │   ├── feature-finishing/
 │   ├── feature-pr-reviewing/
 │   ├── feature-pr-fixing/
+│   ├── fixing-small-issues/
 │   ├── load-superpowers/
 │   └── use-sub-agent/
 ├── docs/
@@ -248,6 +269,7 @@ agentDevPrompts/
 - `feature-implementing` wraps superpowers `executing-plans`.
 - `feature-finishing` owns post-QA documentation consistency and approved ready-for-review PR publication.
 - `feature-pr-fixing` leverages superpowers debugging workflows.
+- `fixing-small-issues` handles bounded defects through isolated diagnosis and fix phases; the Z-artifact workflow and its QA/finishing gates remain for features.
 - Keep version fields synchronized before release (see `AGENTS.md`, `CLAUDE.md`, and `PUBLISHING.md`).
 
 ## Attribution
