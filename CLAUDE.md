@@ -8,7 +8,7 @@ This repository publishes the `feature-workflow` plugin through a Claude Code ma
 
 - Repository: `escarti/agentDevPrompts`
 - Plugin: `feature-workflow`
-- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, superpowers bootstrap, and subagent orchestration
+- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, streamlined small-issue fixing, superpowers bootstrap, and subagent orchestration
 
 ## Current Repository Layout
 
@@ -25,7 +25,8 @@ agentDevPrompts/
 │   ├── feature-finish.md
 │   ├── feature-document.md
 │   ├── feature-prreview.md
-│   └── feature-prfix.md
+│   ├── feature-prfix.md
+│   └── fix-small-issue.md
 ├── prompts/  (symlinks to commands/*.md for Codex prompt compatibility)
 ├── scripts/
 │   ├── sync_prompts_from_commands.sh
@@ -40,6 +41,7 @@ agentDevPrompts/
 │   ├── feature-documenting/
 │   ├── feature-pr-reviewing/
 │   ├── feature-pr-fixing/
+│   ├── fixing-small-issues/
 │   └── use-sub-agent/
 ├── docs/
 │   ├── ai/ongoing/
@@ -50,7 +52,7 @@ agentDevPrompts/
 
 ## Skill Dependency Rules
 
-`feature-*` skills that depend on superpowers must bootstrap with `load-superpowers` first.
+Repository workflows that depend on Superpowers must bootstrap with `load-superpowers` first.
 
 - Standalone:
   - `feature-documenting`
@@ -62,8 +64,11 @@ agentDevPrompts/
   - `feature-finishing`
   - `feature-pr-reviewing`
   - `feature-pr-fixing`
+  - `fixing-small-issues`
 
 `use-sub-agent` is standalone and can be used whenever task delegation to headless Codex subagents is needed.
+
+`fixing-small-issues` keeps its coordinator light: `superpowers:systematic-debugging` loads inside Phase 1 sub-agents, while `superpowers:test-driven-development` and `superpowers:verification-before-completion` load inside Phase 2 sub-agents. New features are out of scope; when Phase 1 diagnoses a feature gap, stop before Phase 2 and route the work to `feature-workflow:feature-researching`.
 
 ## Naming Conventions
 
