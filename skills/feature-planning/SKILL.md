@@ -167,6 +167,9 @@ If tracker publication is requested:
 - surface any assumptions or mapping gaps that require confirmation
 - use a preview model only; do not create or update remote tracker items in this step
 - require the previewed tracker items themselves to be self-contained, without depending on local workflow artifacts for core implementation context
+- enforce lossless tracker parity: the parent item and all child items together must contain enough information to reconstruct 100% of the implementation contract in `Z02_{feature}_plan.md`, including every phase, phase goal, phase verification, phase boundary rule, task boundary, file, interface, implementation step, dependency, constraint, verification command, expected result, and acceptance criterion; summarizing, omitting, splitting, merging, reordering, or reinterpreting that implementation contract is forbidden
+- treat transient workflow-artifact paths and planning-only bookkeeping as outside the reconstruction target, while restating any implementation context they carry; reproduce the Z02 dependency graph exactly, and do not infer a predecessor or blocker from task order or phase membership alone
+- before requesting publication approval, compare the complete preview graph against `Z02_{feature}_plan.md`; if Z02 cannot be fully reconstructed from the previewed tracker items alone, keep the workflow in preview and revise the tracker items
 
 Target resolution rules:
 - for `GitHub issues`, default the publication target to the current repository unless the user explicitly chooses another repository
@@ -228,6 +231,7 @@ If publishing `GitHub issues`:
 - keep all required implementation context in the GitHub issues themselves rather than linking back to local planning artifacts
 - update the parent issue after child creation so it contains real links or issue references to every created child
 - ensure the updated parent issue lists the child issues in the intended execution order and explicitly describes which child issues block or precede later ones
+- reread the published parent and every child issue and compare the complete published graph against `Z02_{feature}_plan.md`; if Z02 cannot be fully reconstructed from the published tracker items alone, keep planning incomplete
 
 If publishing `Jira epic plus tasks`:
 - create the epic in the resolved Jira project
@@ -261,6 +265,7 @@ Only mark planning complete when:
 1. `Z02_{feature}_plan.md` satisfies the `Z02` contract
 2. all clarification answers are incorporated
 3. `Z02_CLARIFY_{feature}_plan.md` is deleted or has no remaining unresolved entries
+4. if tracker publication occurred, the published parent and child items passed the lossless tracker-parity comparison against `Z02_{feature}_plan.md`
 
 Report to the user:
 - if complete without publication: `Plan created: Z02_{feature}_plan.md. Tracker publication skipped. Ready for feature-workflow:feature-implementing.`
