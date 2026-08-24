@@ -43,8 +43,8 @@ After each step, mark it completed and move `in_progress` to the next step.
 
 ```text
 NO ACCEPTED QA PASS -> NO FINISHING
-STALE REVIEWED CODE COMMIT -> RETURN TO COMPLETE FRESH QA
-NON-DOCUMENTATION IMPLEMENTATION CHANGE -> RETURN TO COMPLETE FRESH QA
+STALE OR UNREVIEWED CODE COMMIT -> RETURN TO FEATURE QA
+NON-DOCUMENTATION IMPLEMENTATION CHANGE -> RETURN TO RISK-ADAPTIVE FEATURE QA
 NO EXPLICIT PUBLICATION APPROVAL -> NO PUSH AND NO PR
 NEVER STAGE UNRELATED USER CHANGES
 NEVER FORCE-PUSH
@@ -74,7 +74,7 @@ Locate the matching `{ONGOING_DIR}/Z06_{feature}_qa_review.md`. Require all of:
 - `Verdict: PASS`
 - `User Acceptance: Accepted`
 - a full `Reviewed Commit` SHA
-- no findings recorded for that QA run
+- `Unresolved Blocking Findings: 0`
 - successful required verification recorded
 - matching feature branch and feature slug
 
@@ -94,10 +94,10 @@ Classify committed history separately from uncommitted worktree state:
 
 Documentation/publication-only commits created by a prior finishing attempt are valid and allow the workflow to resume.
 
-If Z06 is missing, `BLOCKED`, not accepted, contains findings, the reviewed commit is not an ancestor of HEAD, or post-QA history contains implementation changes:
+Advisory and dismissed findings are valid in an accepted Z06. If Z06 is missing, `BLOCKED`, not accepted, has unresolved blocking findings, the reviewed commit is not an ancestor of HEAD, or post-QA history contains implementation changes:
 - stop immediately
 - do not audit or edit documentation
-- route back to a complete fresh `feature-qa-review`
+- route back to `feature-qa-review` for risk selection and review of the current implementation delta
 - do not treat user urgency or prior test results as an exception
 
 Clearly unrelated user changes may remain in the worktree only when their provenance and exclusion are unambiguous. Record them in the publication summary, exclude them from documentation comparisons and verification claims, and never stage, discard, or rewrite them. If provenance or QA freshness is ambiguous, stop and ask the user to isolate the change before continuing.
@@ -182,7 +182,7 @@ If the audit reveals that implementation code, runtime configuration, tests, sch
 - stop finishing
 - do not make the non-documentation change here
 - report that the accepted QA verdict is no longer sufficient
-- route the work back through implementation/fixing and a complete fresh QA review
+- route the work back through implementation/fixing and risk-adaptive QA review of the resulting implementation delta
 
 After editing, inspect `git status --short` and `git diff`. Separate finishing-owned paths from unrelated user changes. Never use `git add -A` in a mixed worktree.
 
@@ -194,12 +194,13 @@ First verify QA freshness:
 - no feature-owned or provenance-ambiguous uncommitted non-documentation implementation changes exist
 - every clearly unrelated user change is identified, excluded from finishing scope, and preserved untouched
 
-If any post-QA change affects implementation behavior, stop and require complete fresh QA.
+If any post-QA change affects implementation behavior, stop and require `feature-qa-review` to cover the current implementation delta.
 
 Then run fresh relevant verification:
 - always run `git diff --check`
 - run repository-required documentation, link, metadata, generation, or validation commands
-- run project checks required by AGENTS.md, the plan, tracker, or accepted QA record when publication depends on them
+- reuse implementation-test evidence from the accepted Z06 while it remains valid
+- rerun implementation checks only when repository instructions explicitly require them at publication or a finishing-owned change invalidates the recorded evidence
 - inspect full output and exit status
 
 Do not claim readiness, commit, push, or create a PR when required verification fails.
@@ -349,13 +350,13 @@ If the ongoing artifact directory is intentionally ignored or Z05 is not tracked
 ## Red Flags
 
 - Started without an accepted Z06 `PASS`
-- Accepted a Z06 containing any finding
+- Accepted a Z06 with unresolved blocking findings
 - Ignored a stale `Reviewed Commit`
 - Rejected valid documentation-only finishing commits when resuming after the reviewed commit
 - Allowed an unrelated committed descendant of the reviewed commit into the publication branch
 - Repeated QA's bug, security, test-gap, plan, or maintainability reviews
 - Changed implementation code, tests, schemas, runtime configuration, or executable workflow logic during finishing
-- Failed to route non-documentation work back through fresh QA
+- Failed to route non-documentation work back through risk-adaptive QA
 - Skipped affected documentation surfaces without recording a reason
 - Failed to record a material change in CHANGELOG or migration docs
 - Used `git add -A` in a mixed worktree
@@ -371,12 +372,12 @@ If the ongoing artifact directory is intentionally ignored or Z05 is not tracked
 
 | Excuse | Reality |
 |--------|---------|
-| "Finishing can catch anything QA missed." | No. Finishing owns documentation consistency; code concerns return to fresh QA. |
-| "The reviewed commit is close enough." | No. The gate is commit-bound; non-documentation drift requires complete fresh QA. |
+| "Finishing can catch anything QA missed." | No. Finishing owns documentation consistency; code concerns return to risk-adaptive QA. |
+| "The reviewed commit is close enough." | No. The gate is commit-bound; non-documentation drift must return to risk-adaptive QA. |
 | "HEAD must always equal the reviewed commit." | Only at the start of the first finishing attempt. On resume, the reviewed commit must be an ancestor and all later feature-owned changes must be documentation/publication-only. |
 | "This tiny code fix does not need QA again." | Any implementation change invalidates the accepted verdict. |
 | "The user asked for a PR, so push approval is implied." | No. Publication requires the explicit final approval in Step 9. |
-| "A draft PR is safer by default." | The approved workflow requires ready-for-review after clean QA and final approval. |
+| "A draft PR is safer by default." | The approved workflow requires ready-for-review after accepted QA PASS and final approval. |
 | "Staging everything is faster." | Unrelated user changes must never enter the feature commit or PR. |
 | "The PR URL cannot be recorded after the commit." | Use the Step 11 publication receipt without rewriting prior commits. |
 
@@ -386,7 +387,7 @@ If the ongoing artifact directory is intentionally ignored or Z05 is not tracked
 - Verified the accepted QA commit was an ancestor of HEAD and every committed descendant was finishing-owned documentation/publication work
 - Audited every affected documentation surface and recorded reasons
 - Corrected only documentation and publication metadata drift
-- Routed any required implementation change back to complete fresh QA
+- Routed any required implementation change back to risk-adaptive QA of the resulting delta
 - Ran fresh verification and inspected results
 - Created Z05 with QA, documentation, verification, commit, and publication evidence
 - Staged only intended paths and preserved unrelated changes

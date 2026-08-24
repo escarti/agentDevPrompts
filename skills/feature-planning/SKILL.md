@@ -129,7 +129,7 @@ Planning output is valid only if all of the following are true:
 - `Z02_{feature}_plan.md` contains at least one `## Phase N: <name>` section
 - every phase contains `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
 - every task uses `**Phase:** Phase N`
-- tracker publication, when requested, is previewed before mutation and uses one child item per `Z02` task
+- tracker publication, when requested, is previewed before mutation and preserves explicit coverage from `Z02`; GitHub and Jira both group work into coherent implementation slices
 
 If any required phase metadata is missing:
 - treat the plan as invalid
@@ -167,9 +167,10 @@ If tracker publication is requested:
 - surface any assumptions or mapping gaps that require confirmation
 - use a preview model only; do not create or update remote tracker items in this step
 - require the previewed tracker items themselves to be self-contained, without depending on local workflow artifacts for core implementation context
-- enforce lossless tracker parity: the parent item and all child items together must contain enough information to reconstruct 100% of the implementation contract in `Z02_{feature}_plan.md`, including every phase, phase goal, phase verification, phase boundary rule, task boundary, file, interface, implementation step, dependency, constraint, verification command, expected result, and acceptance criterion; summarizing, omitting, splitting, merging, reordering, or reinterpreting that implementation contract is forbidden
-- treat transient workflow-artifact paths and planning-only bookkeeping as outside the reconstruction target, while restating any implementation context they carry; reproduce the Z02 dependency graph exactly, and do not infer a predecessor or blocker from task order or phase membership alone
-- before requesting publication approval, compare the complete preview graph against `Z02_{feature}_plan.md`; if Z02 cannot be fully reconstructed from the previewed tracker items alone, keep the workflow in preview and revise the tracker items
+- enforce semantic tracker parity: every implementation requirement, dependency, constraint, acceptance criterion, and verification expectation from `Z02_{feature}_plan.md` must map explicitly to a published child item or to the parent completion gate
+- preserve dependency meaning exactly, but do not require tracker item boundaries to mirror Z02 task boundaries
+- treat transient workflow-artifact paths and planning-only bookkeeping as outside the parity target, while restating any implementation context they carry; do not infer a predecessor or blocker from task order or phase membership alone
+- before requesting publication approval, compare the complete preview graph against `Z02_{feature}_plan.md`; if any implementation contract element lacks an explicit tracker destination, keep the workflow in preview and revise the tracker items
 
 Target resolution rules:
 - for `GitHub issues`, default the publication target to the current repository unless the user explicitly chooses another repository
@@ -187,24 +188,17 @@ Publish-time body and link requirements to include in the preview:
 - do not rely on external documents for required implementation context
 - if information from `Z02` is needed, copy or restate it into the tracker items themselves
 - tracker items may reference only other tracker items when those references clarify execution order or parent/child structure
-- `GitHub issues`: propose one epic-like parent issue plus one child issue per `Z02` task
-- `GitHub issues`: the parent issue title must use the format `[Epic] <feature name>`
-- `GitHub issues`: the parent issue must restate the complete roadmap context needed to understand the work, including the feature goal, the ordered phase structure, and how the child issues fit together
-- `GitHub issues`: the parent issue preview must include the full intended child issue list in execution order, using concrete child titles and explicit predecessor/dependency notes for each child
-- `GitHub issues`: the parent issue preview must not stop at a policy statement like "one child per task"; it must enumerate the actual planned children and their order
-- `GitHub issues`: each child issue title must use the format `[Task X.Y][Parent #N] <task title>`, where `X.Y` is derived from phase/task order and `N` is the real created parent issue number
-- `GitHub issues`: each child issue must reference the parent issue and any blocker or predecessor tasks from `Z02`
-- `GitHub issues`: each child issue must include all task intent, scope boundaries, dependencies, and verification expectations needed to implement that task without opening the local `Z02` plan
-- `GitHub issues`: the parent issue must be updated after child creation with real child issue references, not placeholders
-- `GitHub issues`: the published parent issue must contain the actual created child issue references in execution order and must state the dependency/completion order between those child issues
-- `Jira epic plus tasks`: propose one epic plus one task per `Z02` task
-- `Jira epic plus tasks`: the epic must restate the complete roadmap context needed to understand the work, including the feature goal, the ordered phase structure, and how the child tasks fit together
-- `Jira epic plus tasks`: the epic preview must include the full intended child task list in execution order, using concrete child titles and explicit predecessor/dependency notes for each task
-- `Jira epic plus tasks`: the epic preview must not stop at a policy statement like "one task per Z02 task"; it must enumerate the actual planned children and their order
-- `Jira epic plus tasks`: each task must reference the epic and any predecessor tasks from `Z02`
-- `Jira epic plus tasks`: each task must include all task intent, scope boundaries, dependencies, and verification expectations needed to implement that task without opening the local `Z02` plan
-- `Jira epic plus tasks`: dependency language must appear both in issue links and in the task bodies when predecessor relationships exist
-- `Jira epic plus tasks`: the published epic must contain the actual created child task references in execution order and must state the dependency/completion order between those child tasks
+- all tracker targets: propose one parent item plus one child item per independently deliverable implementation slice
+- all tracker targets: combine adjacent `Z02` tasks into one slice when they affect the same behavior or code path, provide no useful independent delivery boundary, and share focused verification
+- all tracker targets: keep unrelated behaviors or independently releasable/risky changes in separate slices even when combining them would reduce item count
+- all tracker targets: keep behavior-specific tests in the same child as the behavior; create a standalone testing child only for substantial reusable test infrastructure or independently deliverable cross-cutting coverage
+- all tracker targets: the parent must restate the feature goal and ordered phase structure, enumerate the concrete child items in execution order with explicit dependencies, and contain a traceability table mapping every `Z02` task to exactly one child or, for parent-level verification/correction work, to the parent completion gate
+- all tracker targets: each child must include `Z02 task mapping`, `Scope`, `Dependencies`, `Acceptance criteria`, and `Focused verification` sections sufficient to implement the slice without opening the local `Z02` plan
+- all tracker targets: focused verification is the smallest relevant check that proves the slice; the parent owns a `Final feature verification` section for phase-level and full-feature checks that run once after all children complete
+- all tracker targets: normalize final verification so each command appears once, omitting a narrower command when a required broader command fully subsumes it unless the narrower command exercises distinct configuration or behavior
+- all tracker targets: the published parent must contain actual child references in execution order, the final task-to-child traceability mapping, and the dependency/completion order
+- `GitHub issues`: use `[Epic] <feature name>` for the parent and `[Slice X][Parent #N] <slice title>` for children; each child must reference the parent and explicit blockers/predecessors
+- `Jira epic plus tasks`: use `[Slice X] <slice title>` for child tasks; each task must reference the epic, and explicit predecessor dependencies must appear in both task bodies and Jira issue links
 
 Do not mutate or replace `Z02_{feature}_plan.md` during tracker preparation.
 
@@ -221,25 +215,24 @@ Rules:
 - do not publish if the target repository or Jira project is unresolved
 - keep `Z02_{feature}_plan.md` as the canonical local planning artifact after publication
 
+For either tracker target:
+- create the parent item first
+- create one child item per approved implementation slice
+- include the approved Z02-task mapping, scope, dependencies, acceptance criteria, and focused verification in each child
+- update the parent after child creation with actual child references, the final traceability table, dependency order, and final feature verification
+- reread the published parent and every child and compare the complete graph against `Z02_{feature}_plan.md`; if any implementation requirement lacks an explicit child or parent-completion destination, keep planning incomplete
+
 If publishing `GitHub issues`:
-- create the epic-like parent issue in the resolved repository
-- use the title format `[Epic] <feature name>` for the parent issue
-- create one child issue per `Z02` task
-- create the parent issue first so the real parent issue number can be used in every child title
-- use the title format `[Task X.Y][Parent #N] <task title>` for every child issue, where `X.Y` comes from the plan order and `N` is the created parent issue number
-- include parent references and blocker references in each child issue body
-- keep all required implementation context in the GitHub issues themselves rather than linking back to local planning artifacts
-- update the parent issue after child creation so it contains real links or issue references to every created child
-- ensure the updated parent issue lists the child issues in the intended execution order and explicitly describes which child issues block or precede later ones
-- reread the published parent and every child issue and compare the complete published graph against `Z02_{feature}_plan.md`; if Z02 cannot be fully reconstructed from the published tracker items alone, keep planning incomplete
+- create the epic-like parent issue in the resolved repository using `[Epic] <feature name>`
+- create children using `[Slice X][Parent #N] <slice title>`, where `X` is approved execution order and `N` is the created parent issue number
+- include parent and explicit blocker/predecessor references in each child body
+- keep required implementation context in the GitHub issues themselves rather than linking to local planning artifacts
 
 If publishing `Jira epic plus tasks`:
 - create the epic in the resolved Jira project
-- create one task per `Z02` task
-- include epic references and predecessor-task dependency language in each task body
-- keep all required implementation context in the Jira issues themselves rather than linking back to local planning artifacts
-- create issue links that express the predecessor relationships between tasks when those dependencies exist
-- ensure the updated epic lists the child tasks in the intended execution order and explicitly describes which child tasks block or precede later ones
+- create child tasks using `[Slice X] <slice title>`, where `X` is approved execution order
+- include epic references and explicit predecessor dependency language in each task body, plus Jira issue links for those dependencies
+- keep required implementation context in the Jira items themselves rather than linking to local planning artifacts
 
 If approval is not given:
 - leave tracker items unpublished
@@ -265,7 +258,7 @@ Only mark planning complete when:
 1. `Z02_{feature}_plan.md` satisfies the `Z02` contract
 2. all clarification answers are incorporated
 3. `Z02_CLARIFY_{feature}_plan.md` is deleted or has no remaining unresolved entries
-4. if tracker publication occurred, the published parent and child items passed the lossless tracker-parity comparison against `Z02_{feature}_plan.md`
+4. if tracker publication occurred, the published parent and child items passed the semantic tracker-parity comparison against `Z02_{feature}_plan.md`
 
 Report to the user:
 - if complete without publication: `Plan created: Z02_{feature}_plan.md. Tracker publication skipped. Ready for feature-workflow:feature-implementing.`
@@ -286,11 +279,15 @@ Report to the user:
 - Failed to resolve the target repository or Jira project before approval
 - Published tracker items without explicit approval
 - Published a tracker graph that dropped task dependencies or verification expectations
+- Published GitHub or Jira items without an explicit mapping from every Z02 task to a child slice or the parent completion gate
+- Created a testing-only child issue/task for tests that belong to the same implementation slice as the behavior
+- Copied phase-level or full-feature verification into every child issue/task instead of owning it in the parent completion gate
 - Published tracker items that relied on `Z0X` files, local paths, or external documents for required implementation context
 - Linked tracker items back to transient local workflow artifacts instead of restating the required information in the issues themselves
 - Published a parent issue or epic that described child-item policy abstractly but did not enumerate the actual child items, their execution order, and their dependency/completion order
-- Published GitHub child issues whose titles did not use the `[Task X.Y][Parent #N] <task title>` pattern
+- Published GitHub child issues whose titles did not use the `[Slice X][Parent #N] <slice title>` pattern
 - Published GitHub issues without a parent issue, child issues, or final parent back-links
+- Published Jira child tasks whose titles did not use the `[Slice X] <slice title>` pattern
 - Published Jira tasks without epic references, predecessor links, or dependency language in task bodies
 - Guessed a Jira project when no repo-defined project reference existed
 - Created `Z02_CLARIFY` without a new blocking question
@@ -309,8 +306,11 @@ Report to the user:
 - Built a preview-only publication model with resolved GitHub or Jira targets before approval
 - Previewed destination, tasks, and dependencies before mutation
 - Kept tracker items self-contained and free of required links to local workflow artifacts or external documents
-- Published one parent item and one child item per `Z02` task when approved
-- Enforced `[Epic] <feature name>` for GitHub parent titles and `[Task X.Y][Parent #N] <task title>` for GitHub child titles
+- Published one tracker parent plus coherent implementation slices for both GitHub and Jira when approved
+- Mapped every Z02 task explicitly to a child slice or the parent completion gate
+- Kept behavior-specific tests and focused verification in their implementation slice and feature-level verification in the parent
+- Enforced `[Epic] <feature name>` for GitHub parent titles and `[Slice X][Parent #N] <slice title>` for GitHub child titles
+- Enforced `[Slice X] <slice title>` for Jira child task titles
 - Published tracker items only after explicit approval
 - Ensured the parent issue or epic enumerated the actual child items in execution order with explicit dependency/completion ordering
 - Kept publication aligned to the parent/child or epic/task contract with dependency references

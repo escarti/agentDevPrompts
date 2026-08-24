@@ -8,7 +8,7 @@ This repository publishes the `feature-workflow` plugin through a Claude Code ma
 
 - Repository: `escarti/agentDevPrompts`
 - Plugin: `feature-workflow`
-- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, streamlined small-issue fixing, superpowers bootstrap, and subagent orchestration
+- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, streamlined small-issue fixing, and superpowers bootstrap
 
 ## Current Repository Layout
 
@@ -41,8 +41,7 @@ agentDevPrompts/
 │   ├── feature-documenting/
 │   ├── feature-pr-reviewing/
 │   ├── feature-pr-fixing/
-│   ├── fixing-small-issues/
-│   └── use-sub-agent/
+│   └── fixing-small-issues/
 ├── docs/
 │   ├── ai/ongoing/
 │   └── plans/
@@ -66,7 +65,7 @@ Repository workflows that depend on Superpowers must bootstrap with `load-superp
   - `feature-pr-fixing`
   - `fixing-small-issues`
 
-`use-sub-agent` is standalone and can be used whenever task delegation to headless Codex subagents is needed.
+Delegating workflows use the current runtime's native subagent tools through the platform mapping loaded by `superpowers:using-superpowers`. Do not launch nested Codex CLI processes for delegation.
 
 `fixing-small-issues` keeps its coordinator light: `superpowers:systematic-debugging` loads inside Phase 1 sub-agents, while `superpowers:test-driven-development` and `superpowers:verification-before-completion` load inside Phase 2 sub-agents. New features are out of scope; when Phase 1 diagnoses a feature gap, stop before Phase 2 and route the work to `feature-workflow:feature-researching`.
 
@@ -89,6 +88,8 @@ Temporary artifacts are written to `docs/ai/ongoing/`.
 - `Z02_CLARIFY_{feature}_plan.md`
 - `Z03_*`, `Z04_*`, `Z05_*` for PR/finishing flows
 - `Z06_{feature}_qa_review.md` for the commit-bound QA verdict, verification evidence, findings, and user acceptance
+- `Z98_{feature}_implementation_report.md` for implementation results, phase approvals, and reusable commit-bound verification evidence
+- `Z98_{feature}_batch_{phase}_{batch}_plan.md` for temporary Superpowers batch adaptation
 
 Filename sanitizer patterns:
 

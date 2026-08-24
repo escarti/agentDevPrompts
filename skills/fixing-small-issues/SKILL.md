@@ -19,7 +19,9 @@ Step 5: Keep or revert the returned commit
 Step 6: Loop, block, or complete
 ```
 
-Add no other stages. Use `feature-workflow:use-sub-agent`. Agents are fresh, sequential, single-phase. Inspect every log for completion/final checkpoint before trust. Retain checkpoints/counters; load the complete exploratory log only if its checkpoint is missing, malformed, contradictory, or untrustworthy.
+Add no other stages. Dispatch agents with the current runtime's native subagent tools, using the platform mapping loaded by `superpowers:using-superpowers`; never launch a nested Codex CLI process. Agents are fresh, sequential, and single-phase. Inspect every final response and checkpoint before trust. Retain checkpoints/counters; request additional detail only when a checkpoint is missing, malformed, contradictory, or untrustworthy.
+
+On Codex, spawn every attempt with `fork_turns: "none"` and set both `model` and `reasoning_effort` explicitly from the current spawn allowlist. Complete and validate Phase 1 before dispatching Phase 2. When idle, use event waits of 5–10 minutes instead of short polling or repeated unchanged status narration. A retry is a fresh agent and increments the applicable phase counter; follow-up messages may clarify a returned checkpoint but do not constitute another implementation attempt.
 
 ## Scope and Iron Laws
 

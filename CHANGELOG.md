@@ -18,6 +18,27 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ### Removed
 - None.
 
+## [2.0.0] - 2026-08-24
+
+### Added
+- Added `Z98_{feature}_implementation_report.md` as the shared commit-bound implementation and verification ledger, plus temporary `Z98_*_batch_*_plan.md` files for Superpowers batch adaptation.
+
+### Changed
+- Changed GitHub and Jira publication from one child per Z02 task to coherent implementation slices with explicit task traceability, behavior-specific tests, focused child verification, and final feature verification owned by the parent.
+- Rewrote `feature-implementing` around same-phase batches of one to three dependency-ready items, preserving one commit and result per item while moving approval gates to phase boundaries.
+- Added shared environment preflight, verification reuse/invalidation rules, one final integrated targeted suite, and one required final regression run at the last runtime-affecting commit.
+- Reworked `feature-qa-review` into a risk-adaptive gate with one integrated reviewer, only risk-required specialists, evidence-backed finding dispositions, and scoped fix-delta review.
+- Changed QA and finishing to reuse valid commit-bound implementation evidence instead of rerunning unaffected verification, including across later documentation-only commits.
+- Clarified the lifecycle handoff: implementation invokes QA, and only an explicitly accepted QA `PASS` may invoke `feature-finishing` for documentation and publication.
+- Migrated feature QA and small-issue delegation to runtime-native subagents with isolated context, explicit Codex model routing, event-driven waits, and bounded failure recovery.
+
+### Fixed
+- Prevented redundant per-child approval gates, duplicated verification, unconditional reviewer fan-out, and full QA reruns after narrowly scoped fixes.
+- Kept GitHub and Jira task-creation behavior aligned so both tracker targets use the same slicing and verification ownership rules.
+
+### Removed
+- Removed the legacy `use-sub-agent` skill, command, prompt, subprocess logging, and `codex --yolo exec` orchestration path.
+
 ## [1.21.0] - 2026-07-22
 
 ### Added

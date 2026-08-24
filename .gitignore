@@ -16,6 +16,5 @@ docs/ai/ongoing/*
 .vscode/
 .idea/
 
-.codex-subagents/
 .worktrees/
 .obsidian

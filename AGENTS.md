@@ -38,5 +38,6 @@ Standalone:
 - Use `docs/ai/ongoing/` for temporary workflow files.
 - Common artifacts: `Z01_*`, `Z02_*`, `Z03_*`, `Z04_*`, `Z05_*`.
 - Additional review artifact: `Z06_{feature}_qa_review.md`.
+- Implementation evidence: `Z98_{feature}_implementation_report.md`; temporary Superpowers batch plans may also use `Z98_*_batch_*_plan.md`.
 - Feature slugs: `snake_case` (max 50 chars).
 - PR slugs: `kebab-case` (max 50 chars).

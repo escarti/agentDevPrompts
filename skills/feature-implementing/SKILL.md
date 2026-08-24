@@ -1,567 +1,365 @@
 ---
 name: feature-implementing
-description: Use to execute either a local Z02 implementation plan or a published GitHub/Jira tracker graph with the workflow's batching and execution-mode controls
+description: Use when implementing an approved local Z02 plan or published GitHub/Jira feature graph.
 ---
 
 # Feature Workflow: Implement Feature
 
-## YOU ARE READING THIS SKILL RIGHT NOW
+## Purpose
 
-**STOP. Before doing ANYTHING else:**
+Execute an approved feature in phase-scoped batches while preserving branch provenance, one attributable commit per task or tracker child, focused verification, durable evidence, and approval before entering each new phase.
 
-1. Create a progress plan
-2. Mark Step 1 as `in_progress`
-3. Verify a supported implementation source exists
-4. Split early into local-plan mode or tracker mode
-5. Establish or validate the feature branch before choosing execution mode
+Core invariants:
 
-This skill is the workflow-owned implementation controller. It handles source discovery, clarification gates, context loading, branch-provenance enforcement, execution-mode selection, dependency-aware batching, proof validation, and approval between batches.
+- local-plan mode uses Z99 as live progress; tracker mode uses GitHub or Jira and never Z99
+- both modes write implementation evidence to `Z98_{feature}_implementation_report.md`
+- batches stay inside one phase and normally contain two dependency-ready items
+- batching never combines task or child commits, results, or focused verification
+- execution continues automatically inside a phase; approval belongs at the next phase boundary
+- integrated targeted and required regression verification run once at the final runtime-affecting HEAD
+- implementation hands off to `feature-qa-review`, never directly to finishing
 
-## MANDATORY FIRST ACTION: Create Progress Plan
+## Mandatory Progress Plan
+
+Create this plan before workflow actions:
 
 ```typescript
 update_plan({
   "explanation": "Tracking feature implementation workflow",
   "plan": [
-    {"step": "Step 1: Find the implementation source, entrypoint, and feature name", "status": "in_progress"},
-    {"step": "Step 2: Check for unresolved planning clarifications", "status": "pending"},
-    {"step": "Step 3: Load context (AGENTS.md, CLAUDE.md, Z01, source artifacts)", "status": "pending"},
-    {"step": "Step 4: Split into local-plan mode or tracker mode and build the live execution model", "status": "pending"},
-    {"step": "Step 5: Establish or validate the feature branch", "status": "pending"},
-    {"step": "Step 6: Ask the user to choose execution mode", "status": "pending"},
-    {"step": "Step 7: Select the next dependency-ready batch from the live execution model", "status": "pending"},
-    {"step": "Step 8: Delegate only the current batch to the chosen execution controller", "status": "pending"},
-    {"step": "Step 9: Verify the batch outcome and update the live execution tracker", "status": "pending"},
-    {"step": "Step 10: Ask approval before the next batch if work remains", "status": "pending"},
-    {"step": "Step 11: Enforce the mode-specific completion gate", "status": "pending"},
-    {"step": "Step 12: Hand off directly to feature-qa-review", "status": "pending"}
+    {"step": "Step 1: Resolve the source, feature identity, and authoritative context", "status": "in_progress"},
+    {"step": "Step 2: Build or resume local-plan or tracker execution state", "status": "pending"},
+    {"step": "Step 3: Establish or validate the feature branch", "status": "pending"},
+    {"step": "Step 4: Select the execution mode", "status": "pending"},
+    {"step": "Step 5: Run shared preflight and select the next phase batch", "status": "pending"},
+    {"step": "Step 6: Execute and validate the batch", "status": "pending"},
+    {"step": "Step 7: Continue within the phase or request phase-boundary approval", "status": "pending"},
+    {"step": "Step 8: Run final commit-bound verification", "status": "pending"},
+    {"step": "Step 9: Enforce the completion gate", "status": "pending"},
+    {"step": "Step 10: Hand off to feature-qa-review", "status": "pending"}
   ]
 })
 ```
 
-After each step, mark it completed and move `in_progress` to the next step.
+Complete each step before advancing the plan.
 
-## Workflow Steps
+## Step 1: Resolve Source and Context
 
-### Step 1: Find Planning Source and Feature Name
+Supported sources:
 
-Supported implementation sources:
-- `Z02_{feature}_plan.md` in an ongoing directory
-- a GitHub parent roadmap issue plus child issues created from `feature-planning`
-- a Jira epic plus child tasks created from `feature-planning`
+- local: `Z02_{feature}_plan.md`
+- GitHub: parent roadmap issue plus children published by `feature-planning`
+- Jira: epic plus children published by `feature-planning`
 
-Local file discovery:
-- scan for `Z02_*_plan.md` in common ongoing locations
-- if multiple Z02 plans exist and the user specified a feature name, use that plan
-- if multiple Z02 plans exist and the user did not specify a feature name, ask which plan to execute
-
-Tracker entrypoint discovery:
-- GitHub entrypoint: parent roadmap issue URL or issue number in the current repository
-- Jira entrypoint: epic key or epic URL
+If the user names a source, use it. Otherwise prefer a discovered local Z02. Ask only when multiple valid candidates remain. If no supported source exists, stop and route to `feature-planning`.
 
-Source selection rules:
-- if both a local Z02 file and a tracker entrypoint are provided, prefer the source explicitly named by the user
-- otherwise prefer the local Z02 file
-- if the user does not name a source and multiple tracker entrypoints are present without a local Z02, ask which tracker source to execute
-- if a tracker entrypoint does not resolve to its parent item plus child work items, STOP and ask for a valid entrypoint
+Resolve:
 
-If no supported source is provided:
-- report: "No implementation source found. Run feature-workflow:feature-planning first."
-- do not proceed without a source
+- feature slug from Z02 or published planning metadata; otherwise normalize the parent title
+- `ONGOING_DIR` from the local plan or existing feature artifacts; otherwise `docs/ai/ongoing/`
+- tracker entrypoint when applicable
 
-Feature name extraction:
-- local-plan mode: from `Z02_{feature}_plan.md`
-- tracker mode: prefer the explicit feature slug preserved by `feature-planning`
-- otherwise normalize the parent issue or epic title into the workflow feature slug format
-- if tracker mode does not preserve a stable feature name and the title cannot be safely normalized, STOP and ask the user to confirm the feature name
-
-Ongoing directory rules:
-- local-plan mode: the plan's ongoing directory is authoritative
-- tracker mode: if a matching ongoing directory already exists, keep using it for Z01 and planning-source lookup
-- otherwise default to `docs/ai/ongoing/`
-
-### Step 2: Check for Unresolved Planning Clarifications
-
-Check `ONGOING_DIR` for:
-- `Z02_CLARIFY_{feature}_plan.md`
-
-If `Z02_CLARIFY` exists:
-- read it
-- if any `User response:` field is blank, STOP and report: "Cannot implement with unanswered plan questions. Please answer all questions in Z02_CLARIFY_{feature}_plan.md first."
-
-Proceed only when all planning clarifications are resolved.
-
-### Step 3: Load Context Files
-
-Read all available context in this order:
-
-1. `AGENTS.md`, then `CLAUDE.md` if it exists
-2. `Z01_{feature}_research.md`
-3. Planning source:
-   - local-plan mode: `Z02_{feature}_plan.md`, then `Z02_CLARIFY_{feature}_plan.md` if answered
-   - tracker mode: parent issue or epic body, all child issues or tasks, and only the tracker metadata needed to preserve phase order, task order, dependencies, and verification expectations
-
-Tracker mode requirements:
-- child items must be self-contained
-- parent plus children must preserve ordered phases or an equivalent ordered execution sequence
-- dependency or predecessor order must be explicit
-- verification expectations must be present in the child items
-- prefer explicit planning metadata emitted by `feature-planning` over inferred structure
-
-Reject tracker mode if the parent/child graph does not preserve near-parity with the local Z02 structure. Report:
-"Tracker source does not preserve enough `feature-planning` structure to execute safely. Use the local Z02 plan or regenerate the tracker artifacts."
-
-Extract and preserve:
-- required project constraints
-- research decisions that must survive implementation
-- normalized task identities
-- phase boundaries
-- dependency edges
-- verification expectations
-
-Prepare a compact execution brief, not full artifact dumps.
-
-### Step 4: Split Into Local-Plan Mode or Tracker Mode
+Stop if a stable feature identity or tracker entrypoint cannot be resolved safely.
 
-After source detection and context loading, branch immediately into one of these execution models.
-
-#### Local-Plan Mode
+Before implementation, read:
 
-Use local-plan mode when the source is `Z02_{feature}_plan.md`.
-
-Live execution tracker:
-- `Z99_implementation_status.md`
+1. `AGENTS.md`, then `CLAUDE.md` when present
+2. `Z01_{feature}_research.md` when present
+3. the authoritative planning source
+4. answered `Z02_CLARIFY_{feature}_plan.md` when present
 
-Proof ledger:
-- at least one validated, attributable commit per completed task on the feature branch
-- local-plan mode default branch: `feature/<feature-slug>`
+If any `User response:` in Z02_CLARIFY is blank, stop until it is answered.
 
-Rules:
-- create or reconcile `{ONGOING_DIR}/Z99_implementation_status.md` before execution-mode selection
-- normalize the plan into ordered phases, ordered tasks, stable task identifiers, dependencies, and verification checkpoints
-- add per-task status fields: `pending`, `in_progress`, `done`, `blocked`
-- add per-task proof-of-work fields
-- persist `Feature branch:` in Z99 and treat that exact branch name as the authoritative local-plan resume identity
-- require each completed task to map to one isolated, attributable commit on the feature branch
-- require the commit message or returned metadata to make task attribution unambiguous
-- add `Current batch` and `Blockers` sections
-- treat Z99 as the live execution checklist and the file as persisted resume state
-- do not edit the original Z02 plan
-
-If Z99 already exists:
-- reconcile it with the latest normalized task set
-- append missing tasks without deleting existing status or proof
-- preserve the recorded `Feature branch:` when it exists
-- if Z99 exists without `Feature branch:`, add it only after Step 5 validates the active branch for this feature
-- resume from the earliest unfinished task in the earliest unfinished phase
-
-#### Tracker Mode
-
-Use tracker mode when the source is a GitHub parent roadmap issue or Jira epic with child items.
-
-Live execution tracker:
-- the tracker itself
-
-Proof ledger:
-- at least one validated, attributable commit per completed child item on the epic branch
-- tracker-mode default branch: `feature/<parent-id>_<feature-slug>`
-
-Rules:
-- do not create, read, reconcile, or rely on `Z99_implementation_status.md`
-- treat open child items as the remaining work list
-- preserve parent-declared phase order and explicit predecessor dependencies
-- use one branch per parent issue or epic
-- use the tracker parent identifier in the branch name so the branch stays inferable from the current tracker scope
-- require each completed child item to map to one attributable commit on that branch
-- require the commit message or returned metadata to make child-item attribution unambiguous
-- mark the child item done in the tracker as soon as the commit SHA is validated on the epic branch and verification was reported
-
-Tracker mode is invalid if:
-- the tracker is missing self-contained implementation context
-- dependencies are ambiguous
-- verification expectations are absent
-- the parent/child graph cannot support direct execution without a local Z02
-
-### Step 5: Establish or Validate the Feature Branch
-
-This repository defaults new feature work to branch from `main`. Branching from anything other than `main` is forbidden unless the user explicitly instructs otherwise.
-
-Inspect git state before choosing an execution mode:
-- determine whether HEAD is detached or on a named branch
-- determine the current branch name
-- determine whether the user explicitly approved a non-`main` base branch for this run
-
-Shared branch-provenance rules:
-- if HEAD is detached, STOP and ask before proceeding
-- if branch provenance is unclear at any point, STOP and ask before proceeding
-- if the user explicitly approved a non-`main` base branch, preserve that instruction and carry it into the execution brief
-- otherwise treat `main` as the only allowed base branch for a new feature branch
-
-When the current branch is `main`:
-- local-plan mode: create or switch to `feature/<feature-slug>` before any batch execution starts
-- tracker mode: create or switch to `feature/<parent-id>_<feature-slug>` before any batch execution starts
-- record or confirm that the branch was created from `main`
-
-When the current branch is a named non-`main` branch:
-- do not assume it is safe to continue
-- local-plan mode may continue only when Z99 already exists and its recorded `Feature branch:` exactly matches the current branch
-- tracker mode may continue only when the current branch exactly matches the inferable tracker branch for the current parent item, such as `feature/874_remove_bla` or `feature/PROJ-123_remove_bla`
-- if those checks fail, STOP and ask instead of continuing on top of another feature branch
-
-Mode-specific branch identity rules:
-- local-plan mode: `Feature branch:` in Z99 is the authoritative resume proof for the feature
-- tracker mode: the branch name itself is the authoritative resume proof, using the current parent issue number or Jira epic key plus the feature slug
-- any mismatch between the active branch and the expected branch identity counts as doubt and requires an explicit user decision
-
-### Step 6: Ask the User to Choose Execution Mode
-
-Always ask. Present exactly these two execution modes:
-
-1. Subagent-Driven (recommended) - Use `superpowers:subagent-driven-development` for the current batch.
-2. Inline Execution - Use `superpowers:executing-plans` for the current batch.
-
-Do not invent additional execution modes.
-
-If the user chooses Subagent-Driven:
-- load and follow `superpowers:subagent-driven-development`
-- if unavailable, stop and report that the required skill is missing
-
-If the user chooses Inline Execution:
-- load and follow `superpowers:executing-plans`
-- if unavailable, stop and report that the required skill is missing
-
-### Step 7: Select the Next Dependency-Ready Batch
-
-Always select the next dependency-ready batch from the live execution model for the active mode.
-
-Shared batch rules:
-- choose the earliest unfinished phase first
-- choose only tasks from that one phase
-- preserve explicit dependency order
-- stop at explicit phase-verification or phase-boundary checkpoints
-- never pull work from a later phase just to make the batch larger
-- if the plan, tracker, or current checkpoint implies a specific smaller batch, keep that smaller batch
-- if no explicit batch size or tighter boundary is specified, select the next 3-5 independent tasks that can be executed without violating dependencies
-
-Local-plan mode batching:
-- select from Z99 tasks not marked `done`
-- record the chosen batch in the Z99 `Current batch` section before delegation
-
-Tracker mode batching:
-- select from child items not already done in the tracker
-- derive remaining work from tracker state plus dependency order
-- default to exactly the next single dependency-ready child item
-- only include multiple child items in one batch when the chosen executor is explicitly going to keep one isolated completion commit and one structured outcome entry per child item
-- if that per-child-item isolation cannot be guaranteed up front, reduce the batch back to one child item
-- do not mirror the batch into Z99 or another local tracker file
-
-### Step 8: Delegate Only the Current Batch
-
-The chosen execution mode receives only the current batch scope.
-
-`feature-implementing` owns:
-- cross-batch sequencing
-- live execution tracker ownership
-- proof validation
-- human approval between batches
-
-The downstream executor owns:
-- implementation of the current batch only
-- verification of the current batch only
-- persisting any `done` work as committed git history before returning control
-- reporting completion, blockers, and proof back to `feature-implementing`
-
-Provide a compact execution brief containing only:
-- active phase
-- exact batch task list
-- active feature branch name
-- whether the branch was created from `main` or from an explicitly user-approved alternate base
-- dependency and order constraints
-- relevant repo constraints
-- relevant research and planning excerpts
-- batch success criteria
-- the explicit rule that the executor must not continue work on any alternate feature branch
-- the explicit rule that if the executor discovers it is on a different branch, it must stop and return control immediately
-- tracker-specific red flags when tracker mode is used
-- when tracker mode is used: the explicit hard rule that each child item must complete in its own isolated, followable commit on the feature branch and must not be combined with another child item in the same commit
-- the instruction that control returns to `feature-implementing` after this batch completes or blocks
-
-Require a structured batch outcome for every task:
-- task identifier or exact task text
-- status: `done` | `blocked` | `incomplete`
-- returned commit SHA for any `done` task
-- proof of work for any `done` task
-- blocker summary for any `blocked` task
-- verification run for the batch
-- whether the batch completed cleanly or stopped early
-
-Additional branch-proof requirement for any `done` task:
-- confirmation that the commit was made on the active feature branch
-- confirmation that the task stayed on the established branch for this feature and not an alternate feature branch
-- the commit must be attributable to exactly one completed task or child item
-- the commit must already exist before the task is returned as `done`
-
-#### Subagent-Driven Batch Contract
-
-When using `superpowers:subagent-driven-development`:
-- treat the current batch as the full plan scope for that invocation
-- let it keep its native per-task orchestration and review loops within the batch
-- require each task it returns as `done` to already be committed before control returns to `feature-implementing`
-- require it to return control after the batch completes or blocks
-- do not let it continue into later batches on its own
-- require it to stop immediately if it discovers branch drift away from the established feature branch
-
-Tracker-mode subagent expectation:
-- every child item must end up with at least one attributable commit on the feature branch before it is considered done
-- one tracker child item should be the default unit of subagent execution
-- the subagent should report child identifier, commit SHA, verification run, and final status
-
-Local-plan subagent expectation:
-- every completed Z02 task must end up with at least one attributable commit on the feature branch before it is considered done
-- the subagent should report task identifier, commit SHA, verification run, and final status
-
-#### Inline Execution Batch Contract
-
-When using `superpowers:executing-plans`:
-- treat the current batch as the full plan scope for that invocation
-- require it to execute and verify only that batch
-- require each task it returns as `done` to already be committed before control returns to `feature-implementing`
-- require it to return control after the batch completes or blocks
-- do not claim it provides reviewer-subagent loops
-- do not claim it owns batching or live-tracker orchestration
-- when tracker mode is active, require it to keep one isolated completion commit per child item and forbid collapsing multiple child items into one shared commit
-- require it to stop immediately if it discovers branch drift away from the established feature branch
-
-### Step 9: Verify the Batch Outcome and Update the Live Execution Tracker
-
-After the chosen executor returns:
-- verify that it returned a structured batch outcome covering every task in the batch
-- verify proof of work for every reported `done` task
-- verify verification was reported for the batch
-- treat any reported `done` task without an already-existing commit as `incomplete`
-
-Local-plan mode:
-- for each task reported `done`, validate that the returned commit SHA exists on the current feature branch
-- do not mark a task done without a returned commit SHA
-- do not mark a task done until commit-on-branch validation succeeds
-- do not allow multiple completed tasks to share one completion commit
-- treat any task reported from a branch other than the recorded `Feature branch:` as incomplete
-- update Z99 task statuses
-- add or verify proof-of-work entries
-- retain the commit SHA in the task proof entry
-- update the Z99 `Blockers` section if needed
-- clear or replace the Z99 `Current batch` section
-- persist the updated Z99 snapshot
-
-Tracker mode:
-- for each task reported `done`, validate that the returned commit SHA exists on the current epic branch
-- do not mark a child item done without a returned commit SHA
-- do not mark a child item done until commit-on-branch validation succeeds
-- do not allow multiple completed child items to share one completion commit
-- do not defer committing child-item work until after user approval for the next batch
-- treat any task reported from a branch other than the expected tracker branch as incomplete
-- once validated, mark the child item done in the tracker immediately
-- retain or add the commit SHA reference in the child item if the tracker supports it
-- update tracker-side blockers or comments only as needed to preserve execution clarity
-
-If the executor did not return a structured batch outcome:
-- treat the batch as incomplete
-- do not update the live tracker as though the batch finished
-- ask for the missing task-by-task outcome before proceeding
-
-If a task is reported complete but lacks required proof:
-- treat it as incomplete
-- do not advance as if the batch finished cleanly
-
-### Step 10: Ask Approval Before the Next Batch
-
-If remaining non-done work still exists after Step 9:
-- report the batch outcome
-- only ask for approval after all reported `done` tasks from the batch are already committed and validated
-- ask whether to continue with the next batch
-- do not delegate another batch until the user approves
-
-If the user pauses:
-- local-plan mode: leave the latest Z99 snapshot as the resume state
-- tracker mode: leave tracker state and epic-branch history as the resume state
-
-### Step 11: Enforce the Mode-Specific Completion Gate
+Tracker execution is valid only when the parent and children preserve:
+
+- self-contained implementation context
+- ordered phases or an equivalent ordered sequence
+- explicit dependency edges
+- Z02 task-to-slice traceability
+- focused verification in every child
+- parent-owned final feature verification
+
+Reject a graph that cannot be executed without consulting transient local planning files.
+
+## Step 2: Build or Resume Execution State
+
+### Local-plan mode
+
+Use `{ONGOING_DIR}/Z99_implementation_status.md` as the live checklist.
+
+- normalize Z02 into ordered phases, tasks, dependencies, and checkpoints
+- preserve existing status and proof when resuming
+- statuses are `pending`, `in_progress`, `done`, or `blocked`
+- persist `Feature branch:` as the authoritative resume identity
+- keep `Current batch` and `Blockers` sections
+- require one isolated, attributable commit per completed Z02 task
+- never edit Z02 to track execution
+
+### Tracker mode
+
+The tracker is the live checklist.
+
+- never create, read, or depend on Z99
+- open children are remaining work
+- phase order and explicit predecessors control execution order
+- one parent issue or epic uses one branch
+- require one isolated, attributable commit per completed child
+- close a child only after its commit is validated on the feature branch and focused verification is recorded
+
+### Shared implementation report
+
+Create or resume `{ONGOING_DIR}/Z98_{feature}_implementation_report.md`. Z98 records evidence and decisions; it does not replace Z99 or tracker state.
+
+Record:
+
+- source mode, branch, base commit, and tracker entrypoint
+- shared preflight
+- task or child results and commits
+- verification execution, reuse, and invalidation
+- phase summaries, approvals, blockers, and rulings
+
+Verification entries use:
+
+```yaml
+commit: <full SHA>
+runtime_affecting: true | false
+suite: <focused, phase, targeted-integrated, regression, or repository-specific>
+command: <exact command>
+environment: <worktree and relevant runtime identity>
+result: PASS | FAIL | INCONCLUSIVE
+covers: <files, component, behavior, or invariant>
+evidence: <exit status plus relevant output or precise report reference>
+invalidated_by: <full SHA or None>
+```
+
+Keep evidence concise and inspectable; do not dump unrelated logs.
+
+## Step 3: Establish or Validate the Feature Branch
+
+New feature work branches from `main` unless the user explicitly authorizes another base.
+
+Expected branch:
+
+- local: `feature/<feature-slug>`
+- tracker: `feature/<parent-id>_<feature-slug>`
+
+Inspect the current branch, HEAD state, worktree, and base provenance.
+
+- detached HEAD: stop
+- on `main`: create or switch to the expected feature branch and record the base
+- on another branch: resume only when it exactly matches Z99 `Feature branch:` or the inferable tracker branch
+- mismatch or unclear provenance: stop and ask
+
+Executors must remain on this branch. Branch or worktree drift stops the batch immediately.
+
+## Step 4: Select Execution Mode
+
+Always ask once:
+
+1. Subagent-Driven (recommended) — use `superpowers:subagent-driven-development` for each selected batch.
+2. Inline Execution — use `superpowers:executing-plans` for each selected batch.
+
+Load the selected skill. Stop if it is unavailable. Do not invent another execution mode.
+
+## Step 5: Run Shared Preflight and Select a Phase Batch
+
+Before the first implementation dispatch, run one preflight for the established branch and worktree:
+
+- confirm branch and worktree identity
+- confirm required project dependencies
+- when implementation or verification uses Docker or Compose, check the daemon and Compose configuration once
+- start or mutate local services only when already authorized by the implementation workflow
+- record commands, outcomes, and environment identity in Z98
+
+Pass the result to every executor. Do not repeat preflight per child. Repeat only when the worktree or relevant environment changes, evidence is incomplete, or later evidence shows it is stale.
+
+Select 1-3 dependency-ready tasks or slices from the earliest unfinished phase. Normally select 2.
+
+Use 1 when an item is high-risk, unusually large, needed before another can start, or cannot otherwise retain isolated proof. Use up to 3 only when every item:
+
+- belongs to the same phase
+- has satisfied dependencies
+- can be executed without conflicting work
+- retains its own commit, focused verification, and structured outcome
+
+Never cross a phase boundary to enlarge a batch. Batch size is a ceiling, not a quota.
+
+- local mode: select unfinished Z99 tasks and persist `Current batch`
+- tracker mode: select open children from tracker state; never mirror the batch into Z99
+
+## Step 6: Execute and Validate the Batch
+
+`feature-implementing` owns sequencing, live state, evidence validation, and phase approval. The executor owns only the current batch.
+
+### Superpowers batch adapter
+
+For Subagent-Driven execution, materialize the selected batch as `{ONGOING_DIR}/Z98_{feature}_batch_{phase}_{batch}_plan.md` before invoking Superpowers. Make it a valid `subagent-driven-development` plan containing:
+
+- the authoritative source or spec reference
+- a `Global Constraints` section
+- one `### Task N:` section per selected Z02 task or tracker child
+- the original task or child identifier, acceptance criteria, focused verification, and commit-isolation requirement in each task
+
+Use that batch plan as `PLAN_FILE` for `subagent-driven-development`. Reuse the feature branch and established worktree; its worktree setup verifies the existing workspace instead of creating another. Record the batch base commit before execution.
+
+Keep Superpowers' native implementer, per-task reviewer, fix-loop, and final batch-review behavior. Do not coalesce distinct Z02 tasks or tracker children into one Superpowers task because their commits and outcomes must remain isolated.
+
+The adapter changes only the terminal handoff:
+
+- scope the final review to `batch base..batch HEAD`
+- do not invoke `finishing-a-development-branch`, push, publish, or enter later feature work
+- return the SDD ledger, task reports, review results, rulings, commits, and verification evidence to `feature-implementing`
+- preserve the SDD workspace and batch plan until the controller has inspected those artifacts, copied accepted evidence into Z98, and updated live state
+- after a successful batch ingestion, remove only that completed batch's SDD workspace and temporary plan; retain both for blocked or incomplete batches so they can resume
+
+Give the executor a compact file-based brief containing:
+
+- active phase and exact batch items
+- feature branch and approved base
+- dependencies, relevant constraints, acceptance criteria, and focused verification
+- Z98 path, shared preflight, and reusable verification entries
+- tracker-specific commit and result isolation rules
+- the requirement to stop on branch drift
+- the requirement to return after this batch completes or stops early
+
+Do not pass full artifact dumps or later-phase work.
+
+For Inline Execution, execute only the batch and do not claim reviewer-subagent coverage.
+
+Every returned item must include:
+
+- identifier and `done`, `blocked`, or `incomplete`
+- an already-existing attributable commit for `done`
+- proof the commit is on the established feature branch
+- focused verification command, result, coverage, and evidence
+- blocker details when applicable
+
+For a multi-item batch, no two items may share a completion commit.
+
+After return:
+
+1. inspect the SDD ledger and reports when Subagent-Driven mode was used
+2. validate every commit on the feature branch
+3. validate focused verification and review evidence
+4. append accepted results, rulings, and evidence to Z98
+5. update Z99 or close/update tracker children immediately
+6. mark missing or invalid proof as `incomplete`
+
+Changes invalidate only evidence covering the changed surface. Documentation-only commits do not invalidate runtime evidence. After a runtime change, run only checks covering the changed area; do not rerun unrelated successful checks.
+
+Apart from a planned phase boundary, stop early only for:
+
+- a blocker with no safe path forward
+- branch or worktree drift
+- a destructive, security-sensitive, or external side effect requiring new authority
+- material plan ambiguity whose viable interpretations produce meaningfully different behavior
+
+Resolve ordinary uncertainty from the authoritative contract, record the ruling in Z98, and continue.
+
+## Step 7: Continue or Request Phase Approval
+
+If dependency-ready work remains in the same phase, select the next batch and continue without asking for approval. Normal batch completion is not a decision point.
+
+At a phase boundary:
+
+- validate every result and commit in the phase
+- run only a distinct declared phase check not already covered by focused evidence
+- defer broader integrated and regression commands to Step 8
+- record the summary, verification reuse or execution, rulings, and blockers in Z98
+- ask for approval before entering the next phase
+
+After the final phase, continue directly to Step 8. If the user pauses at a boundary, Z99 or tracker state plus Z98 are the resume state.
+
+## Step 8: Run Final Commit-Bound Verification
+
+Evidence is keyed by exact commit, command, and relevant environment. Never rerun successful, inspectable verification against the same commit and equivalent environment.
+
+A same-commit rerun is allowed only when evidence is missing, incomplete, inconclusive, suspicious, the environment changed, or repository/user instructions explicitly require it.
+
+At the final runtime-affecting HEAD:
+
+- run the integrated targeted suite once
+- run the repository-declared regression command once, including `make regression` when that is the declared command
+- omit a narrower command fully subsumed by a broader command unless it covers distinct behavior or configuration
+- record commands, coverage, results, and evidence in Z98
+
+Documentation-only commits after that runtime HEAD retain this evidence.
+
+If final verification fails:
+
+- keep completion blocked
+- commit the smallest correction with clear task, child, or parent attribution
+- rerun the failed checks and only checks invalidated by the correction
+- record invalidation and replacement evidence in Z98
+
+Tracker parent-owned cross-cutting verification or correction work remains on the feature branch with clear parent attribution. Do not reopen unrelated children unless their focused evidence was invalidated.
+
+## Step 9: Enforce Completion
 
 Local-plan mode is complete only when:
-- every task extracted from Z02 is present in Z99
-- every Z99 task is marked `done`
-- every done task includes proof of work
-- every done task has a validated commit SHA on the feature branch
-- Z99 includes the persisted `Feature branch:` used for this feature
-- final verification has been run
+
+- every Z02 task exists in Z99 and is `done`
+- every task has proof and a validated, unique commit
+- Z99 records the active feature branch
+- Z98 contains task evidence, phase evidence or coverage decisions, final targeted evidence, and required regression evidence or an explicit not-applicable decision
+- required verification passed or remains valid at the final runtime-affecting HEAD
 
 Tracker mode is complete only when:
-- every child item in scope is marked done in the tracker
-- every done child item has a validated commit SHA on the epic branch
-- verification has been reported for every completed child item
-- no remaining open child item violates the declared dependency order
-- the active branch identity matches the inferable tracker branch for the current parent scope
-- final verification for the implemented work has been run
 
-If the active mode fails its completion gate:
-- STOP
-- keep the workflow in progress
-- do not claim implementation is complete
+- every child is done in the tracker
+- every child has a validated, unique commit and focused evidence
+- dependency order and branch identity remain valid
+- Z98 contains child evidence, phase evidence or coverage decisions, final targeted evidence, and required regression evidence or an explicit not-applicable decision
+- parent final verification passed once at the final runtime-affecting HEAD
 
-### Step 12: Hand Off Directly to Feature QA Review
+If the active mode fails its gate, keep implementation in progress and do not claim completion.
 
-After Step 11 passes, invoke `feature-workflow:feature-qa-review` on the current feature branch. This handoff is mandatory and is the only valid next feature-workflow stage.
+## Step 10: Hand Off to Feature QA Review
 
-Pass a compact handoff containing:
-- active feature branch
-- implementation source mode: `local-plan` or `tracker`
-- feature slug
-- `ONGOING_DIR`
-- final implementation commit from `git rev-parse HEAD`
-- tracker entrypoint when tracker mode is active
+After Step 9 passes, invoke `feature-workflow:feature-qa-review`. Never invoke or hand off directly to `feature-finishing`.
 
-Hard gate:
-- do not invoke, suggest, or hand off to `feature-finishing` from `feature-implementing`
-- do not describe finishing or documenting as an alternative next step
-- do not treat implementation verification as a substitute for the independent QA review
-- if `feature-qa-review` is unavailable, interrupted, or returns `BLOCKED`, return control and report that the workflow cannot advance to finishing
-- only `feature-qa-review` may launch `feature-finishing`, and only after it records a clean `PASS` for the reviewed commit and the user accepts that verdict
+Pass:
+
+- branch, source mode, feature slug, and `ONGOING_DIR`
+- final HEAD and final runtime-affecting commit
+- tracker entrypoint when applicable
+- Z98 path and shared preflight result
+- focused, phase, targeted-integrated, and regression evidence
+- verification reuse and invalidation decisions
+- skipped, unavailable, or incomplete checks
+
+Implementation evidence is commit-bound input to independent QA, not a substitute for it. If QA is unavailable or returns `BLOCKED`, return control. Only QA may invoke finishing after recording a `PASS` with zero unresolved blockers and receiving explicit user acceptance.
 
 ## Red Flags
 
-You are failing if you:
-- proceeded with unanswered `Z02_CLARIFY` questions
-- skipped `AGENTS.md`
-- skipped `CLAUDE.md` when it exists after `AGENTS.md`
-- accepted an invalid tracker entrypoint
-- failed to extract or confirm a stable feature name in tracker mode
-- inferred tracker structure that was not actually preserved
-- skipped the early split between local-plan mode and tracker mode
-- started new feature work on a non-`main` base branch without explicit user approval
-- reused an unrelated feature branch instead of creating or validating the correct feature branch
-- asked for or relied on execution modes other than the two allowed options
-- delegated the full remaining plan instead of only the current batch
-- passed full artifact dumps instead of a compact execution brief
-- skipped the mandatory `feature-qa-review` handoff after the implementation completion gate
-- invoked or suggested `feature-finishing` directly from implementation
-- treated implementation tests or executor review loops as equivalent to the independent QA gate
-
-Local-plan mode red flags:
-- failed to create or reconcile `Z99_implementation_status.md` before execution-mode selection
-- treated Z99 as a passive report instead of the live execution checklist
-- overwrote an existing Z99 instead of resuming
-- failed to persist or honor Z99 `Feature branch:` as the resume identity
-- modified `Z02_{feature}_plan.md` to track progress
-- marked a local-plan task done without a returned commit SHA
-- allowed multiple local-plan tasks to share one completion commit
-- claimed implementation complete while any Z99 task is not `done` or lacks proof
-
-Tracker mode red flags:
-- created, updated, or depended on `Z99_implementation_status.md`
-- started tracker work on a branch that did not match `feature/<parent-id>_<feature-slug>` for the current parent scope
-- closed a child item without a returned commit SHA
-- closed a child item before validating the commit on the epic branch
-- allowed multiple child items to share one completion commit
-- delegated multiple tracker child items as one combined work unit without explicit per-child-item commit isolation
-- returned tracker child-item work for human approval before creating the required completion commit
-- lost dependency order while selecting the next child item
-- treated partial non-committed work as done
-- relied on links to local Z0X files for required execution context
-
-## Common Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "All sources should normalize into Z99." | No. Only local Z02 execution uses Z99. Tracker mode is tracker-native. |
-| "The parent issue title is enough to implement from." | No. Tracker mode requires self-contained child items plus explicit order and verification. |
-| "A local Z02 task can stay uncommitted until the end of the feature." | No. Local-plan completion also requires one validated commit per completed task on the feature branch. |
-| "A child item can be marked done once code exists locally." | No. Tracker mode completion requires a validated commit on the epic branch. |
-| "The subagent can implement first and commit after the user says continue." | No. Any task returned as `done` must already be committed before the approval-for-next-batch step. |
-| "A tracker batch can combine several child items as long as the code is small." | No. Tracker mode defaults to one child item per batch unless per-child-item commit isolation is explicitly preserved. |
-| "Several local-plan tasks can share one commit if they were done in one batch." | No. Batching does not relax per-task commit isolation. |
-| "Two child items can share one commit if the work is related." | No. Each child item needs its own attributable commit history; a shared single commit is not enough. |
-| "Close the tracker item now and clean up the git proof later." | No. Validate the commit first, then close the item. |
-| "I'm already on a feature branch, so I can just continue from here." | No. New feature work must branch from `main` unless the user explicitly approved another base. |
-| "This non-`main` branch probably belongs to the same feature." | No. If the branch does not match the recorded or inferable feature branch identity, stop and ask. |
-| "Pass the whole plan for convenience." | No. The wrapper owns batching and approval. |
-| "Approval between batches slows things down." | No. Batch approval is a core workflow guarantee. |
-| "A done task without proof is good enough." | No. Both modes require proof before completion. |
-| "Implementation tests passed, so finishing can start now." | No. Implementation completion must hand off to `feature-qa-review`; only an accepted clean QA `PASS` may launch finishing. |
-| "QA review is optional because finishing performs another review." | No. Finishing is downstream of QA and cannot be invoked directly from implementation. |
+- using tracker mode with Z99
+- continuing on an unrelated or unclear branch
+- crossing phases to fill a batch
+- combining task or child commits, verification, or results
+- repeating preflight per child without changed environment evidence
+- asking for routine approval between batches in the same phase
+- rerunning successful same-commit evidence without an allowed reason
+- rerunning unrelated checks after a scoped change
+- closing work without validated commits and focused evidence
+- omitting Z98 or its QA handoff
+- invoking finishing directly
 
 ## Success Criteria
 
-You followed the workflow if:
-- verified a supported implementation source exists
-- applied the correct source preference when both local and tracker sources existed
-- blocked on unresolved planning clarification files
-- read `AGENTS.md`
-- read `CLAUDE.md` when present
-- read the relevant Z01 and planning-source context
-- extracted or confirmed a stable feature name for tracker mode
-- rejected tracker mode when the published tracker graph was not self-contained enough to execute safely
-- split early into local-plan mode or tracker mode
-- established the feature branch before choosing execution mode
-- created a new feature branch from `main` for new work unless the user explicitly approved another base
-- resumed only when branch identity matched the recorded or inferable feature branch for the same feature scope
-- asked the user to choose exactly one of the two execution modes
-- selected only the next dependency-ready batch from the earliest unfinished phase
-- delegated only that batch to the chosen executor
-- sent a compact execution brief
-- required a structured batch outcome before updating live progress
-- preserved dependency order and verification expectations
-- invoked `feature-workflow:feature-qa-review` after the mode-specific completion gate passed
-- passed the branch, source mode, feature slug, ongoing directory, and final implementation commit into QA
-- did not invoke or suggest `feature-finishing` directly
+- authoritative source, feature identity, branch, and live state were validated
+- one shared preflight was reused while the environment remained stable
+- phase batches contained 1-3 dependency-ready items, normally 2
+- every item retained an isolated commit, result, and focused verification
+- execution continued automatically inside phases and paused before entering the next phase
+- Z98 captured proof, verification reuse, invalidation, and phase decisions
+- final targeted and required regression verification ran once at the final runtime-affecting HEAD
+- QA received the complete commit-bound handoff
 
-Local-plan mode success requires:
-- created or reconciled `Z99_implementation_status.md`
-- used Z99 as the live execution checklist
-- recorded `Feature branch:` in Z99 and used it as the authoritative resume identity
-- updated Z99 with statuses and proof after each batch
-- required at least one attributable commit per Z02 task
-- validated commit-on-branch before marking a task done
-- verified every Z99 task is `done` with proof before claiming completion
-
-Tracker mode success requires:
-- did not create or rely on `Z99_implementation_status.md`
-- used the tracker itself as the live execution state
-- used one branch per parent issue or epic
-- used the inferable `feature/<parent-id>_<feature-slug>` branch identity for the current tracker scope
-- required at least one attributable commit per child item
-- defaulted tracker execution to one child item per batch unless stricter per-child-item isolation was explicitly preserved
-- required those commits to exist before asking the user whether to continue with the next batch
-- validated commit-on-branch before marking a child item done
-- derived remaining work from still-open child items in dependency order
-
-## When to Use
-
-Use when:
-- `Z02_{feature}_plan.md` exists in the ongoing directory, or
-- a GitHub parent roadmap issue plus child issues created from `feature-planning` exists, or
-- a Jira epic plus child tasks created from `feature-planning` exists
-- all planning clarifications are resolved
-- the chosen source preserves enough structure to execute safely
-- you want workflow-owned batching, explicit execution-mode selection, and proof-based completion
-
-Do not use when:
-- no supported source exists
-- tracker artifacts do not preserve planning parity
-- planning clarifications are unresolved
-- the work is a simple one-step change
-
-## Integration With Feature Workflow
+## Integration
 
 ```text
-1. feature-researching  -> complete Z01_research
-2. feature-planning     -> Z02_plan and/or tracker artifacts + Z02_CLARIFY
-3. feature-implementing -> local Z02 + Z99 OR tracker-native execution from published tracker items
-4. feature-qa-review    -> commit-bound PASS or BLOCKED verdict in Z06
+feature-researching -> feature-planning -> feature-implementing
+                    -> feature-qa-review -> feature-finishing
 ```
 
-After this skill:
-- local-plan mode leaves all Z99 tasks done with proof, validated per-task commit SHAs, and a persisted `Feature branch:`
-- tracker mode leaves all child items done with validated commit proof on the inferable tracker branch
-- final verification has passed
-- `feature-qa-review` has been invoked as the mandatory next stage
-- finishing remains blocked until QA records a clean `PASS` for the reviewed commit and the user explicitly accepts it
+Use this skill only for an approved Z02 plan or published tracker graph. Route simple one-step defects to the repository's small-fix workflow.
