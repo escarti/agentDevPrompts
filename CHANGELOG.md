@@ -7,16 +7,17 @@ The format is based on Keep a Changelog and this project follows semantic versio
 ## [Unreleased]
 
 ### Added
-- None.
+- Added an offline validator for direct Superpowers dependency ownership, prompt links, and plugin manifests.
 
 ### Changed
-- None.
+- Changed feature workflows to invoke their exact Superpowers capability at its point of use.
+- Updated installation, migration, and publishing guidance for Codex and Claude Code plugin discovery.
 
 ### Fixed
-- None.
+- Removed the false plugin-enabling bootstrap requirement so standalone workflows remain available.
 
 ### Removed
-- None.
+- Removed the obsolete Superpowers compatibility loader skill.
 
 ## [2.0.0] - 2026-08-24
 
