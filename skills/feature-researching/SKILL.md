@@ -9,10 +9,9 @@ description: Use when beginning feature work from a rough idea, partial specific
 
 **STOP. Before doing ANYTHING else:**
 
-1. ☐ Verify Superpowers dependencies are available for this session
-2. ☐ Create a progress plan (see below)
-3. ☐ Mark Step 0 as `in_progress`
-4. ☐ Read AGENTS.md first, then CLAUDE.md/docs before any code exploration
+1. ☐ Create a progress plan (see below)
+2. ☐ Mark Step 0 as `in_progress`
+3. ☐ Read AGENTS.md first, then CLAUDE.md/docs before any code exploration
 
 **This skill is the single feature-workflow entry point.**
 
@@ -31,7 +30,7 @@ Its responsibilities are:
 update_plan({
   "explanation": "Tracking feature research workflow",
   "plan": [
-    {"step": "Step 0: Verify session mode and Superpowers dependencies", "status": "in_progress"},
+    {"step": "Step 0: Confirm session mode", "status": "in_progress"},
     {"step": "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", "status": "pending"},
     {"step": "Step 2: Classify request definition level", "status": "pending"},
     {"step": "Step 3: Discover and resolve meaningful bifurcations conversationally", "status": "pending"},
@@ -54,8 +53,6 @@ NO Z01_CLARIFY FILE; CLARIFICATION HAPPENS LIVE IN THE RESEARCH CONVERSATION
 NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
 NO HANDOFF TO PLANNING UNTIL Z01 IS COMPLETE
 ```
-
-**If Superpowers dependencies are unavailable:** Stop and report that the required marketplace-installed Superpowers skills are missing.
 
 **If Z01 depends on external docs for core requirements:** Copy or summarize the required source context into Z01 and rewrite it to be self-contained.
 
@@ -97,16 +94,10 @@ It must **not**:
 
 ## Workflow Steps
 
-### Step 0: Verify Session Mode and Dependencies
+### Step 0: Confirm Session Mode
 
 This workflow runs in Default mode or Plan mode.
 Proceed in the current mode; do not block on Plan mode availability.
-
-This skill depends on Superpowers. Verify that the following skills are available before continuing:
-- `superpowers:using-superpowers`
-- `superpowers:brainstorming`
-
-If they are unavailable, stop and report that the required Superpowers dependency is missing.
 
 ---
 
@@ -175,6 +166,8 @@ Do not write Z01 during this loop. If the conversation is interrupted, keep rese
 Start with an explicit conversational refinement phase inside `feature-researching`.
 
 If the request still needs deeper product/design shaping after that first exchange, use `superpowers:brainstorming` as an **internal refinement step**.
+
+Immediately before this refinement, load and follow the installed `superpowers:brainstorming` skill. If it is unavailable, stop and report that `superpowers:brainstorming` is missing; instruct the user to install or enable the Superpowers plugin and start a new session before retrying.
 
 Critical constraints for that invocation:
 - `feature-researching` remains the primary workflow owner

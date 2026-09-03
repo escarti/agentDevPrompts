@@ -10,13 +10,14 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - None.
 
 ### Changed
-- None.
+- Changed feature workflows to invoke their exact Superpowers capability at its point of use.
+- Updated installation, migration, and publishing guidance for Codex and Claude Code plugin discovery.
 
 ### Fixed
-- None.
+- Removed the false plugin-enabling bootstrap requirement so standalone workflows remain available.
 
 ### Removed
-- None.
+- Removed the obsolete Superpowers compatibility loader skill.
 
 ## [2.0.0] - 2026-08-24
 
@@ -86,7 +87,7 @@ The format is based on Keep a Changelog and this project follows semantic versio
 - Tightened `skills/feature-implementing/SKILL.md` tracker-mode return and approval rules so subagent-completed child items must already be committed before the workflow asks the user whether to continue with the next batch.
 - Tightened `skills/feature-implementing/SKILL.md` again to enforce branch provenance, branch-specific resume identity, and branch-drift handling for both local-plan and tracker execution.
 - Updated `README.md` implementation guidance so both local-plan tasks and published tracker child items end with one followable completion commit each on the feature branch.
-- Updated `skills/load-superpowers/SKILL.md` to require marketplace-provided `superpowers:*` skills and stop referencing the legacy local `~/.codex/superpowers` bootstrap path.
+- Updated `skills/obsolete compatibility helper/SKILL.md` to require marketplace-provided `superpowers:*` skills and stop referencing the legacy local `~/.codex/superpowers` bootstrap path.
 - Updated `README.md` installation and migration guidance to describe the marketplace-only Superpowers dependency model and legacy local cleanup steps.
 - Extended `skills/feature-planning/SKILL.md` so planning can optionally preview and publish an approved `Z02_*_plan.md` into GitHub issues or a Jira epic plus tasks after the Z02 validation gate.
 - Tightened `skills/feature-planning/SKILL.md` so published GitHub/Jira tracker items must be self-contained and must not rely on links to transient local `Z0X` workflow artifacts for required implementation context.

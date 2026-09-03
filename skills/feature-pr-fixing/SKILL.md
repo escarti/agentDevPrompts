@@ -179,8 +179,10 @@ Rules:
 
 After the decision loop finishes:
 
+If no `Queue fix` decisions were recorded, continue with refutations, skips, and documentation without loading a debugging dependency. If one or more fixes are queued, immediately before the fix wave load and follow the installed `superpowers:systematic-debugging` skill. If it is unavailable, stop before editing and report that `superpowers:systematic-debugging` is missing; instruct the user to install or enable the Superpowers plugin and start a new session before retrying.
+
 For each `Queue fix`:
-1. Invoke `superpowers:systematic-debugging` for that comment.
+1. Apply the loaded `superpowers:systematic-debugging` workflow to that comment.
 2. Apply the fix.
 3. Run targeted verification.
 4. Commit the fix with a descriptive message.

@@ -1,11 +1,11 @@
 ---
 name: feature-pr-reviewing
-description: Review an independently submitted pull request using a commit-bound, risk-adaptive set of reviewers. Use for finding defects in a PR; do not use to certify undocumented product intent or to implement fixes.
+description: Review an independently submitted pull request using a commit-bound, risk-adaptive set of reviewers, then disposition each finding for commenting, fixing, or ignoring. Do not use to certify undocumented product intent.
 ---
 
 # Review Pull Request
 
-Review the supplied PR as a standalone, read-only task. Bind the review to exact commits, select only the reviewers justified by the changed surface, validate their candidate findings, and report actionable defects. The PR description and linked requirements may supply a contract, but never infer or certify undocumented product intent.
+Review the supplied PR as a standalone task. Bind the review to exact commits, select only the reviewers justified by the changed surface, validate their candidate findings, and let the user decide how to handle each reportable issue. The PR description and linked requirements may supply a contract, but never infer or certify undocumented product intent.
 
 ## Review Invariants
 
@@ -16,6 +16,7 @@ UNREVIEWED PR DELTA -> REVIEW OUTDATED
 CANDIDATE FINDING WITHOUT VALIDATION -> DO NOT REPORT AS CONFIRMED
 NO DOCUMENTED REQUIREMENT -> NO CLAIM OF REQUIREMENT CONFORMANCE
 NO EXPLICIT WRITE REQUEST -> DO NOT POST COMMENTS OR CHANGE CODE
+A FINDING DECISION -> AUTHORIZATION ONLY FOR THE ACTION IT NAMES
 ```
 
 Severity prioritizes confirmed findings; it does not turn speculation into a defect.
@@ -103,7 +104,7 @@ Record the risk level, observed signals, selected reviewers, and why additional 
 
 ## 4. Run and Inspect the Selected Reviews
 
-The required `load-superpowers` bootstrap must have loaded `superpowers:using-superpowers` before this workflow begins. Use the current runtime's native subagent tools; never launch a nested Codex or Claude CLI process for review delegation.
+Use the active runtime's native collaboration tools; never launch a nested Codex or Claude CLI process for review delegation.
 
 Give each reviewer only the compact brief and its mission. Keep reviewers independent from one another and from any author conclusions included in chat history.
 
@@ -131,7 +132,7 @@ Validate every candidate against the diff, affected code, supplied contract, rep
 
 Do not report style preferences as defects unless they violate an applicable rule or create a concrete maintenance risk. Do not report a contract deviation when the supposed requirement was never provided.
 
-## 6. Handle PR Updates Without Losing Review Coverage
+## 6. Refresh the PR Before Decisions
 
 Before finalizing, resolve the PR's current full head SHA again.
 
@@ -144,29 +145,69 @@ If the head changed, inspect `Initial Reviewed Commit..current head` as a fix/up
 - rerun a specialist only when the delta touches that specialist's risk surface
 - reclassify risk and select a new reviewer set only when the delta materially broadens behavior or exposure
 
-Repeat for subsequent commit ranges. Never claim the latest PR is reviewed while any implementation delta remains uninspected. Record the final full SHA as `Reviewed Commit` only after all deltas are covered.
+Repeat for subsequent commit ranges. Never present stale findings as current while any implementation delta remains uninspected. Record the current full SHA as the decision baseline only after all deltas are covered.
 
-## 7. Report the Review
+## 7. Present the Findings Index and Collect Decisions
 
-Lead with confirmed findings, ordered by severity. For each finding include:
+If there are no confirmed findings or useful advisories, skip the decision loop and continue to the final report.
+
+Otherwise, first present the complete numbered index of all reportable findings, ordered by disposition and severity. The user must see the whole set before deciding how to handle the first item.
+
+For each index entry include:
 
 - concise title and severity
+- disposition: `Confirmed` or `Advisory`
 - exact changed file and tight line range
 - evidence from the code
 - concrete impact or failure mode
 - practical fix direction
 
-Then include, compactly:
+Then process one finding at a time. Offer these mutually exclusive decisions:
+
+- `Post comment`: post one PR review comment for this finding.
+- `Fix in PR`: apply the smallest safe fix, run targeted verification, commit it, and push it to the PR branch.
+- `Ignore`: take no external action for this finding while retaining it in the final review summary.
+- `Stop`: end the decision loop; leave every undecided finding without external action.
+
+Use the runtime's structured input tool when available. Otherwise ask the same question in concise prose and accept either one-at-a-time or compact batched answers such as `1 comment, 2 fix, 3 ignore`. Never require a particular collaboration mode.
+
+During this loop, only record decisions. Do not post comments, edit code, commit, or push until the decision loop ends. A selected action authorizes only what its description states; it does not authorize unrelated changes.
+
+## 8. Execute the Queued Schedule
+
+Execute queued actions only after the decision loop finishes:
+
+1. Resolve the current PR head again. If it changed after the decision baseline, review the new delta, refresh affected findings, and reconfirm decisions whose evidence or line locations changed.
+2. Process all `Fix in PR` findings as one fix wave. Verify the target branch and write access before editing, preserve unrelated changes, load the relevant debugging/fixing skill once, apply the smallest safe fixes, run affected verification, commit, and push once.
+3. Review the complete fix delta against the pre-fix head. Confirm each selected issue was addressed and inspect the delta for regressions. Rerun a specialist only when the delta touches that specialist's risk surface; reclassify only when the fix materially broadens the change.
+4. If the fix-delta review produces new reportable findings, add them to a new decision loop before posting comments.
+5. Resolve the PR head once more, then post each still-valid `Post comment` finding as a separate review comment at its current line location. Never combine unrelated findings into one comment.
+6. Take no action for `Ignore`, `Stop`, or undecided findings.
+
+If a queued action cannot be completed safely or the PR changes again before it executes, stop that action and report the exact reason. Do not substitute a different mutation.
+
+Use this comment structure:
+
+```markdown
+[Severity: Critical|High|Medium|Low] {specific issue summary}
+
+{evidence and concrete impact}
+
+Suggested change: {clear fix direction}
+```
+
+## 9. Report the Final Review
+
+Lead with confirmed findings and their selected outcomes. Then include, compactly:
 
 - advisories, when useful
+- actions completed, ignored, left undecided, or blocked
 - questions or assumptions caused by missing intent
 - initial and final reviewed commit SHAs
 - risk level and selected reviewers
 - verification evidence inspected or run, plus important gaps
 
-If no confirmed findings exist, say `No findings` and still state the reviewed commit, reviewer selection, and verification limitations. A clean defect review is not proof that undocumented product intent was satisfied.
-
-Keep the task read-only unless the user explicitly asks to post comments or modify code. Treat a later posting or fix request as a separate task rather than silently extending this review.
+Set `Reviewed Commit` to the final full PR head only after every PR and fix delta has been inspected. If no confirmed findings exist, say `No findings` and still state the reviewed commit, reviewer selection, and verification limitations. A clean defect review is not proof that undocumented product intent was satisfied.
 
 ## Red Flags
 
@@ -180,7 +221,11 @@ Keep the task read-only unless the user explicitly asks to post comments or modi
 - Reported candidate findings without validating them
 - Reviewed only the initial head after the PR changed
 - Reran every specialist after a narrow update delta
-- Posted PR comments, changed code, or created workflow artifacts without an explicit request
+- Asked for decisions before showing the complete findings index
+- Executed actions while still collecting decisions
+- Combined unrelated findings into one PR comment
+- Posted a comment after fixes invalidated its evidence or line location
+- Treated one finding decision as permission for unrelated mutations
 
 ## Success Criteria
 
@@ -189,7 +234,11 @@ Keep the task read-only unless the user explicitly asks to post comments or modi
 - Built a compact evidence-based reviewer brief
 - Selected and inspected the smallest risk-appropriate independent reviewer set
 - Validated and dispositioned all candidate findings
+- Presented the complete findings index before collecting decisions
+- Recorded one explicit action per reportable finding without requiring a particular collaboration mode
+- Executed queued fixes before posting comments and reviewed every resulting delta
+- Posted only still-valid, individually authorized comments
 - Reviewed every PR update delta before finalizing
 - Reported actionable findings with exact code locations and concrete impact
 - Identified the final reviewed commit and verification limitations
-- Left the PR and working tree unchanged unless the user explicitly requested a mutation
+- Performed no mutation beyond the actions explicitly selected by the user

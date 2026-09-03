@@ -159,7 +159,7 @@ Always ask once:
 1. Subagent-Driven (recommended) — use `superpowers:subagent-driven-development` for each selected batch.
 2. Inline Execution — use `superpowers:executing-plans` for each selected batch.
 
-Load the selected skill. Stop if it is unavailable. Do not invent another execution mode.
+Load only the selected installed plugin skill directly; do not load both executors speculatively. If it is unavailable, stop and report its exact name, explaining that the Superpowers plugin must be enabled before starting a fresh session. Do not invent another execution mode.
 
 ## Step 5: Run Shared Preflight and Select a Phase Batch
 

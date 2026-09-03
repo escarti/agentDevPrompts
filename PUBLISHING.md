@@ -4,7 +4,7 @@
 
 This repository supports two distribution variants:
 - Claude Code marketplace plugin (`feature-workflow`)
-- Codex local/installer-based skills (no marketplace)
+- Codex plugin or installer-based skills
 
 Use the variant that matches the user request.
 
@@ -57,7 +57,7 @@ git push origin vX.Y.Z
 
 ## Variant B: Codex Skills Release
 
-Use when the goal is to publish/update Codex-usable skills. Codex does not use plugin marketplaces.
+Use when the goal is to publish or update Codex-usable skills. Codex can install plugins through its Plugins directory/browser and can also install skills from this repository.
 
 ### What to Version
 
@@ -95,8 +95,15 @@ After install/update, restart Codex if needed to reload skills.
 ## Testing Before Any Release
 
 - Verify each changed skill executes its expected workflow
-- Verify superpowers-dependent skills still require `load-superpowers`
 - Ensure artifact conventions remain consistent (`docs/ai/ongoing/`, `Z01`-`Z06`)
+
+Run these release checks before committing or tagging:
+
+```bash
+./scripts/sync_prompts_from_commands.sh
+git diff --check
+git status --short
+```
 
 ## Versioning Guidance
 

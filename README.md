@@ -1,40 +1,36 @@
-# Feature Workflow - Claude Code Skills
+# Feature Workflow Skills
 
-Research-driven feature development and streamlined small-fix workflows for Claude Code, with superpowers integration for planning, implementation, QA review, finishing, and PR handling.
+Research-driven feature development and streamlined small-fix workflows for Codex and Claude Code. Superpowers capabilities are invoked directly where a workflow uses them.
 
 ## Included Skills
 
 Core workflow:
-- `feature-researching` (requires superpowers)
-- `feature-planning` (requires superpowers)
-- `feature-implementing` (requires superpowers)
-- `feature-qa-review` (requires superpowers)
-- `feature-documenting` (standalone)
-
-Quality and PR workflow:
-- `feature-finishing` (requires superpowers)
-- `feature-pr-reviewing` (requires superpowers)
-- `feature-pr-fixing` (requires superpowers)
-
-Bootstrap helper:
-- `load-superpowers` (loads required superpowers skills before repository workflows that depend on them)
-
-Small-fix workflow:
-- `fixing-small-issues` (requires superpowers; coordinates two isolated diagnosis/fix phases)
-
-## Dependencies
-
-Install [superpowers](https://github.com/obra/superpowers) from the marketplace/plugin system for:
 - `feature-researching`
 - `feature-planning`
 - `feature-implementing`
 - `feature-qa-review`
+- `feature-documenting`
+
+Quality and PR workflow:
 - `feature-finishing`
 - `feature-pr-reviewing`
 - `feature-pr-fixing`
-- `fixing-small-issues`
 
-`feature-documenting` is standalone.
+Small-fix workflow:
+- `fixing-small-issues` (coordinates two isolated diagnosis/fix phases)
+
+## Dependencies
+
+Install [Superpowers](https://github.com/obra/superpowers) from your runtime's plugin system when using a workflow with a listed dependency. Each workflow loads the named skill only at the point it is needed.
+
+| Feature workflow | Superpowers dependency | Invocation point |
+| --- | --- | --- |
+| `feature-researching` | `superpowers:brainstorming` | Only for deeper product/design refinement |
+| `feature-planning` | `superpowers:writing-plans` | When producing Z02 |
+| `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After execution-mode selection |
+| `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |
+| `fixing-small-issues` | `superpowers:systematic-debugging`, `superpowers:test-driven-development`, `superpowers:verification-before-completion` | In the corresponding isolated phase agent |
+| `feature-qa-review`, `feature-pr-reviewing`, `feature-finishing`, `feature-documenting` | None | Standalone; use native collaboration tools where applicable |
 
 ```bash
 # In Claude Code
@@ -42,17 +38,7 @@ Install [superpowers](https://github.com/obra/superpowers) from the marketplace/
 /plugin install superpowers@obra/superpowers
 ```
 
-`load-superpowers` is a compatibility shim for these workflow skills. It now assumes `superpowers:*` skills are provided by the marketplace install and no longer bootstraps from a local `~/.codex/superpowers` checkout.
-
-Run `load-superpowers` before:
-- `feature-researching`
-- `feature-planning`
-- `feature-implementing`
-- `feature-qa-review`
-- `feature-finishing`
-- `feature-pr-reviewing`
-- `feature-pr-fixing`
-- `fixing-small-issues`
+For Codex, install Superpowers from the Plugins directory or browser and begin a new session when installation or activation requires it. For Claude Code, use the marketplace commands below and begin a new session if the plugin does not appear immediately.
 
 ## Installation
 
@@ -94,10 +80,9 @@ ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-finishing ~/.claude/ski
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-reviewing ~/.claude/skills/feature-pr-reviewing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/feature-pr-fixing ~/.claude/skills/feature-pr-fixing
 ln -s ~/Projects/Personal/agentDevPrompts/skills/fixing-small-issues ~/.claude/skills/fixing-small-issues
-ln -s ~/Projects/Personal/agentDevPrompts/skills/load-superpowers ~/.claude/skills/load-superpowers
 ```
 
-These symlinks install only `feature-workflow`. Superpowers remains a separate marketplace dependency; do not point this setup at a local `~/.codex/superpowers` clone.
+These symlinks install only `feature-workflow`. Superpowers remains a separate runtime-plugin dependency; do not point this setup at a legacy local checkout.
 
 ### Option 3: Codex Skill Installer
 
@@ -109,18 +94,9 @@ Use the skill-installer skill to install these skills https://github.com/escarti
 
 Restart Codex to pick up new skills.
 
-## Migrating Off Legacy Local Superpowers
+## Migration
 
-Older setups may still have a local Superpowers checkout at `~/.codex/superpowers`. This repository no longer uses that path.
-
-After confirming the marketplace-installed `superpowers:*` skills resolve correctly through `load-superpowers`, remove only the legacy Superpowers assets:
-
-```bash
-rm -rf ~/.codex/superpowers
-find ~/.codex/skills -maxdepth 1 \( -type l -o -type d \) | rg '/superpowers$'
-```
-
-Keep the `feature-workflow` entries in `~/.codex/skills` such as `feature-researching`, `feature-planning`, `feature-implementing`, `feature-qa-review`, `fixing-small-issues`, and `load-superpowers`. Those are separate from the legacy Superpowers checkout and should continue to point at this repository.
+Remove any stale symlink or installed copy of the obsolete compatibility helper. Keep the feature-workflow skill entries themselves, and manage Superpowers through the runtime plugin system rather than a legacy local checkout.
 
 ## Workflow
 
@@ -260,8 +236,7 @@ agentDevPrompts/
 │   ├── feature-finishing/
 │   ├── feature-pr-reviewing/
 │   ├── feature-pr-fixing/
-│   ├── fixing-small-issues/
-│   └── load-superpowers/
+│   └── fixing-small-issues/
 ├── docs/
 ├── AGENTS.md
 ├── CLAUDE.md

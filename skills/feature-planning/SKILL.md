@@ -100,8 +100,8 @@ Extract from Z01:
 
 ### Step 3: Invoke `superpowers:writing-plans`
 
-Load and follow `superpowers:writing-plans` using Codex's current skill-loading flow.
-If that dependency is unavailable, stop and report that the required Superpowers skill is missing.
+Load and follow the installed plugin skill `superpowers:writing-plans` directly.
+If `superpowers:writing-plans` is unavailable, stop at this step and report its exact name; instruct the user to install or enable the Superpowers plugin and start a new session before retrying.
 
 Provide a compact instruction that adds only this workflow's contract:
 
