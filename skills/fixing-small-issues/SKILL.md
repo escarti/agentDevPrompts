@@ -19,7 +19,7 @@ Step 5: Keep or revert the returned commit
 Step 6: Loop, block, or complete
 ```
 
-Add no other stages. Dispatch agents with the current runtime's native subagent tools, using the platform mapping loaded by `superpowers:using-superpowers`; never launch a nested Codex CLI process. Agents are fresh, sequential, and single-phase. Inspect every final response and checkpoint before trust. Retain checkpoints/counters; request additional detail only when a checkpoint is missing, malformed, contradictory, or untrustworthy.
+Add no other stages. Dispatch agents with the active runtime's native collaboration tools; never launch a nested Codex CLI process. Agents are fresh, sequential, and single-phase. Inspect every final response and checkpoint before trust. Retain checkpoints/counters; request additional detail only when a checkpoint is missing, malformed, contradictory, or untrustworthy.
 
 On Codex, spawn every attempt with `fork_turns: "none"` and set both `model` and `reasoning_effort` explicitly from the current spawn allowlist. Complete and validate Phase 1 before dispatching Phase 2. When idle, use event waits of 5–10 minutes instead of short polling or repeated unchanged status narration. A retry is a fresh agent and increments the applicable phase counter; follow-up messages may clarify a returned checkpoint but do not constitute another implementation attempt.
 
@@ -64,7 +64,7 @@ Independent cumulative counters persist across phase switches/resume. A successf
 
 ## Step 2: Spawn Phase 1 — Reproduce and Diagnose
 
-Pass only source, branch, constraints, attempt, checkpoint, retry evidence. On-branch, use `superpowers:systematic-debugging`: expected/actual behavior, reproduction/evidence, tested hypotheses, causal root cause, options, success criteria. No production fix/tracked changes; remove instrumentation.
+Before dispatch, require the isolated diagnosis agent to load and follow `superpowers:systematic-debugging`; include the exact skill name in the phase brief. If it is unavailable, return a dependency blocker without consuming an attempt. Pass only source, branch, constraints, attempt, checkpoint, retry evidence. On-branch, use `superpowers:systematic-debugging`: expected/actual behavior, reproduction/evidence, tested hypotheses, causal root cause, options, success criteria. No production fix/tracked changes; remove instrumentation.
 
 ## Step 3: Validate and Publish the Diagnosis Checkpoint
 
@@ -86,7 +86,7 @@ Phase 2 success criteria:
 
 ## Step 4: Spawn Phase 2 — Plan, Fix, Verify, and Commit
 
-Pass diagnosis. On-branch, use `superpowers:test-driven-development`, `superpowers:verification-before-completion`, and a three-to-six-step plan. Write a failing regression first. Use precise manual reproduction only when no existing automated harness can express the regression without disproportionate new infrastructure; record why in `Regression coverage`. Make the smallest root-cause fix; verify original/neighbors; remove residue; commit.
+Before dispatch, require the isolated implementation agent to load and follow both `superpowers:test-driven-development` and `superpowers:verification-before-completion`; include both exact skill names in the phase brief. If either is unavailable, return a dependency blocker without consuming an attempt. Pass diagnosis. On-branch, use the two loaded skills and a three-to-six-step plan. Write a failing regression first. Use precise manual reproduction only when no existing automated harness can express the regression without disproportionate new infrastructure; record why in `Regression coverage`. Make the smallest root-cause fix; verify original/neighbors; remove residue; commit.
 
 Require:
 
