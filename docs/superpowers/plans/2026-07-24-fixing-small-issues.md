@@ -346,7 +346,7 @@ git commit -m "feat: add fixing small issues coordinator"
 **Files:**
 - Create: `commands/fix-small-issue.md`
 - Create via sync script: `prompts/fix-small-issue.md`
-- Modify: `skills/load-superpowers/SKILL.md`
+- Modify: `skills/obsolete compatibility helper/SKILL.md`
 - Modify: `AGENTS.md`
 - Modify: `CLAUDE.md`
 
@@ -407,7 +407,7 @@ test "$(readlink prompts/fix-small-issue.md)" = "../commands/fix-small-issue.md"
 
 Expected: both commands exit `0`.
 
-- [ ] **Step 4: Extend `load-superpowers` without loading Phase skills into the coordinator**
+- [ ] **Step 4: Extend `obsolete compatibility helper` without loading Phase skills into the coordinator**
 
 Change its description from feature-only wording to:
 
@@ -429,7 +429,7 @@ Update its success criteria to cover delegated phase-specific loading.
 
 - [ ] **Step 5: Add repository loading and naming rules**
 
-In `AGENTS.md`, change the feature-only loading introduction to cover all repository workflows that depend on Superpowers, then add `fixing-small-issues` to the `Requires load-superpowers first` list. Add compact rules that it uses no Z artifacts, must create a bugfix branch before Phase 1, excludes new features, and stops before Phase 2 when Phase 1 diagnoses a feature gap, routing that work to `feature-workflow:feature-researching`.
+In `AGENTS.md`, change the feature-only loading introduction to cover all repository workflows that depend on Superpowers, then add `fixing-small-issues` to the `Requires obsolete compatibility helper first` list. Add compact rules that it uses no Z artifacts, must create a bugfix branch before Phase 1, excludes new features, and stops before Phase 2 when Phase 1 diagnoses a feature gap, routing that work to `feature-workflow:feature-researching`.
 
 In `CLAUDE.md`:
 
@@ -437,7 +437,7 @@ In `CLAUDE.md`:
 - add `commands/fix-small-issue.md` to the command layout;
 - add `skills/fixing-small-issues/` to the skill layout;
 - change the feature-only dependency introduction to cover repository workflows;
-- add `fixing-small-issues` to the `Requires load-superpowers first` list;
+- add `fixing-small-issues` to the `Requires obsolete compatibility helper first` list;
 - retain the gerund-skill/imperative-command convention;
 - state that its heavy Superpowers dependencies load inside phase sub-agents;
 - state that new features are out of scope and feature-gap diagnoses route to `feature-workflow:feature-researching`;
@@ -448,7 +448,7 @@ In `CLAUDE.md`:
 Run:
 
 ```bash
-rg -n 'fixing-small-issues|fix-small-issue' AGENTS.md CLAUDE.md skills/load-superpowers/SKILL.md commands/fix-small-issue.md
+rg -n 'fixing-small-issues|fix-small-issue' AGENTS.md CLAUDE.md skills/obsolete compatibility helper/SKILL.md commands/fix-small-issue.md
 ```
 
 Expected: each file contains its intended public or dependency reference.
@@ -472,7 +472,7 @@ Expected: exit `0`.
 - [ ] **Step 7: Commit command and dependency integration**
 
 ```bash
-git add AGENTS.md CLAUDE.md skills/load-superpowers/SKILL.md commands/fix-small-issue.md prompts/fix-small-issue.md
+git add AGENTS.md CLAUDE.md skills/obsolete compatibility helper/SKILL.md commands/fix-small-issue.md prompts/fix-small-issue.md
 git commit -m "feat: expose fixing small issues workflow"
 ```
 
@@ -512,7 +512,7 @@ Update `README.md` as follows:
 - `fixing-small-issues` (requires superpowers; coordinates two isolated diagnosis/fix phases)
 ```
 
-- Add `fixing-small-issues` to the Superpowers dependency list and `load-superpowers` list.
+- Add `fixing-small-issues` to the Superpowers dependency list and `obsolete compatibility helper` list.
 - Add `/fix-small-issue` to Expected commands.
 - Add the manual skill symlink:
 

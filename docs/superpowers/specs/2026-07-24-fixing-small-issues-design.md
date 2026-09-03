@@ -279,7 +279,7 @@ Implementation is expected to add or update:
 
 - `skills/fixing-small-issues/SKILL.md`
 - `commands/fix-small-issue.md`
-- `skills/load-superpowers/SKILL.md`
+- `skills/obsolete compatibility helper/SKILL.md`
 - `AGENTS.md`
 - `CLAUDE.md`
 - `README.md`
