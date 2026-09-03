@@ -137,7 +137,7 @@ Record the risk level, concrete risk signals, selected reviewers, and why omitte
 
 ## Step 4: Run the Selected Independent Reviews
 
-The required `load-superpowers` bootstrap must have loaded `superpowers:using-superpowers` before this workflow begins. Dispatch selected reviewers with the current runtime's native subagent tools, using that skill's platform mapping. Never launch a nested Codex CLI process for review delegation. Reviewers must be isolated from implementation-session conclusions and receive only the compact brief plus their mission.
+Dispatch selected reviewers with the active runtime's native collaboration tools. Never launch a nested Codex CLI process for review delegation. Reviewers must be isolated from implementation-session conclusions and receive only the compact brief plus their mission.
 
 Use the native collaboration schema actually exposed by the runtime; keep tool signatures and model names out of this workflow so they cannot become stale.
 
