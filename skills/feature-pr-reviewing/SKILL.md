@@ -1,282 +1,195 @@
 ---
 name: feature-pr-reviewing
-description: Use when reviewing pull request changes - follow structured workflow
+description: Review an independently submitted pull request using a commit-bound, risk-adaptive set of reviewers. Use for finding defects in a PR; do not use to certify undocumented product intent or to implement fixes.
 ---
 
-# Feature Workflow: Review Pull Request
+# Review Pull Request
 
-## YOU ARE READING THIS SKILL RIGHT NOW
+Review the supplied PR as a standalone, read-only task. Bind the review to exact commits, select only the reviewers justified by the changed surface, validate their candidate findings, and report actionable defects. The PR description and linked requirements may supply a contract, but never infer or certify undocumented product intent.
 
-**STOP. Before doing ANYTHING else:**
+## Review Invariants
 
-1. Create a progress plan (see below)
-2. Mark Step 1 as `in_progress`
-3. Extract the PR number from user input and switch to the PR branch
-
-**Do not inspect PR metadata or diffs before the progress plan exists and the PR branch has been checked out.**
-
-## MANDATORY FIRST ACTION: Create Progress Plan
-
-```typescript
-update_plan({
-  "explanation": "Tracking pull-request review workflow",
-  "plan": [
-    {"step": "Step 1: Confirm collaboration mode and decision fallback path", "status": "in_progress"},
-    {"step": "Step 2: Extract the PR number from user input and switch to the PR branch", "status": "pending"},
-    {"step": "Step 3: Read AGENTS.md first and CLAUDE.md if it exists, then load repo context", "status": "pending"},
-    {"step": "Step 4: Get PR details and changed files", "status": "pending"},
-    {"step": "Step 5: Read the changed files and immediate context", "status": "pending"},
-    {"step": "Step 6: Hunt for bugs with an adversarial review pass", "status": "pending"},
-    {"step": "Step 7: Present findings and collect one decision per finding", "status": "pending"},
-    {"step": "Step 8: Execute queued comment or fix decisions", "status": "pending"},
-    {"step": "Step 9: Create Z03 documentation for any unposted findings", "status": "pending"}
-  ]
-})
+```text
+UNRESOLVED PR TARGET OR HEAD COMMIT -> REVIEW BLOCKED
+FAILED, MISSING, OR UNINSPECTED SELECTED REVIEWER -> REVIEW INCOMPLETE
+UNREVIEWED PR DELTA -> REVIEW OUTDATED
+CANDIDATE FINDING WITHOUT VALIDATION -> DO NOT REPORT AS CONFIRMED
+NO DOCUMENTED REQUIREMENT -> NO CLAIM OF REQUIREMENT CONFORMANCE
+NO EXPLICIT WRITE REQUEST -> DO NOT POST COMMENTS OR CHANGE CODE
 ```
 
-**After each step:** Mark completed and move `in_progress` to the next step.
+Severity prioritizes confirmed findings; it does not turn speculation into a defect.
 
-## Workflow Steps
+## 1. Bind the Review Target
 
-### Step 1: Confirm Collaboration Mode
+Read `AGENTS.md` first, then `CLAUDE.md` when present, followed by only the repository context needed to understand the changed areas.
 
-This workflow must run in Plan mode.
+Resolve the PR explicitly supplied by the user. If no PR number, URL, branch comparison, or diff was supplied, ask for one instead of discovering an arbitrary PR.
 
-Rules:
-1. Use `request_user_input` for the review decision loop.
-2. If `request_user_input` is unavailable, stop and report: `feature-pr-reviewing requires Plan mode with request_user_input.`
-3. Do not continue in prose-fallback mode.
+For a GitHub PR, collect at least:
 
----
+- PR URL, title, author, and description
+- base and head branch names
+- full base and head commit SHAs
+- changed files and complete diff
+- available status-check and test evidence
 
-### Step 2: Extract the PR Number and Switch to the PR Branch
+Use `gh pr view` and `gh pr diff` without checking out the PR when they provide enough evidence. Check out code only when local inspection or verification genuinely requires it, and preserve unrelated user changes.
 
-The PR number comes from user input, not from `gh` discovery.
+Record the full head SHA as `Initial Reviewed Commit`. The review covers that commit, not the moving PR branch name.
 
-Examples:
-- `review PR https://github.com/owner/repo/pull/258` -> PR number `258`
-- `review PR 258` -> PR number `258`
+## 2. Establish the Available Contract and Review Brief
 
-If the user did not provide a PR number or URL, ask for it before continuing.
+Build the behavioral contract only from evidence available to an external reviewer:
 
-Verify the current branch and switch:
+- the PR title and description
+- supplied or directly linked issue and acceptance criteria
+- repository instructions, architecture, and documented invariants
+- existing public interfaces and compatibility commitments
+- tests when they express established behavior
 
-```bash
-git branch --show-current
-gh pr checkout 258
+Do not search for internal planning artifacts unless the user explicitly supplies them as PR context. When intent is incomplete, record the limitation and review correctness against the observable diff, repository constraints, and stated claims.
+
+Read the changed files and only the nearby helpers, callers, tests, schemas, or interfaces needed to understand their effects. Build a compact reviewer brief containing:
+
+- PR identity, base SHA, and full head SHA
+- changed-file list and relevant diff
+- concise documented contract and known intent limitations
+- applicable repository constraints
+- available check and test evidence
+- concrete risk signals
+- candidate finding schema
+
+Candidate finding schema:
+
+```text
+title
+type
+severity
+file
+lines
+evidence
+impact
+trigger_or_failure_mode
+suggested_action
+reported_by
 ```
 
-Rules:
-- verify first, even if you think you are already on the correct branch
-- do not run `gh pr view` to discover the branch name
-- be on the PR branch before reading docs or changes
+Types: `Security`, `Bug`, `Contract Deviation`, `Tests`, `Compatibility`, `Code Quality`. Severities: `Critical`, `High`, `Medium`, `Low`.
 
----
+## 3. Classify Risk and Select Reviewers
 
-### Step 3: Read Project Context
+Select the smallest independent reviewer set that covers the observed risk:
 
-Read in this order:
-1. `AGENTS.md`
-2. `CLAUDE.md` if it exists
-3. `README.md` if it exists
-4. `ARCHITECTURE.md` or `docs/architecture/` if they exist
+- `Standard`: one integrated reviewer.
+- `Elevated`: integrated reviewer plus one relevant specialist.
+- `Critical`: integrated reviewer plus at most two relevant specialists.
 
-Goal:
-- understand local conventions well enough to tell the difference between a real bug and a comment that conflicts with project patterns
+The integrated reviewer is always mandatory. It covers functional correctness, regressions, documented contract conformance, test adequacy, maintainability, and likely review friction.
 
----
+Add a security specialist when the diff changes a trust boundary, including authentication, authorization, permissions, secrets, sensitive data, external input, dependency security, or comparable exposure.
 
-### Step 4: Get PR Details and Changed Files
+Add one domain specialist when the diff contains a distinct high-impact surface the integrated reviewer cannot adequately cover, such as:
 
-Get the PR metadata and changed-file list.
+- destructive data or schema changes
+- concurrency, transactions, or distributed coordination
+- public API, protocol, or backwards-compatibility changes
+- deployment, infrastructure, or operational safety
+- another repository-specific critical invariant
 
-You need:
-- PR title
-- PR author
-- changed files
+Broad diffs, weak tests, or unfamiliar subsystems may raise risk, but line count alone does not justify a specialist. Do not add reviewer profiles merely because they are available.
 
-You may use commands such as:
+Record the risk level, observed signals, selected reviewers, and why additional specialists were unnecessary.
 
-```bash
-gh pr view 258 --json title,author,files
-```
+## 4. Run and Inspect the Selected Reviews
 
-or:
+The required `load-superpowers` bootstrap must have loaded `superpowers:using-superpowers` before this workflow begins. Use the current runtime's native subagent tools; never launch a nested Codex or Claude CLI process for review delegation.
 
-```bash
-gh pr diff 258 --name-only
-```
+Give each reviewer only the compact brief and its mission. Keep reviewers independent from one another and from any author conclusions included in chat history.
 
-Do not start code review before you know which files changed.
+On Codex:
 
----
+- spawn each reviewer with `fork_turns: "none"`
+- set both `model` and `reasoning_effort` explicitly from the current spawn allowlist, sized to the review risk
+- dispatch selected reviewers concurrently
+- use event waits rather than repeated short polling
+- inspect every final reviewer response
+- request one correction for malformed or incomplete output
+- if correction fails, dispatch one replacement; if that also fails, report the review as incomplete
 
-### Step 5: Read the Changed Files and Immediate Context
+Require either `No findings` or candidate findings in the schema. Reviewers inspect the exact PR diff, affected context, and available verification evidence. They do not post comments, modify the branch, or broaden the documented contract.
 
-Read the changed files and enough nearby context to understand what the code is doing.
+Normalize and de-duplicate candidates while preserving provenance. Reviewer output is evidence to validate, not an automatic verdict.
 
-Focus on:
-- changed files from Step 4
-- nearby helpers, tests, and interfaces needed to understand the behavior
-- local project patterns in the touched areas
+## 5. Validate and Disposition Findings
 
-Do not read the entire codebase when the changed-file set is enough.
+Validate every candidate against the diff, affected code, supplied contract, repository rules, and reproducible evidence. Assign exactly one disposition:
 
----
+- `Confirmed`: evidence demonstrates a defect, regression, security or data-integrity risk, documented contract violation, or material test gap.
+- `Advisory`: a supported improvement with concrete value that is not required for correctness.
+- `Dismissed`: contradicted by the code or contract, not reproducible, duplicate, speculative, or outside the changed scope.
 
-### Step 6: Hunt for Bugs With an Adversarial Review Pass
+Do not report style preferences as defects unless they violate an applicable rule or create a concrete maintenance risk. Do not report a contract deviation when the supposed requirement was never provided.
 
-Assume defects exist. Attack the PR.
+## 6. Handle PR Updates Without Losing Review Coverage
 
-Hunt for:
-- security bugs
-- logic bugs
-- missing or weak tests
-- architecture violations
-- naming, layering, and consistency issues likely to draw reviewer feedback
+Before finalizing, resolve the PR's current full head SHA again.
 
-For each finding, record:
-- file and exact line range
-- issue type
-- severity (`Must-fix`, `Should-fix`, `Nice-to-have`)
-- why it is a real issue
-- how to trigger or observe it
+If it still equals `Initial Reviewed Commit`, that commit is the `Reviewed Commit`.
 
----
+If the head changed, inspect `Initial Reviewed Commit..current head` as a fix/update delta:
 
-### Step 7: Present Findings and Collect One Decision Per Finding
+- review the delta and its interaction with affected surrounding code
+- confirm whether earlier findings were addressed or invalidated
+- rerun a specialist only when the delta touches that specialist's risk surface
+- reclassify risk and select a new reviewer set only when the delta materially broadens behavior or exposure
 
-First print the full findings index. The user must see the complete numbered list before any per-finding decision loop begins.
+Repeat for subsequent commit ranges. Never claim the latest PR is reviewed while any implementation delta remains uninspected. Record the final full SHA as `Reviewed Commit` only after all deltas are covered.
 
-Required pre-loop format:
+## 7. Report the Review
 
-```markdown
-## PR Review Findings: {PR Title}
+Lead with confirmed findings, ordered by severity. For each finding include:
 
-Total findings: {N}
+- concise title and severity
+- exact changed file and tight line range
+- evidence from the code
+- concrete impact or failure mode
+- practical fix direction
 
-Findings Index:
-1. {Issue Type} - {Description} ({Severity}) [{file}:{line-start}-{line-end}]
-2. ...
-```
+Then include, compactly:
 
-After the index, present one finding at a time.
+- advisories, when useful
+- questions or assumptions caused by missing intent
+- initial and final reviewed commit SHAs
+- risk level and selected reviewers
+- verification evidence inspected or run, plus important gaps
 
-Detailed finding format:
+If no confirmed findings exist, say `No findings` and still state the reviewed commit, reviewer selection, and verification limitations. A clean defect review is not proof that undocumented product intent was satisfied.
 
-```markdown
-## PR Review Findings: {PR Title}
-
-Finding 1: {Issue Type} - {Description}
-- File: {file}:{line-start}-{line-end}
-- Severity: {Must-fix | Should-fix | Nice-to-have}
-- Why this is a bug: {impact + broken assumption}
-- How to trigger: {minimal repro}
-- Suggested PR comment text:
-  - Summary: {specific issue in one sentence}
-  - Evidence: {file}:{line-start}-{line-end} and what those lines do wrong
-  - Impact: {concrete failure or risk}
-  - Severity: {Must-fix | Should-fix | Nice-to-have}
-```
-
-Then ask how to handle that one finding.
-
-Required structured input:
-```typescript
-request_user_input({
-  questions: [{
-    question: "How should I handle Finding {n}?",
-    header: "Finding {n}",
-    options: [
-      {label: "Post comment", description: "Post this finding as one PR comment in Step 8"},
-      {label: "Add to fix queue", description: "Queue this finding to be fixed directly in the PR in Step 8"},
-      {label: "Skip comment", description: "Do not post this finding and continue"},
-      {label: "Stop review cycle", description: "Stop reviewing findings and continue to execution or documentation"}
-    ]
-  }]
-})
-```
-
-Rules:
-- ask about one finding at a time
-- end the message after the question block
-- wait for the explicit decision
-- do not ask about the next finding before the current one is decided
-- do not post comments or make fixes during Step 7
-- do not replace the structured question with prose fallback
-
----
-
-### Step 8: Execute Queued Comment or Fix Decisions
-
-After the decision loop finishes:
-- for each `Post comment`, post exactly one PR comment for that one finding
-- for each `Add to fix queue`, fix the finding directly on the PR branch
-- for each `Skip comment`, do nothing
-- if the loop stopped early, do not auto-handle remaining findings
-
-Comment format for each posted finding:
-
-```markdown
-[Severity: Must-fix|Should-fix|Nice-to-have] {specific issue summary}
-
-Why this matters:
-{concrete impact and failure mode}
-
-Affected code:
-- `{file}:{line-start}-{line-end}`: {what this code is doing and why it is wrong or risky}
-
-Suggested change:
-{clear and actionable fix direction}
-```
-
-Rules:
-- never combine multiple findings into one PR comment
-- if a queued fix is selected, invoke `superpowers:systematic-debugging` before editing code
-- run targeted verification for each fix before moving on
-- if a queued fix cannot be completed safely, record the reason and include it in `Z03`
-
----
-
-### Step 9: Create Z03 Documentation for Any Unposted Findings
-
-Create `Z03` only when findings remain unposted or unfixed.
-
-Create `Z03` when:
-- the decision loop stopped early
-- a finding was skipped
-- a queued fix could not be completed safely
-
-Do not create `Z03` when every finding was fully handled in-thread.
-
-Location rules:
-- look for existing workflow artifacts to detect the ongoing directory
-- default to `docs/ai/ongoing/` for this repository when no alternate location is already in use
-
-Filename:
-- `Z03_{kebab-case-pr-title}_review.md`
+Keep the task read-only unless the user explicitly asks to post comments or modify code. Treat a later posting or fix request as a separate task rather than silently extending this review.
 
 ## Red Flags
 
-- Looked up PR metadata before creating the progress plan
-- Looked up PR metadata before switching to the PR branch
-- Ran this workflow outside Plan mode
-- Started review before reading project context
-- Read the whole codebase instead of the changed-file set and needed context
-- Asked for one global action across all findings
-- Asked about `Finding 1` before printing the full findings index
-- Replaced `request_user_input` with prose fallback
-- Posted combined comments covering multiple findings
-- Fixed code directly without routing queued fixes through `superpowers:systematic-debugging`
+- Made the review depend on a particular collaboration mode or progress-plan tool
+- Treated a branch name as a stable review target
+- Checked out or modified the PR branch without a concrete need
+- Used unavailable feature plans to manufacture product intent
+- Selected specialists without observed risk signals
+- Selected no integrated reviewer
+- Trusted an uninspected reviewer result
+- Reported candidate findings without validating them
+- Reviewed only the initial head after the PR changed
+- Reran every specialist after a narrow update delta
+- Posted PR comments, changed code, or created workflow artifacts without an explicit request
 
 ## Success Criteria
 
-- Created the progress plan before PR inspection
-- Switched to the PR branch before review work
-- Read repo instructions and relevant project context
-- Reviewed changed files with an adversarial mindset
-- Printed the full findings index before any per-finding loop
-- Ran in Plan mode and used `request_user_input` for every finding decision
-- Posted one PR comment per accepted finding
-- Routed queued fixes through `superpowers:systematic-debugging`
-- Created `Z03_{kebab-case-pr-title}_review.md` only when unresolved findings remained
+- Bound the review to the PR's full base and head SHAs
+- Distinguished documented requirements from unknown intent
+- Built a compact evidence-based reviewer brief
+- Selected and inspected the smallest risk-appropriate independent reviewer set
+- Validated and dispositioned all candidate findings
+- Reviewed every PR update delta before finalizing
+- Reported actionable findings with exact code locations and concrete impact
+- Identified the final reviewed commit and verification limitations
+- Left the PR and working tree unchanged unless the user explicitly requested a mutation
