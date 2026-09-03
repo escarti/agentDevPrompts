@@ -8,7 +8,7 @@ This repository publishes the `feature-workflow` plugin through a Claude Code ma
 
 - Repository: `escarti/agentDevPrompts`
 - Plugin: `feature-workflow`
-- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, streamlined small-issue fixing, and superpowers bootstrap
+- Skills: research, planning, implementing, QA review, finishing, documenting, PR review/fix, and streamlined small-issue fixing
 
 ## Current Repository Layout
 
@@ -32,7 +32,6 @@ agentDevPrompts/
 │   ├── sync_prompts_from_commands.sh
 │   └── release.sh
 ├── skills/
-│   ├── load-superpowers/
 │   ├── feature-researching/
 │   ├── feature-planning/
 │   ├── feature-implementing/
@@ -51,21 +50,21 @@ agentDevPrompts/
 
 ## Skill Dependency Rules
 
-Repository workflows that depend on Superpowers must bootstrap with `load-superpowers` first.
+Superpowers is installed through the host runtime's plugin or marketplace flow. Repository skills invoke only the named capability when it is needed; they do not activate plugins or use a shared bootstrap layer.
 
-- Standalone:
-  - `feature-documenting`
-- Requires `load-superpowers` first:
-  - `feature-researching`
-  - `feature-planning`
-  - `feature-implementing`
-  - `feature-qa-review`
-  - `feature-finishing`
-  - `feature-pr-reviewing`
-  - `feature-pr-fixing`
-  - `fixing-small-issues`
+| Feature workflow | Superpowers dependency | Invocation point |
+| --- | --- | --- |
+| `feature-researching` | `superpowers:brainstorming` | Only when deeper product/design refinement is needed |
+| `feature-planning` | `superpowers:writing-plans` | When producing the Z02 implementation plan |
+| `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After the user selects execution mode |
+| `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |
+| `fixing-small-issues` | `superpowers:systematic-debugging`, `superpowers:test-driven-development`, `superpowers:verification-before-completion` | Inside the corresponding isolated phase agent |
+| `feature-qa-review` | None | Use native collaboration tools |
+| `feature-pr-reviewing` | None | Use native collaboration tools |
+| `feature-finishing` | None | Standalone |
+| `feature-documenting` | None | Standalone |
 
-Delegating workflows use the current runtime's native subagent tools through the platform mapping loaded by `superpowers:using-superpowers`. Do not launch nested Codex CLI processes for delegation.
+Delegating workflows use the current runtime's native collaboration tools. Do not launch nested Codex CLI processes for delegation.
 
 `fixing-small-issues` keeps its coordinator light: `superpowers:systematic-debugging` loads inside Phase 1 sub-agents, while `superpowers:test-driven-development` and `superpowers:verification-before-completion` load inside Phase 2 sub-agents. New features are out of scope; when Phase 1 diagnoses a feature gap, stop before Phase 2 and route the work to `feature-workflow:feature-researching`.
 
