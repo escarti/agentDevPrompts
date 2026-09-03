@@ -98,6 +98,15 @@ After install/update, restart Codex if needed to reload skills.
 - Run the static direct-dependency validator: `./scripts/validate_skill_dependencies.sh`
 - Ensure artifact conventions remain consistent (`docs/ai/ongoing/`, `Z01`-`Z06`)
 
+Run these release checks before committing or tagging:
+
+```bash
+./scripts/validate_skill_dependencies.sh
+./scripts/sync_prompts_from_commands.sh
+git diff --check
+git status --short
+```
+
 ## Versioning Guidance
 
 Use semantic versioning for tags:
