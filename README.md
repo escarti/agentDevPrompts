@@ -109,6 +109,40 @@ Remove any stale symlink or installed copy of the obsolete compatibility helper.
 
 The implementation-to-publication chain is enforced, not advisory. `feature-implementing` must invoke QA and cannot invoke finishing directly. QA binds evidence to exact commits, runs an integrated independent review plus only risk-required specialists, validates findings before they can block, and incrementally reviews approved fix deltas. Unresolved confirmed blockers, failed required verification, failed selected reviewers, or unreviewed implementation changes block progress. Only an explicitly accepted `PASS` may launch finishing. Finishing then audits documentation, records the change, obtains final publication approval, pushes without force, and opens a ready-for-review PR against `main`.
 
+### The implementation loop
+
+The feature flow has a durable outer sequence and a repeated implementation loop:
+
+```mermaid
+flowchart LR
+  R[Research<br/>Z01] --> P[Plan<br/>Z02 or tracker graph]
+  P --> B
+
+  subgraph I[Implement: repeat for each phase]
+    direction TB
+    B[Select a batch of 1-3<br/>dependency-ready tasks] --> E[Execute each task independently]
+    E --> C[Validate focused verification<br/>and one attributable commit per task]
+    C --> S[Persist progress and evidence<br/>Z99 or tracker + Z98]
+    S --> D{More work in<br/>this phase?}
+    D -- Yes --> B
+    D -- No --> H[Phase summary and check]
+  end
+
+  H --> N{Another phase?}
+  N -- Yes --> A[Human approval<br/>to enter next phase]
+  A --> B
+  N -- No --> V[Final targeted and<br/>regression verification]
+  V --> Q[Feature QA<br/>independent reviewer + risk-required specialists]
+  Q --> F[Finish: docs, Z05,<br/>publication approval, and PR]
+  F --> M[Team review and<br/>human-owned merge]
+```
+
+Within a batch, the orchestrator may select up to three compatible tasks or tracker children, normally two. This does **not** combine them: each item has its own attributable commit, focused verification, and structured result. In Subagent-Driven mode, each item also has its own Superpowers task. The workflow continues automatically between batches in a phase; it asks for human approval only before entering the next phase. If interrupted at a phase boundary, `Z99` (local-plan mode) or tracker state (tracker mode), together with `Z98`, provide the resume point.
+
+There are two distinct quality gates. The implementation loop validates each task and completes a phase check; only when another phase remains does it ask the human for approval to enter that next phase. After all phases and final verification, `feature-qa-review` independently reviews the final feature commit: one integrated reviewer is always required, with up to two risk-required specialists. A human must accept the resulting `PASS` before finishing can begin.
+
+`feature-finishing` prepares documentation and creates or updates a ready-for-review PR after explicit publication approval. It never merges; code review and merge remain human-owned team decisions outside this harness.
+
 ### Quick Guide (Intended Use)
 
 | Stage | Use this | Goal | Input | Output |
@@ -172,6 +206,7 @@ Implementation mode after planning:
 - Tracker execution is tracker-native. It must not create or rely on `Z99`.
 - Tracker execution uses one branch per parent roadmap issue or epic.
 - Both modes select 1-3 dependency-ready items from one phase, normally 2, and never cross a phase boundary to enlarge a batch.
+- A batch is a scheduling unit, not a merged implementation unit: every selected task or child still has its own commit, focused verification, and structured outcome; in Subagent-Driven mode, each also has its own Superpowers task.
 - In tracker execution, one completed child issue or task corresponds to one validated commit on that branch.
 - Every item retains its own commit, focused verification, and structured result even when several items share a batch.
 - Execution continues automatically between batches in the same phase and asks for approval only before entering the next phase.

@@ -19,6 +19,16 @@ Core invariants:
 - integrated targeted and required regression verification run once at the final runtime-affecting HEAD
 - implementation hands off to `feature-qa-review`, never directly to finishing
 
+## Batch and Task Boundaries
+
+Use these terms consistently:
+
+- **Phase**: an ordered group of work that ends with a phase check and approval before the next phase starts.
+- **Batch**: a scheduling group of 1-3 dependency-ready tasks or tracker children from one phase, normally two.
+- **Task or child**: the independent implementation unit. It retains its own attributable commit, focused verification, and structured result even when selected with other items in a batch. In Subagent-Driven mode, it also receives its own Superpowers task.
+
+A batch may contain multiple tasks; it does not merge them into one completion commit or, in Subagent-Driven mode, one Superpowers task. The controller continues automatically between batches in a phase and asks for approval only at the next phase boundary.
+
 ## Mandatory Progress Plan
 
 Create this plan before workflow actions:
