@@ -5,8 +5,8 @@
     "email": "necatus9@gmail.com"
   },
   "metadata": {
-    "description": "Feature workflows with research, planning, automated execution, commit-bound QA, documentation finalization, and ready-PR publication, plus streamlined issue fixing and review follow-up.",
-    "version": "2.1.2",
+    "description": "A structured harness for delivering one feature at a time.",
+    "version": "2.1.3",
     "license": "MIT"
   },
   "plugins": [
@@ -16,8 +16,8 @@
         "source": "url",
         "url": "https://github.com/escarti/agentDevPrompts.git"
       },
-      "description": "Feature and small-fix workflows with mandatory commit-bound QA for features, streamlined issue fixing, documentation finalization, approved ready-PR publication, development logging, and PR review/fix support.",
-      "version": "2.1.2",
+      "description": "Evidence-backed feature delivery workflows: research, planning, phased implementation, commit-bound QA, documentation, and ready-for-review PR preparation.",
+      "version": "2.1.3",
       "author": {
         "name": "Eduardo Escarti"
       }

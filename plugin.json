@@ -1,0 +1,47 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "feature-workflow",
+  "version": "2.1.3",
+  "description": "A structured harness for delivering one feature at a time.",
+  "author": {
+    "name": "Eduardo Escarti",
+    "email": "necatus9@gmail.com",
+    "url": "https://github.com/escarti"
+  },
+  "homepage": "https://github.com/escarti/agentDevPrompts",
+  "repository": "https://github.com/escarti/agentDevPrompts",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "feature-delivery",
+    "workflows",
+    "planning",
+    "quality-assurance",
+    "pull-requests"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Feature Delivery Harness",
+        "shortDescription": "Deliver one feature at a time with a structured, evidence-backed workflow.",
+        "longDescription": "Feature Delivery Harness turns a feature request into a repeatable, evidence-backed delivery workflow. It guides the one-time lifecycle of a feature: clarify intent, research the codebase, create an implementation plan, deliver in controlled phases, capture commit-bound verification evidence, run independent QA, update documentation, and prepare a pull request for human review. It leaves prioritization, team coordination, review, and merging with people and their existing tools.",
+        "developerName": "Eduardo Escarti",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Feature research",
+          "Implementation planning",
+          "Phased delivery",
+          "Commit-bound QA",
+          "Documentation and PR preparation"
+        ],
+        "websiteURL": "https://github.com/escarti/agentDevPrompts",
+        "defaultPrompt": [
+          "Research this feature and create a grounded implementation brief.",
+          "Plan this approved feature into implementation tasks.",
+          "Run independent QA for the current feature branch."
+        ],
+        "brandColor": "#2563EB"
+      }
+    }
+  }
+}

@@ -6,6 +6,20 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-09-10
+
+### Added
+- Added a native portable plugin manifest with Codex install-surface metadata for Feature Delivery Harness.
+
+### Changed
+- Renamed the Codex-facing plugin presentation to Feature Delivery Harness and clarified its one-feature-at-a-time delivery lifecycle.
+
+### Fixed
+- None.
+
+### Removed
+- None.
+
 ## [2.1.2] - 2026-09-10
 
 ### Added
