@@ -20,7 +20,7 @@ Its responsibilities are:
 - Investigate the repository and distinguish established decisions from open product or technical bifurcations
 - Run a conversational sparring loop for every meaningful bifurcation not settled by the prompt or repository evidence
 - Use `superpowers:brainstorming` as an internal refinement step when deeper product/design refinement is needed
-- Produce one complete repo-grounded research artifact: `Z01_{feature}_research.md`
+- Produce one complete repo-grounded research payload and persist it as either `Z01_{feature}_research.md` or a GitHub issue titled `[Idea] <display feature name>`
 
 **This skill produces a grounded feature specification, not an implementation plan.**
 
@@ -35,8 +35,9 @@ update_plan({
     {"step": "Step 2: Classify request definition level", "status": "pending"},
     {"step": "Step 3: Discover and resolve meaningful bifurcations conversationally", "status": "pending"},
     {"step": "Step 4: Explore code and repo touchpoints; return to Step 3 for newly discovered bifurcations", "status": "pending"},
-    {"step": "Step 5: Assemble candidate Z01 content without writing the artifact", "status": "pending"},
-    {"step": "Step 6: Verify provenance, completeness, and boundary; write Z01 only after the gate passes", "status": "pending"}
+    {"step": "Step 5: Assemble candidate research content without persisting it", "status": "pending"},
+    {"step": "Step 6: Verify provenance, completeness, and the research/planning boundary", "status": "pending"},
+    {"step": "Step 7: Choose and persist the validated research destination", "status": "pending"}
   ]
 })
 ```
@@ -48,13 +49,13 @@ update_plan({
 ```
 NO RESEARCH WITHOUT READING AGENTS.MD FIRST
 NO AUTONOMOUS CHOICE BETWEEN MEANINGFULLY DIFFERENT PRODUCT OR TECHNICAL PATHS
-NO Z01 WHILE A KNOWN MEANINGFUL BIFURCATION REMAINS UNRESOLVED
+NO RESEARCH PERSISTENCE WHILE A KNOWN MEANINGFUL BIFURCATION REMAINS UNRESOLVED
 NO Z01_CLARIFY FILE; CLARIFICATION HAPPENS LIVE IN THE RESEARCH CONVERSATION
-NO Z01 THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
-NO HANDOFF TO PLANNING UNTIL Z01 IS COMPLETE
+NO CANONICAL RESEARCH SOURCE THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
+NO HANDOFF TO PLANNING UNTIL A COMPLETE LOCAL Z01 OR GITHUB [IDEA] ISSUE EXISTS
 ```
 
-**If Z01 depends on external docs for core requirements:** Copy or summarize the required source context into Z01 and rewrite it to be self-contained.
+**If the research payload depends on external docs for core requirements:** Copy or summarize the required source context into the payload and rewrite it to be self-contained.
 
 **If the request remains broadly product-ambiguous after conversational sparring:** Escalate to `superpowers:brainstorming`.
 
@@ -76,7 +77,7 @@ Routine facts and mechanically determined details are not bifurcations. Immateri
 
 ## Research Output Contract
 
-**Z01 is a grounded feature specification.**
+**The persisted research payload is a grounded feature specification.**
 
 It must:
 - Stand on its own for planning
@@ -119,7 +120,7 @@ Why:
 
 ### Step 2: Classify Request Definition Level
 
-Before code exploration or artifact creation, classify the incoming request:
+Before code exploration or research persistence, classify the incoming request:
 
 **Low definition**
 - Only a couple of lines or an intention statement
@@ -136,7 +137,7 @@ Before code exploration or artifact creation, classify the incoming request:
 - Most decisions already have prompt or repository provenance
 - Still verify the request does not hide unresolved product intent behind detailed wording
 
-Definition level controls discovery depth, not whether collaboration occurs. Record the chosen classification and a short reason in Z01 under `Definition Level and Triage Result` after the decision loop is complete.
+Definition level controls discovery depth, not whether collaboration occurs. Record the chosen classification and a short reason in the research payload under `Definition Level and Triage Result` after the decision loop is complete.
 
 ---
 
@@ -159,7 +160,7 @@ Handle exactly one decision per turn. If several concerns are inseparable, expre
 
 The agent owns evidence gathering. Read the repository, eliminate contradicted options, identify relevant patterns, and form an informed recommendation before asking. Do not shift raw investigation work to the user.
 
-Do not write Z01 during this loop. If the conversation is interrupted, keep research in progress and resume at the unresolved decision; do not externalize questions into a clarification file.
+Do not persist research during this loop. If the conversation is interrupted, keep research in progress and resume at the unresolved decision; do not externalize questions into a clarification file.
 
 #### Low-definition requests
 
@@ -179,8 +180,8 @@ Critical constraints for that invocation:
 Tell the dependency:
 - It is being used to refine intent only
 - After refinement, control returns to `feature-researching`
-- Refined requirements must be merged back into `Z01_{feature}_research.md`
-- If brainstorming writes a spec because its own workflow requires it, treat that file as temporary input and fold the needed context into Z01
+- Refined requirements must be merged back into the candidate research payload
+- If brainstorming writes a spec because its own workflow requires it, treat that file as temporary input and fold the needed context into the research payload
 
 After broad intent is resolved, continue with Step 4. Return to this step for every new meaningful bifurcation found during repo exploration.
 
@@ -225,7 +226,7 @@ Prefer likely touchpoints and integration boundaries over false precision. Exact
 For every material choice found during exploration, apply the Decision Provenance Contract:
 - if the prompt specifies it, record it as user-specified
 - if repository evidence leaves no credible alternative, record it as repository-determined and cite the evidence
-- if credible alternatives remain, return to Step 3 and spar with the user before continuing toward Z01
+- if credible alternatives remain, return to Step 3 and spar with the user before continuing toward persistence
 
 Do not call an option repository-determined merely because it is common, familiar, simpler, or recommended. When the repository contains multiple viable patterns and no governing instruction selects one, that is an open bifurcation.
 
@@ -235,18 +236,22 @@ Do not call an option repository-determined merely because it is common, familia
 
 Only begin this step after repo exploration is complete and all known meaningful bifurcations are resolved in conversation.
 
-Assemble the complete candidate Z01 content in the current response context. Do not create or update the artifact yet; persistence happens only after the Step 6 gate passes.
+Assemble the complete candidate research content in the current response context. Do not create or update a local file or GitHub issue yet; persistence happens only after the Step 6 gate passes and the user chooses a destination in Step 7.
 
-**Scan for ongoing directory:**
+**Prepare the local destination metadata:**
 - Check for existing Z01 files
 - Common locations: `docs/ai/ongoing`, `.ai/ongoing`, `docs/ongoing`
-- Create default `docs/ai/ongoing` if none is found
+- Use default `docs/ai/ongoing` if none is found; create it only when the user chooses local persistence
 
-**Save ONGOING_DIR location** for Step 6.
+**Save ONGOING_DIR location** for Step 7 if local persistence is selected.
 
-**File**: `{ONGOING_DIR}/Z01_{feature}_research.md`
+**Local file candidate**: `{ONGOING_DIR}/Z01_{feature}_research.md`
 
-**Sanitize feature name:**
+**GitHub issue candidate**: `[Idea] <display feature name>`
+
+Keep a concise human-readable display feature name for the GitHub issue title.
+
+**Sanitize the local feature slug:**
 - Use snake_case: lowercase with underscores
 - Replace spaces and special chars with underscores
 - Remove quotes, slashes, colons
@@ -316,16 +321,16 @@ One paragraph: what is being proposed and why it matters.
 ```
 
 **Self-contained requirement (MANDATORY):**
-- Z01 must stand on its own for planning.
+- The selected canonical research source must stand on its own for planning.
 - Do not require readers to open idea/spec/PRD/ticket documents for core requirements.
-- If external docs are mentioned, summarize or copy the relevant requirements into Z01.
+- If external docs are mentioned, summarize or copy the relevant requirements into the research payload.
 - Phrases like `see spec`, `refer to ticket`, or `details in doc X` are only allowed for optional background, never for required planning inputs.
 
 ---
 
-### Step 6: Verify and Write the Complete Research Artifact
+### Step 6: Verify the Complete Research Payload
 
-Check the candidate Z01 content for completeness and boundary violations before writing the file.
+Check the candidate research content for completeness and boundary violations before persisting it.
 
 Move or remove anything that looks like:
 - exact implementation task breakdown
@@ -336,16 +341,46 @@ Move or remove anything that looks like:
 - unresolved options, questions, bifurcations, or assumptions
 - material decisions without user-specified or repository-determined provenance
 
-Research is **NOT complete** while a known meaningful bifurcation remains unresolved. Keep the research workflow in progress, return to the live Step 3 sparring loop, and do not create or hand off Z01.
+Research is **NOT complete** while a known meaningful bifurcation remains unresolved. Keep the research workflow in progress, return to the live Step 3 sparring loop, and do not create or hand off a local Z01 or GitHub `[Idea]` issue.
 
 **Only mark research complete when:**
 1. Every material decision is user-specified or repository-determined
-2. Z01 contains no unresolved options, questions, or agent-selected design assumptions
-3. Z01 is self-contained and grounded
-4. Z01 contains behavior, risks, dependencies, edge cases, and acceptance criteria
-5. Z01 stays on the research side of the research/planning boundary
+2. The payload contains no unresolved options, questions, or agent-selected design assumptions
+3. The payload is self-contained and grounded
+4. The payload contains behavior, risks, dependencies, edge cases, and acceptance criteria
+5. The payload stays on the research side of the research/planning boundary
 
-Only after all five checks pass, write the candidate content to `{ONGOING_DIR}/Z01_{feature}_research.md`. Artifact creation is the final action of this gate, not an input to it.
+Only after all five checks pass, continue to Step 7. Persistence is not an input to this gate.
+
+---
+
+### Step 7: Choose and Persist the Research Destination
+
+After Step 6 passes, honor a destination the user already explicitly selected. Otherwise, offer exactly these choices:
+- `Local Z01 file`
+- `GitHub [Idea] issue`
+
+The choices are alternative canonical research sources. Do not write both unless the user makes a separate explicit request after this workflow completes.
+
+#### Local Z01 file
+
+If the user chooses local persistence:
+1. Create `ONGOING_DIR` if needed.
+2. Write the validated payload to `{ONGOING_DIR}/Z01_{feature}_research.md`.
+3. Reread the file and verify that the persisted content matches the validated payload.
+4. Treat the local file as the canonical planning input.
+
+#### GitHub `[Idea]` issue
+
+If the user chooses GitHub persistence:
+1. Resolve the target repository. Default to the current repository unless the user explicitly names another repository.
+2. Build a preview containing the resolved repository, the exact title `[Idea] <display feature name>`, and the complete issue body.
+3. Use the validated research payload as the complete issue body. The issue must satisfy the same structure, self-containment, provenance, and completeness contract as a local Z01.
+4. Show the preview and request explicit approval before creating the issue. Do not treat the earlier destination choice as publication approval.
+5. After approval, create the issue, reread the published title and body, and verify them against the preview.
+6. Treat the published issue URL or owner/repository plus issue number as the canonical planning input. Do not create a local Z01.
+
+If the target is unresolved, the preview is not approved, publication fails, or published content does not match the approved preview, keep research incomplete and do not hand off to planning.
 
 ## Red Flags - You're Failing If:
 
@@ -356,20 +391,26 @@ Only after all five checks pass, write the candidate content to `{ONGOING_DIR}/Z
 - **Called a choice repository-determined while multiple viable repo patterns remained**
 - **Skipped the live sparring loop because the request was classified as high definition**
 - **Treated brainstorming as a separate workflow owner or canonical artifact instead of an internal refinement step**
-- **Allowed brainstorming artifacts to replace Z01 as the primary research artifact**
+- **Allowed brainstorming artifacts to replace the validated canonical research source**
 - **Skipped classification of the request as low/medium/high definition**
 - **Presented options without evidence, consequences, a recommendation, and a direct decision request**
 - **Asked more than one decision question in a turn instead of framing one composite decision**
-- **Wrote Z01 while a known meaningful bifurcation remained unresolved**
-- **Persisted a candidate Z01 before the Step 6 completeness gate passed**
+- **Persisted research while a known meaningful bifurcation remained unresolved**
+- **Persisted a candidate research payload before the Step 6 completeness gate passed**
+- **Persisted research before the user chose `Local Z01 file` or `GitHub [Idea] issue`**
+- **Created a GitHub issue without a resolved repository, complete preview, and explicit publication approval**
+- **Created both a local Z01 and GitHub issue without a separate explicit request**
+- **Published a GitHub research issue whose title did not use `[Idea] <display feature name>`**
+- **Published an `[Idea]` issue that was less complete or self-contained than the local Z01 contract**
+- **Handed off an unverified or unpublished `[Idea]` issue to planning**
 - **Created a Z01 clarification file or question backlog instead of continuing the conversation**
-- **Stored unresolved choices or agent-selected design assumptions in Z01**
-- **No triage result recorded in Z01**
-- **No decision provenance recorded in Z01**
+- **Stored unresolved choices or agent-selected design assumptions in the research payload**
+- **No triage result recorded in the research payload**
+- **No decision provenance recorded in the research payload**
 - **No edge cases or failure modes captured**
 - **No dependency/adaptation warnings captured**
-- **Z01 depends on external docs for core requirements**
-- **Z01 reads like an implementation plan instead of grounded research**
+- **The canonical research source depends on external docs for core requirements**
+- **The research payload reads like an implementation plan instead of grounded research**
 
 ## Common Rationalizations
 
@@ -381,13 +422,13 @@ Only after all five checks pass, write the candidate content to `{ONGOING_DIR}/Z
 | **"This is the simplest or most conventional path"** | **NO.** Simplicity and convention are tradeoff evidence, not user approval or a repository constraint. |
 | **"The repository uses this pattern in several places"** | **NO.** If another viable pattern also exists and no governing instruction selects one, surface the bifurcation. |
 | **"Brainstorming should own the whole flow for vague requests"** | **NO.** Brainstorming is an internal refinement tool here. Workflow and artifact ownership remain with research. |
-| **"I can put the unresolved choice in Z01 and let planning settle it"** | **NO.** Z01 is created only after all known meaningful bifurcations are resolved. |
+| **"I can put the unresolved choice in the research source and let planning settle it"** | **NO.** Research is persisted only after all known meaningful bifurcations are resolved. |
 | **"A clarification file lets me keep moving"** | **NO.** Research clarification is live. Keep the workflow in progress and wait for the user's decision. |
 | **"If I keep the conversation short, it doesn't need options or tradeoffs"** | **NO.** Every decision brief includes evidence, viable options, consequences, a recommendation, and one direct question. |
 | **"The repo touchpoints are obvious, I'll skip documenting risks"** | **NO.** Surfacing compatibility and adaptation risks is a core deliverable of research. |
 | **"Exact file edits belong in research so planning stays easy"** | **NO.** That collapses the stage boundary. Research should identify likely touchpoints, not replace planning. |
 | **"The user said to make sensible defaults"** | **NO.** That does not authorize material product or technical decisions with credible alternatives. |
-| **"Research is done because Z01 exists"** | **NO.** Z01 is valid only when its material decisions have provenance and no unresolved choices remain. |
+| **"Research is done because a file or issue exists"** | **NO.** A research source is valid only when its material decisions have provenance and no unresolved choices remain. |
 
 ## Success Criteria
 
@@ -401,14 +442,17 @@ You followed the workflow if:
 - ✓ Presented evidence, viable options, consequences, a recommendation, and one direct decision request
 - ✓ Asked exactly one decision question per turn
 - ✓ Used brainstorming internally for deeper refinement without surrendering workflow or artifact ownership
-- ✓ Recorded the triage result in Z01
-- ✓ Recorded resolved material decisions and their provenance in Z01
-- ✓ Produced a self-contained Z01 grounded in repo behavior and constraints
+- ✓ Recorded the triage result in the research payload
+- ✓ Recorded resolved material decisions and their provenance in the research payload
+- ✓ Produced a self-contained canonical research source grounded in repo behavior and constraints
 - ✓ Captured current state, proposed behavior, edge cases, risks, dependencies, and acceptance criteria
 - ✓ Used likely touchpoints/integration points instead of forcing planning-level edit detail
 - ✓ Kept research conversational and in progress until all known meaningful bifurcations were resolved
 - ✓ Created no Z01 clarification file or unresolved-question backlog
-- ✓ Created Z01 only after the decision loop completed
+- ✓ Persisted the research payload only after the decision loop completed
+- ✓ Honored an explicit destination selection, or otherwise offered `Local Z01 file` or `GitHub [Idea] issue`, only after the research payload passed the completeness gate
+- ✓ Previewed and explicitly approved GitHub publication before mutation
+- ✓ Persisted exactly one canonical research source and verified the stored content
 - ✓ Handed planning a grounded feature spec rather than a pseudo-plan
 
 ## When to Use
@@ -417,7 +461,7 @@ Use when:
 - You have a rough idea, partial spec, or well-defined feature request
 - You need one entry point that can refine intent and then ground the work in the repo
 - You need to surface integration risks, edge cases, constraints, and test criteria before planning
-- You want an evidence-led sparring partner for unresolved product and technical choices before a persistent research artifact is written
+- You want an evidence-led sparring partner for unresolved product and technical choices before research is persisted locally or as a GitHub `[Idea]` issue
 
 **Don't use when:**
 - The change is trivial enough that no research artifact is needed
@@ -427,13 +471,15 @@ Use when:
 
 If any meaningful bifurcation is unresolved:
 1. Keep the live research conversation and progress plan open.
-2. Do not create Z01 or hand off to planning.
+2. Do not persist research or hand off to planning.
 
-When all known meaningful bifurcations are resolved and Step 6 writes the validated Z01:
-1. Announce: `Research complete. Z01_research.md ready for planning.`
-2. Then proceed to planning workflow
+When all known meaningful bifurcations are resolved and Step 7 verifies the selected destination:
+1. For local persistence, announce: `Research complete. Z01_{feature}_research.md ready for planning.`
+2. For GitHub persistence, announce: `Research complete. [Idea] issue <issue reference> ready for planning.`
+3. Then proceed to planning workflow
 
 **What planning receives:**
+- The canonical local Z01 path or GitHub `[Idea]` issue reference
 - Patterns that MUST be preserved
 - Grounded feature behavior and explicit non-goals
 - Current repo state and likely touchpoints

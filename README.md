@@ -115,7 +115,7 @@ The feature flow has a durable outer sequence and a repeated implementation loop
 
 ```mermaid
 flowchart LR
-  R[Research<br/>Z01] --> P[Plan<br/>Z02 or tracker graph]
+  R[Research<br/>Z01 or Idea issue] --> P[Plan<br/>Z02 or tracker graph]
   P --> B
 
   subgraph I[Implement: repeat for each phase]
@@ -148,8 +148,8 @@ There are two distinct quality gates. The implementation loop validates each tas
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
 | Streamlined small fixes | `feature-workflow:fixing-small-issues` | Reproduce, diagnose, fix, commit, and verify through two context-isolated phases | GitHub issue or direct misbehavior report | Verified commit on a `bugfix/*` branch |
-| 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Act as an evidence-led sparring partner: investigate the repo, surface unresolved product and technical bifurcations, and create research only after the user resolves them | Rough idea, partial spec, or detailed request | Complete `Z01_*_research.md` |
-| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Complete Z01 research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
+| 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Act as an evidence-led sparring partner: investigate the repo, surface unresolved product and technical bifurcations, and create research only after the user resolves them | Rough idea, partial spec, or detailed request | Complete local `Z01_*_research.md` or GitHub `[Idea]` issue |
+| 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Complete local Z01 or GitHub `[Idea]` research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute phase-scoped batches from canonical Z02 or tracker state, preserving isolated commits and reusable verification evidence | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + `Z98_*_implementation_report.md` + mandatory QA handoff |
 | 4. Commit-bound QA gate | `feature-workflow:feature-qa-review` | Run a risk-adaptive independent review, validate findings, reuse valid verification evidence, and review implementation fix deltas incrementally | Implemented code + verification evidence + tracker or Z01/Z02 context | Accepted `PASS` or `BLOCKED`, finding dispositions, verification evidence, and `Z06_{feature}_qa_review.md` |
 | 5. Documentation and publication gate | `feature-workflow:feature-finishing` | Validate the accepted QA commit, remove documentation drift, record changes, and publish only after final approval | Accepted Z06 with zero unresolved blockers + implementation and documentation context | `Z05_*`, finalization commit, pushed branch, and ready-for-review PR |
@@ -157,9 +157,9 @@ There are two distinct quality gates. The implementation loop validates each tas
 
 `feature-researching` uses decision provenance at every definition level. A decision may be adopted when the prompt specifies it or repository evidence leaves no credible alternative. When multiple meaningful product or technical paths remain, research presents the evidence and repo patterns, viable options, consequences, and a recommendation, then asks the user to decide one bifurcation at a time.
 
-Clarification happens live inside the research conversation. `feature-researching` does not create a `Z01_CLARIFY` question backlog or write a partial Z01. If the conversation pauses, research remains in progress and resumes at the unresolved decision. The final `Z01_*` artifact is created only after all known meaningful bifurcations are resolved.
+Clarification happens live inside the research conversation. `feature-researching` does not create a `Z01_CLARIFY` question backlog or persist partial research. If the conversation pauses, research remains in progress and resumes at the unresolved decision. After all known meaningful bifurcations are resolved, the validated research payload can be stored either as a local `Z01_*` artifact or as a GitHub issue titled `[Idea] <display feature name>`.
 
-`feature-researching` may still invoke `superpowers:brainstorming` internally for low-definition inputs or deeper product-level ambiguity. Brainstorming remains an internal refinement step: it can help shape the direction, but `feature-researching` still owns the stage, the live decision loop, and the canonical `Z01_*` artifact.
+`feature-researching` may still invoke `superpowers:brainstorming` internally for low-definition inputs or deeper product-level ambiguity. Brainstorming remains an internal refinement step: it can help shape the direction, but `feature-researching` still owns the stage, the live decision loop, and the canonical local Z01 or GitHub `[Idea]` research source.
 
 Use the full flow for large features where discovery, planning, and execution need strict structure.
 
@@ -181,11 +181,18 @@ It accepts a GitHub issue or a direct misbehavior report, creates no Z artifacts
 ### Full feature workflow details
 
 Common temporary artifacts:
-- `docs/ai/ongoing/Z01_{feature}_research.md`
+- `docs/ai/ongoing/Z01_{feature}_research.md` when local research persistence is selected
 - `docs/ai/ongoing/Z02_{feature}_plan.md`
 - `docs/ai/ongoing/Z02_CLARIFY_{feature}_plan.md` (only when planning discovers new blockers)
 - `docs/ai/ongoing/Z98_{feature}_implementation_report.md` (commit-bound implementation and verification evidence)
 - `docs/ai/ongoing/Z98_{feature}_batch_{phase}_{batch}_plan.md` while a Superpowers batch is active or resumable
+
+Research persistence and planning input:
+- `feature-researching` validates one self-contained research payload, then honors an already selected destination or offers `Local Z01 file` and `GitHub [Idea] issue`.
+- GitHub publication uses `[Idea] <display feature name>`, previews the resolved repository, title, and complete body, and requires separate explicit approval before mutation.
+- The local file and GitHub issue are alternative canonical sources; the GitHub path does not also create a local Z01.
+- `feature-planning` accepts either source, applies the same completeness and decision-provenance gate, and creates the local `Z02_*_plan.md` from the selected source.
+- When no source is named and multiple local and/or GitHub research candidates exist, planning asks which one to use.
 
 Optional tracker publication after planning:
 - `feature-planning` can preview and publish the approved `Z02_*_plan.md` into:
@@ -231,7 +238,7 @@ QA and finishing gates:
 - Finishing stages only intended files, asks for explicit publication approval, pushes without force, and opens a ready-for-review PR against `main`.
 
 Clarification gates:
-- Research stays conversational and does not create Z01 while meaningful product or technical bifurcations remain unresolved.
+- Research stays conversational and is not persisted locally or to GitHub while meaningful product or technical bifurcations remain unresolved.
 - Planning is not complete while `Z02_CLARIFY_*_plan.md` has unresolved questions.
 - The workflow must stay in the current stage and wait; research resumes the live sparring loop, while planning incorporates its clarify items and removes or empties the Z02 clarify file.
 

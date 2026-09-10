@@ -1,6 +1,6 @@
 ---
 name: feature-planning
-description: Use after complete Z01 research exists and the feature needs an implementation plan
+description: Use after complete feature research exists locally or in a GitHub Idea issue and the feature needs an implementation plan
 ---
 
 # Feature Workflow: Plan Implementation
@@ -16,7 +16,7 @@ description: Use after complete Z01 research exists and the feature needs an imp
 **This skill is a wrapper around `superpowers:writing-plans`.**
 
 Its job is to:
-- load repo constraints and `Z01` inputs
+- load repo constraints and a local `Z01` or GitHub `[Idea]` research input
 - require resolved research before planning
 - invoke `superpowers:writing-plans`
 - enforce the `Z02` / `Z02_CLARIFY` artifact contract used by this workflow
@@ -29,7 +29,7 @@ update_plan({
   "explanation": "Tracking feature planning workflow",
   "plan": [
     {"step": "Step 1: Load project context (AGENTS.md first, CLAUDE.md if it exists)", "status": "in_progress"},
-    {"step": "Step 2: Find and validate Z01 inputs", "status": "pending"},
+    {"step": "Step 2: Resolve and validate the canonical research input", "status": "pending"},
     {"step": "Step 3: Invoke superpowers:writing-plans with the Z02 contract", "status": "pending"},
     {"step": "Step 4: Verify Z02 outputs and required phase metadata", "status": "pending"},
     {"step": "Step 5: Ask whether to publish the approved Z02 plan to a tracker", "status": "pending"},
@@ -57,27 +57,41 @@ Pass those repo-specific constraints into `superpowers:writing-plans`.
 
 ---
 
-### Step 2: Find and Validate Z01 Inputs
+### Step 2: Resolve and Validate the Canonical Research Input
 
-`feature-planning` requires existing research artifacts.
+`feature-planning` requires one complete canonical research source in either form:
+- local file: `Z01_{feature}_research.md`
+- GitHub issue: `[Idea] <display feature name>`
 
-Rules:
-- Default to `docs/ai/ongoing/` for this repository.
-- If existing workflow artifacts are already under another ongoing directory, use that discovered directory instead.
-- Determine the feature slug from `Z01_{feature}_research.md`.
+#### Resolve the source
 
-Required inputs:
-- `Z01_{feature}_research.md`
+1. If the user names a local Z01 path or GitHub issue URL/reference, use that source. Do not substitute a different candidate if the named source cannot be read or validated.
+2. Otherwise, discover local `Z01_*_research.md` files in the repository's ongoing directory and GitHub issues whose titles begin exactly with `[Idea] ` in the current repository.
+3. If exactly one candidate exists, use it.
+4. If multiple local and/or GitHub candidates exist, ask which feature to plan. Present enough source identity to distinguish them: local path or GitHub repository and issue number, plus the feature name.
+5. If no candidate exists, stop and direct the user to `feature-workflow:feature-researching` first. Do not proceed without research unless the user explicitly overrides this workflow.
 
-If multiple `Z01_*_research.md` files exist:
-- use the one the user asked for
-- otherwise ask which feature to plan
+For local discovery:
+- default to `docs/ai/ongoing/`
+- if workflow artifacts already use another ongoing directory, use that discovered directory
 
-If no `Z01_{feature}_research.md` exists:
-- stop and direct the user to `feature-researching` first
-- do not proceed without research unless the user explicitly overrides this workflow
+For GitHub discovery and reads:
+- use the current repository unless the user names another repository
+- accept an issue in any state when it is explicitly named
+- require the exact `[Idea] ` title prefix; a label named `Idea` or an incidental mention of the word is not sufficient
+- read the complete current issue title and body before validating it
+- if GitHub access fails, report the external blocker instead of guessing from a partial result or silently choosing another source
 
-Z01 is a completed research artifact. Before planning, verify it contains:
+#### Derive planning identity
+
+- From a local source, derive the feature slug from `Z01_{feature}_research.md`.
+- From a GitHub source, remove the `[Idea] ` prefix to obtain the display feature name, then derive the feature slug using the research workflow's snake_case, special-character removal, and 50-character limit.
+- Use the feature slug for `{ONGOING_DIR}/Z02_{feature}_plan.md`. A GitHub research source does not require or authorize creation of a local Z01.
+- Default `ONGOING_DIR` to `docs/ai/ongoing/` when the selected GitHub source has no local ongoing directory context; prefer an already established repository ongoing directory when one exists.
+
+#### Validate the source
+
+Before planning, verify the selected local file or GitHub issue contains:
 - summary and self-contained source requirements
 - definition-level triage result
 - a decision-provenance record for material product and technical choices
@@ -88,9 +102,11 @@ Z01 is a completed research artifact. Before planning, verify it contains:
 - testing expectations and acceptance criteria
 - no open questions, unresolved bifurcations, competing options without a selection, or agent-selected design assumptions
 
-If Z01 is incomplete, stop and report: `Research artifact is incomplete. Resume feature-workflow:feature-researching and resolve the remaining decisions conversationally before planning.`
+Apply this contract identically to both source forms. A GitHub issue is not valid merely because its title has the `[Idea] ` prefix.
 
-Extract from Z01:
+If the source is incomplete, stop and report: `Research source is incomplete. Resume feature-workflow:feature-researching and resolve the remaining decisions conversationally before planning.`
+
+Extract from the selected source:
 - grounded behavior and explicit non-goals
 - repo touchpoints and constraints
 - resolved decisions and their provenance
@@ -105,11 +121,11 @@ If `superpowers:writing-plans` is unavailable, stop at this step and report its 
 
 Provide a compact instruction that adds only this workflow's contract:
 
-`Create the implementation plan from Z01 research and save it to {ONGOING_DIR}/Z02_{feature}_plan.md. Preserve AGENTS.md / CLAUDE.md constraints. Keep the plan phase-aware for feature-implementing.`
+`Create the implementation plan from the validated research source and save it to {ONGOING_DIR}/Z02_{feature}_plan.md. Preserve AGENTS.md / CLAUDE.md constraints. Keep the plan phase-aware for feature-implementing.`
 
 The wrapper-owned `Z02` contract is:
 - output path must be `{ONGOING_DIR}/Z02_{feature}_plan.md`
-- feature slug must match the discovered `Z01` artifact
+- feature slug must match the resolved local Z01 or GitHub `[Idea]` source
 - plan must include explicit `## Phase N: <name>` sections
 - each phase must include `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
 - each task must include a stable phase field: `**Phase:** Phase N`
@@ -124,7 +140,7 @@ Do not restate generic `writing-plans` requirements that skill already owns.
 
 Planning output is valid only if all of the following are true:
 - `Z02_{feature}_plan.md` exists in `ONGOING_DIR`
-- the feature slug matches the source `Z01`
+- the feature slug matches the resolved research source
 - `Z02_CLARIFY_{feature}_plan.md` exists only when new blocking questions were discovered
 - `Z02_{feature}_plan.md` contains at least one `## Phase N: <name>` section
 - every phase contains `**Phase Goal:**`, `**Phase Verification:**`, and `**Phase Boundary Rule:**`
@@ -267,8 +283,12 @@ Report to the user:
 
 ## Red Flags
 
-- Proceeded without `Z01_{feature}_research.md`
-- Planned from a Z01 with unresolved decisions or missing decision provenance
+- Proceeded without a complete local Z01 or GitHub `[Idea]` research source
+- Planned from a research source with unresolved decisions or missing decision provenance
+- Treated a GitHub issue as research without reading its complete current title and body
+- Accepted a GitHub issue without the exact `[Idea] ` title prefix
+- Silently chose among multiple local and/or GitHub research candidates
+- Created a local Z01 while planning from a GitHub `[Idea]` source
 - Failed to pass repo constraints into `writing-plans`
 - Saved `Z02` to the wrong directory or with the wrong feature slug
 - Accepted a plan with missing phase metadata
@@ -296,8 +316,9 @@ Report to the user:
 ## Success Criteria
 
 - Read `AGENTS.md` and `CLAUDE.md` if present
-- Required `Z01` research before planning
-- Rejected incomplete Z01 research and routed unresolved decisions back to live feature research
+- Required complete research before planning from either a local Z01 or GitHub `[Idea]` issue
+- Resolved an explicit source first and otherwise handled local and GitHub candidates without guessing
+- Rejected incomplete research from either source form and routed unresolved decisions back to live feature research
 - Invoked `superpowers:writing-plans`
 - Enforced the `Z02_{feature}_plan.md` path and feature slug
 - Verified `## Phase N`, `**Phase Goal:**`, `**Phase Verification:**`, `**Phase Boundary Rule:**`, and `**Phase:** Phase N`
@@ -319,12 +340,12 @@ Report to the user:
 ## When to Use
 
 Use when:
-- `Z01_{feature}_research.md` exists
-- Z01 contains complete research with resolved, provenance-backed material decisions
+- `Z01_{feature}_research.md` or a GitHub `[Idea] <display feature name>` issue exists
+- the selected source contains complete research with resolved, provenance-backed material decisions
 - you need a `Z02` plan artifact that is ready for `feature-implementing`
 
 Don't use when:
-- no `Z01` research exists
-- Z01 still contains unresolved research decisions
+- no complete local Z01 or GitHub `[Idea]` research source exists
+- the selected research source still contains unresolved decisions
 - planning clarifications are unresolved
 - the work is already fully planned in the required `Z02` format
