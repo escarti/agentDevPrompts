@@ -6,6 +6,20 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-09-10
+
+### Added
+- Added a visual implementation-loop guide covering batches, phase approvals, final verification, QA, and publication.
+
+### Changed
+- Clarified that implementation batches are scheduling units: each selected task retains its own commit, focused verification, and structured outcome.
+
+### Fixed
+- None.
+
+### Removed
+- None.
+
 ## [2.1.0] - 2026-09-03
 
 ### Added
