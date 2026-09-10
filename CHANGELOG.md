@@ -6,6 +6,20 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-09-10
+
+### Added
+- None.
+
+### Changed
+- Synchronized the feature-workflow marketplace and plugin manifests with the 2.1.2 marketplace release.
+
+### Fixed
+- Restored version consistency between the installed plugin metadata and release tags.
+
+### Removed
+- None.
+
 ## [2.1.1] - 2026-09-10
 
 ### Added
