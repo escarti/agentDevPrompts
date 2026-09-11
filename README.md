@@ -196,16 +196,17 @@ Research persistence and planning input:
 
 Optional tracker publication after planning:
 - `feature-planning` can preview and publish the approved `Z02_*_plan.md` into:
-  - GitHub: one parent roadmap issue plus coherent child implementation slices with explicit Z02-task traceability
-  - Jira: one epic plus coherent child implementation slices with explicit Z02-task traceability
-- Publication is never automatic. The workflow previews destination, tasks, and dependencies first and waits for explicit approval before mutation.
+  - GitHub: one parent roadmap issue plus exactly one child issue per Z02 task
+  - Jira: one epic plus exactly one child task per Z02 task
+- Publication is never automatic. The workflow honors a tracker mode already stated by the user and asks for GitHub, Jira, or no publication only when no mode was selected. A proposal or preview request selects preview mode but does not authorize remote publication; the workflow still previews destination, tasks, and dependencies and waits for explicit approval before mutation.
 - `Z02_*_plan.md` remains the canonical local planning artifact even when tracker items are published. Tracker items are a projection of the approved Z02, not a separate planning flow.
-- Published tracker items must be self-contained. They must not rely on links to `Z0X` workflow files, local file paths, or other transient local artifacts for required implementation context.
-- GitHub and Jira child items own behavior-specific tests and focused verification; the parent owns phase-level and full-feature verification that runs once after all children complete.
+- The complete parent-and-children tracker graph must be self-contained. It must not rely on links to `Z0X` workflow files, local file paths, or other transient local artifacts for required implementation context.
+- Tracker publication is lossless: the parent and children together must contain enough information to reconstruct the complete Z02 implementation contract. Publication must not merge, split, summarize, reorder, reinterpret, or normalize Z02 tasks or their verification.
+- The parent and each child together form a self-contained execution packet. The parent stores plan-wide context once; each child preserves its task-specific Z02 content and adds only child-specific execution context not already present in the parent. The implementation orchestrator provides both to the implementing agent.
 - GitHub publication uses a strict title pattern for easy scanning:
   - parent issue: `[Epic] <feature name>`
-  - child issue: `[Slice X][Parent #N] <slice title>`
-- Jira child tasks use `[Slice X] <slice title>`.
+  - child issue: `[Task N][Parent #E] <task title>`
+- Jira child tasks use `[Task N] <task title>`.
 
 Implementation mode after planning:
 - Local-plan execution keeps `Z02_*_plan.md` as source of truth and `Z99_implementation_status.md` as the live execution tracker.

@@ -6,6 +6,14 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-11
+
+### Added
+- Added GitHub `[Idea]` issues as an alternative canonical feature-research source and planning input alongside local `Z01_*_research.md` files.
+
+### Fixed
+- Restored lossless tracker publication in `feature-planning`: GitHub and Jira now create exactly one child per canonical Z02 task and preserve enough parent/child content to reconstruct the complete implementation contract without synthesized slices, summarization, or verification normalization.
+
 ## [2.1.3] - 2026-09-10
 
 ### Added
