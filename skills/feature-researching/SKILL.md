@@ -16,7 +16,8 @@ description: Use when beginning feature work from a rough idea, partial specific
 **This skill is the single feature-workflow entry point.**
 
 Its responsibilities are:
-- Classify the incoming request as low-, medium-, or high-definition
+- Triage the request, supplied references, and evidence needed to establish the intended feature and verify target feasibility
+- Orchestrate the research: determine needed evidence, divide independent research surfaces into bounded assignments when delegation materially improves coverage, and reconcile and verify returned findings
 - Investigate the repository and distinguish established decisions from open product or technical bifurcations
 - Run a conversational sparring loop for every meaningful bifurcation not settled by the prompt or repository evidence
 - Use `superpowers:brainstorming` as an internal refinement step when deeper product/design refinement is needed
@@ -32,9 +33,9 @@ update_plan({
   "plan": [
     {"step": "Step 0: Confirm session mode", "status": "in_progress"},
     {"step": "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", "status": "pending"},
-    {"step": "Step 2: Classify request definition level", "status": "pending"},
-    {"step": "Step 3: Discover and resolve meaningful bifurcations conversationally", "status": "pending"},
-    {"step": "Step 4: Explore code and repo touchpoints; return to Step 3 for newly discovered bifurcations", "status": "pending"},
+    {"step": "Step 2: Triage the request, supplied references, and initial evidence needs", "status": "pending"},
+    {"step": "Step 3: Clarify the intended feature and establish source evidence conversationally", "status": "pending"},
+    {"step": "Step 4: Verify target feasibility through focused research; return to Step 3 for material mismatches", "status": "pending"},
     {"step": "Step 5: Assemble candidate research content without persisting it", "status": "pending"},
     {"step": "Step 6: Verify provenance, completeness, and the research/planning boundary", "status": "pending"},
     {"step": "Step 7: Choose and persist the validated research destination", "status": "pending"}
@@ -49,6 +50,8 @@ update_plan({
 ```
 NO RESEARCH WITHOUT READING AGENTS.MD FIRST
 NO AUTONOMOUS CHOICE BETWEEN MEANINGFULLY DIFFERENT PRODUCT OR TECHNICAL PATHS
+NO MATERIAL INTERPRETATION WITHOUT STATING THE ASSUMPTION AND GETTING USER CONFIRMATION
+NO USE OF A SUPPLIED REFERENCE AS EVIDENCE BEFORE ITS AUTHORITY IS CONFIRMED
 NO RESEARCH PERSISTENCE WHILE A KNOWN MEANINGFUL BIFURCATION REMAINS UNRESOLVED
 NO Z01_CLARIFY FILE; CLARIFICATION HAPPENS LIVE IN THE RESEARCH CONVERSATION
 NO CANONICAL RESEARCH SOURCE THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
@@ -69,9 +72,17 @@ Every material research decision must have one of these provenances:
 
 Adopt user-specified and repository-determined decisions. For every open bifurcation, investigate, recommend, and ask; do not choose.
 
+Whenever interpreting missing or ambiguous information could affect scope, behavior, architecture, contracts, data, compatibility, security, operations, testing, or acceptance criteria, state the assumption and ask the user to confirm it, even if the interpretation appears obvious: “I’m assuming X because Y. Is that correct?” A confirmed answer becomes user-specified provenance. Do not turn routine mechanical facts into questions. Research cannot be persisted while a material implicit assumption remains unconfirmed.
+
+Supplied references must be classified and confirmed individually before they influence research:
+- **Light reference**: inspiration, examples, patterns, or ideas only. It establishes no requirement, fidelity, compatibility, or parity; anything borrowed is a proposal requiring explicit user acceptance.
+- **Hard reference**: authoritative specification evidence. Its applicable behavior, contracts, data, UX, or operational characteristics are requirements unless the user explicitly excludes or changes them.
+
+Propose the role from the user’s wording, then ask for confirmation. `1:1`, `copy exactly`, `port`, and `preserve parity` normally propose hard-reference treatment; `like`, `similar to`, `inspired by`, and `feel like` normally propose light-reference treatment. Ask separately for each supplied reference; do not silently give them equal authority.
+
 A bifurcation is meaningful when its alternatives materially affect user-visible behavior, scope, architecture, component boundaries, APIs, schemas, persistence, security, permissions, privacy, failure behavior, compatibility, migration, operations, dependencies, delivery complexity, maintainability, testing strategy, acceptance criteria, or costly-to-reverse future flexibility.
 
-This rule applies equally to product and technical decisions. Model confidence, a preferred recommendation, time pressure, or a high-definition prompt does not establish provenance.
+This rule applies equally to product and technical decisions. Model confidence, a preferred recommendation, time pressure, or detailed wording does not establish provenance.
 
 Routine facts and mechanically determined details are not bifurcations. Immaterial implementation details that are readily reversible belong in planning or implementation, not in a research assumption.
 
@@ -118,35 +129,40 @@ Why:
 
 ---
 
-### Step 2: Classify Request Definition Level
+### Step 2: Triage the Request, References, and Evidence Needs
 
-Before code exploration or research persistence, classify the incoming request:
+Before source investigation, target-feasibility research, or persistence, identify:
+- The requested outcome and missing material intent
+- Each supplied reference and its proposed light or hard role
+- Evidence needed to establish the intended feature
+- Evidence needed later to verify feasibility in the target repository
+- The next blocking clarification, reference-authority confirmation, or source investigation
 
-**Low definition**
-- Only a couple of lines or an intention statement
-- No clear behavior, scope boundaries, or success criteria
-- Requires broad intent decisions before repo-grounded research can converge
-
-**Medium definition**
-- Some desired behavior is described
-- Important scope, UX, contract, compatibility, or test expectations are still missing
-- Enough detail exists to ask a small number of targeted questions before deciding whether research can proceed
-
-**High definition**
-- Desired behavior, scope, and success criteria are mostly clear
-- Most decisions already have prompt or repository provenance
-- Still verify the request does not hide unresolved product intent behind detailed wording
-
-Definition level controls discovery depth, not whether collaboration occurs. Record the chosen classification and a short reason in the research payload under `Definition Level and Triage Result` after the decision loop is complete.
+Do not inspect or use a reference as evidence before its role is confirmed. Do not perform target-feasibility research until the intended feature is sufficiently disambiguated. Record the triage result in the research payload.
 
 ---
 
-### Step 3: Run the Conversational Sparring Loop
+### Step 3: Clarify the Intended Feature and Establish Source Evidence
 
-Use the definition level only to decide where discovery begins:
-- **Low definition**: begin with broad intent and scope bifurcations, then narrow into repo-grounded technical choices.
-- **Medium definition**: identify missing material decisions and spar on them before finalizing research.
-- **High definition**: move efficiently through established decisions, but still surface any meaningful product or technical gaps hidden by detailed wording.
+#### Reference authority and research orchestration
+
+Before using a supplied repository, website, document, issue, image, wireframe, running application, API, dataset, or other material as evidence, infer its light or hard role from the wording and ask the user to confirm it. For example: “You said you want something like this website, so I’m treating it as light inspiration rather than a specification. Is that correct?” or “You requested a 1:1 port, so I’m treating this repository as a hard reference whose applicable behavior must be preserved. Is that correct?”
+
+The researcher owns the final disambiguated specification, not every investigation. Determine the evidence needed and use focused research subagents when they materially improve coverage; do not require delegation for trivial research. Give each assignment one bounded question and evidence scope, then reconcile and verify its output as evidence rather than accepting it as truth. Identify contradictions, omissions, access limitations, and unresolved material decisions; interview the user about those decisions one at a time.
+
+After a reference role is confirmed, use the smallest adequate number of focused research sub-agents: at most one for a light reference and one to three for a hard reference. Three is a ceiling, not a default. Select only relevant independent surfaces, such as observable workflows, contracts, data artifacts, UX, operations, dependencies, permissions, failure behavior, or acceptance semantics.
+
+#### Research sub-agent model selection
+
+The orchestrator owns all material judgment, synthesis, recommendations, user interviews, feasibility conclusions, and the final specification.
+
+Research sub-agents are bounded evidence collectors:
+- Use `gpt-5.6-terra` for focused source or repository inspection that needs reliable code or documentation comprehension.
+- Use `gpt-5.6-luna` for narrow mechanical collection tasks, such as inventories, enumeration, or extracting already-identifiable facts.
+
+Sub-agents must not select requirements, resolve contradictions, recommend architecture, determine feasibility, or interview the user. They return only inspected evidence, citations or locations, access limitations, and unanswered questions.
+
+Use confirmed source evidence and the prompt to establish what the user wants to build, independently of the target repository's preferred architecture. A light-reference finding remains a proposal until the user explicitly accepts it. A hard-reference baseline must record what was inspected, established, contradicted, inaccessible or unverified, and still requires a user decision.
 
 For each open bifurcation, present this compact decision brief:
 
@@ -158,15 +174,11 @@ For each open bifurcation, present this compact decision brief:
 
 Handle exactly one decision per turn. If several concerns are inseparable, express them as constraints or consequences within one composite decision and still ask only one question. Stop after the decision request and wait for the user's answer. Record the answer, continue discovery, and repeat until no known open bifurcation remains.
 
-The agent owns evidence gathering. Read the repository, eliminate contradicted options, identify relevant patterns, and form an informed recommendation before asking. Do not shift raw investigation work to the user.
+The agent owns evidence gathering. Investigate source material, eliminate contradicted options, identify relevant patterns, and form an informed recommendation before asking. Do not shift raw investigation work to the user.
 
 Do not persist research during this loop. If the conversation is interrupted, keep research in progress and resume at the unresolved decision; do not externalize questions into a clarification file.
 
-#### Low-definition requests
-
-Start with an explicit conversational refinement phase inside `feature-researching`.
-
-If the request still needs deeper product/design shaping after that first exchange, use `superpowers:brainstorming` as an **internal refinement step**.
+If intent remains broadly product- or design-ambiguous after conversational sparring, use `superpowers:brainstorming` as an **internal refinement step**.
 
 Immediately before this refinement, load and follow the installed `superpowers:brainstorming` skill. If it is unavailable, stop and report that `superpowers:brainstorming` is missing; instruct the user to install or enable the Superpowers plugin and start a new session before retrying.
 
@@ -183,32 +195,17 @@ Tell the dependency:
 - Refined requirements must be merged back into the candidate research payload
 - If brainstorming writes a spec because its own workflow requires it, treat that file as temporary input and fold the needed context into the research payload
 
-After broad intent is resolved, continue with Step 4. Return to this step for every new meaningful bifurcation found during repo exploration.
-
-#### Medium-definition requests
-
-Ask targeted decision questions inside `feature-researching` before repo exploration when they will materially sharpen research.
-
-Use those questions to resolve:
-- Scope boundaries
-- User-visible behavior
-- Acceptance/test intent
-- Contract assumptions
-- Compatibility expectations
-
-After the answers:
-- If the request is now clear enough for research, continue with Step 4
-- If ambiguity remains primarily product/design-level, escalate to `superpowers:brainstorming` using the same internal-refinement constraints as low-definition requests
-
-#### High-definition requests
-
-Proceed to Step 4 after resolving known open bifurcations. Detailed wording is not permission to fill gaps: if a meaningful product or technical path lacks user or repository provenance, run the same sparring loop first.
+Continue until the desired feature has no unresolved material scope, behavior, contract, data, compatibility, security, operations, testing, or acceptance-criteria assumptions. At that point, the intended feature is disambiguated but is not yet assumed feasible in the target repository. Continue with Step 4. Return here whenever feasibility evidence exposes a material mismatch or new intent decision.
 
 ---
 
-### Step 4: Explore Code and Repo Touchpoints
+### Step 4: Verify Target Feasibility Through Focused Research
 
-Find related files, search for patterns, read key files, and ground the request in what the repo can already do.
+Assess the disambiguated intended feature against the target repository. Find related files, search for patterns, read key files, and ground feasibility in what the repository can already do.
+
+For a confirmed hard reference, Step 3 must first have synthesized its source baseline; never invent missing evidence. Use the smallest adequate number of focused research sub-agents when independent target surfaces materially improve coverage. Relevant surfaces may include frontend, backend/API, data sources and schemas, operations, security, dependencies, permissions, or testing. Give each sub-agent one bounded question and evidence scope, then reconcile and verify the findings.
+
+Identify existing capabilities, constraints, reusable patterns, conflicts, missing infrastructure, and compatibility risks. Only after source evidence and target feasibility are understood may the workflow present implementation or architectural options. Do not reshape the source specification around a preferred target architecture before understanding the source.
 
 Document:
 - Current behavior and current limitations
@@ -230,11 +227,13 @@ For every material choice found during exploration, apply the Decision Provenanc
 
 Do not call an option repository-determined merely because it is common, familiar, simpler, or recommended. When the repository contains multiple viable patterns and no governing instruction selects one, that is an open bifurcation.
 
+If feasibility evidence exposes a material mismatch, limitation, or newly meaningful decision, return to Step 3. Clarify the intended feature with the user, then repeat this step against the revised intent. Continue until the intended feature is disambiguated and the target repository has been assessed against that exact intent.
+
 ---
 
 ### Step 5: Assemble Candidate Research Content
 
-Only begin this step after repo exploration is complete and all known meaningful bifurcations are resolved in conversation.
+Only begin this step after the intent-feasibility loop is complete: the intended feature is disambiguated, target feasibility has been verified against that intent, and no known material decision remains unresolved.
 
 Assemble the complete candidate research content in the current response context. Do not create or update a local file or GitHub issue yet; persistence happens only after the Step 6 gate passes and the user chooses a destination in Step 7.
 
@@ -271,9 +270,16 @@ One paragraph: what is being proposed and why it matters.
 - Functional requirements from the source prompt or refinement step
 - Non-functional requirements, constraints, and explicit out-of-scope notes
 
-## Definition Level and Triage Result
-- Classification: low | medium | high
-- Why it was classified this way
+## Reference Authority and Evidence
+- Each supplied reference, its confirmed role, and its applicable scope
+- For each hard reference: what was inspected, established, contradicted, inaccessible or unverified, and still requires a user decision
+
+## Request Triage and Research Loop
+- Requested outcome and initial evidence needs
+- Source evidence used to establish intended feature behavior
+- Intent clarifications and their provenance
+- Target-feasibility investigations, findings, constraints, and risks
+- Any return from feasibility verification to intent clarification
 - Whether brainstorming or conversational sparring was used
 
 ## Resolved Decisions and Provenance
@@ -340,8 +346,14 @@ Move or remove anything that looks like:
 - claims that planning has no meaningful decisions left
 - unresolved options, questions, bifurcations, or assumptions
 - material decisions without user-specified or repository-determined provenance
+- an unconfirmed material interpretation
+- a hard reference that lacks a synthesized source baseline or whose unverified areas could affect the specification
 
 Research is **NOT complete** while a known meaningful bifurcation remains unresolved. Keep the research workflow in progress, return to the live Step 3 sparring loop, and do not create or hand off a local Z01 or GitHub `[Idea]` issue.
+
+- If a material intent decision or assumption remains unresolved, return to Step 3.
+- If target feasibility is not established against the current intended feature, return to Step 4.
+- If Step 4 exposes a material mismatch or a new intent decision, return to Step 3, then repeat Step 4 after the user resolves it.
 
 **Only mark research complete when:**
 1. Every material decision is user-specified or repository-determined
@@ -349,8 +361,10 @@ Research is **NOT complete** while a known meaningful bifurcation remains unreso
 3. The payload is self-contained and grounded
 4. The payload contains behavior, risks, dependencies, edge cases, and acceptance criteria
 5. The payload stays on the research side of the research/planning boundary
+6. Every supplied reference has confirmed authority, and hard-reference evidence is synthesized before target-feasibility conclusions or options
+7. The intended feature is disambiguated and target feasibility is verified against that exact intent
 
-Only after all five checks pass, continue to Step 7. Persistence is not an input to this gate.
+Only after all seven checks pass, continue to Step 7. Persistence is not an input to this gate.
 
 ---
 
@@ -387,12 +401,22 @@ If the target is unresolved, the preview is not approved, publication fails, or 
 - **Did NOT read AGENTS.md/CLAUDE.md/README/docs FIRST**
 - **Stopped this skill due to missing Plan mode**
 - **Chose a meaningful product or technical path without user or repository provenance**
+- **Silently interpreted a material ambiguity instead of stating and confirming the assumption**
+- **Used a supplied reference without confirming whether it is light or hard authority**
+- **Treated light inspiration as a requirement without explicit user acceptance**
+- **Accepted subagent output without reconciling, verifying, or recording gaps and contradictions**
+- **Used more research agents than the independent evidence surfaces justify, or failed to delegate when broad independent coverage materially needs it**
+- **Presented target architecture or implementation options before synthesizing a hard reference and assessing target feasibility against it**
+- **Treated target constraints as permission to silently redefine the intended feature**
+- **Treated intended behavior as feasible before target research verified it**
+- **Continued to payload assembly after feasibility exposed a material mismatch**
+- **Returned to target research without first resolving changed intent with the user**
 - **Treated a recommendation, confidence, simplicity, or time pressure as permission to decide**
 - **Called a choice repository-determined while multiple viable repo patterns remained**
-- **Skipped the live sparring loop because the request was classified as high definition**
+- **Skipped the live sparring loop because the request wording appeared detailed**
 - **Treated brainstorming as a separate workflow owner or canonical artifact instead of an internal refinement step**
 - **Allowed brainstorming artifacts to replace the validated canonical research source**
-- **Skipped classification of the request as low/medium/high definition**
+- **Skipped triage of the request, supplied references, or evidence needs**
 - **Presented options without evidence, consequences, a recommendation, and a direct decision request**
 - **Asked more than one decision question in a turn instead of framing one composite decision**
 - **Persisted research while a known meaningful bifurcation remained unresolved**
@@ -416,8 +440,8 @@ If the target is unresolved, the preview is not approved, publication fails, or 
 
 | Excuse | Reality |
 |--------|---------|
-| **"This is only a rough idea, research can't start"** | **NO.** Research is now the single entry point. Classify it and route internally. |
-| **"The prompt is detailed, so I can fill in the remaining technical choices"** | **NO.** Definition level does not authorize choices without user or repository provenance. |
+| **"This is only a rough idea, research can't start"** | **NO.** Research is now the single entry point. Triage it and route internally. |
+| **"The prompt is detailed, so I can fill in the remaining technical choices"** | **NO.** Detail does not authorize choices without user or repository provenance. |
 | **"I am highly confident this is the best option"** | **NO.** Confidence supports a recommendation; it does not convert an open bifurcation into a decision. |
 | **"This is the simplest or most conventional path"** | **NO.** Simplicity and convention are tradeoff evidence, not user approval or a repository constraint. |
 | **"The repository uses this pattern in several places"** | **NO.** If another viable pattern also exists and no governing instruction selects one, surface the bifurcation. |
@@ -428,6 +452,8 @@ If the target is unresolved, the preview is not approved, publication fails, or 
 | **"The repo touchpoints are obvious, I'll skip documenting risks"** | **NO.** Surfacing compatibility and adaptation risks is a core deliverable of research. |
 | **"Exact file edits belong in research so planning stays easy"** | **NO.** That collapses the stage boundary. Research should identify likely touchpoints, not replace planning. |
 | **"The user said to make sensible defaults"** | **NO.** That does not authorize material product or technical decisions with credible alternatives. |
+| **"The reference wording is obvious, so confirmation is unnecessary"** | **NO.** Propose light or hard authority from the wording, then confirm it before using the source as evidence. |
+| **"A subagent inspected the source, so its findings are the specification"** | **NO.** Returned findings are evidence; reconcile and verify them, then resolve material gaps with the user. |
 | **"Research is done because a file or issue exists"** | **NO.** A research source is valid only when its material decisions have provenance and no unresolved choices remain. |
 
 ## Success Criteria
@@ -435,9 +461,17 @@ If the target is unresolved, the preview is not approved, publication fails, or 
 You followed the workflow if:
 - ✓ Read AGENTS.md/CLAUDE.md/README/docs FIRST
 - ✓ Verified Superpowers dependencies before proceeding
-- ✓ Classified the request as low, medium, or high definition
-- ✓ Applied the Decision Provenance Contract to product and technical decisions at every definition level
-- ✓ Gathered repo evidence autonomously before asking the user to decide
+- ✓ Triaged the request, supplied references, and initial evidence needs
+- ✓ Applied the Decision Provenance Contract to product and technical decisions throughout the intent-feasibility loop
+- ✓ Stated and confirmed every material assumption before persistence
+- ✓ Classified and confirmed each supplied reference as light or hard before using it as evidence
+- ✓ Delegated only when independent research surfaces materially improved coverage, using bounded assignments and verified synthesis
+- ✓ Treated light-reference findings as proposals until explicitly accepted
+- ✓ Synthesized each hard-reference baseline, including evidence gaps and contradictions, before assessing target feasibility or presenting options
+- ✓ Established intended feature behavior before assessing target-repository feasibility
+- ✓ Used focused target research only where independent frontend, backend/API, data-source, operational, security, or testing surfaces materially improved coverage
+- ✓ Returned from a material feasibility mismatch to live intent clarification, then re-verified feasibility against the revised intent
+- ✓ Gathered target-repository evidence autonomously before asking the user to decide
 - ✓ Used a live sparring loop for every meaningful open bifurcation
 - ✓ Presented evidence, viable options, consequences, a recommendation, and one direct decision request
 - ✓ Asked exactly one decision question per turn
