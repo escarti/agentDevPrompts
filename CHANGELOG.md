@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-09-16
+
+### Changed
+- Reworked `feature-researching` around an intent-to-feasibility loop: clarify intended behavior and source evidence first, verify target feasibility through focused research, then return to live clarification and re-verify when feasibility exposes a material mismatch.
+- Added confirmed light/hard reference authority, bounded research-subagent roles, and explicit evidence reconciliation to feature research.
+
 ## [2.2.0] - 2026-09-11
 
 ### Added
