@@ -6,6 +6,14 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-23
+
+### Added
+- Added `grilling` as a required dependency for feature research, including installation guidance for Codex and explicit behavior for runtimes without an installer.
+
+### Changed
+- Reworked `feature-researching` so `grilling` leads the decision-tree discovery, evidence collection, recommendations, and shared-understanding gate; updated repository and user documentation to match.
+
 ## [2.2.1] - 2026-09-16
 
 ### Changed

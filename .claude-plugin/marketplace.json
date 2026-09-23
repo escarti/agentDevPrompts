@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A structured harness for delivering one feature at a time.",
-    "version": "2.2.1",
+    "version": "2.3.0",
     "license": "MIT"
   },
   "plugins": [
@@ -17,7 +17,7 @@
         "url": "https://github.com/escarti/agentDevPrompts.git"
       },
       "description": "Evidence-backed feature delivery workflows: research, planning, phased implementation, commit-bound QA, documentation, and ready-for-review PR preparation.",
-      "version": "2.2.1",
+      "version": "2.3.0",
       "author": {
         "name": "Eduardo Escarti"
       }
