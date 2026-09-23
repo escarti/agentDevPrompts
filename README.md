@@ -23,11 +23,11 @@ Small-fix workflow:
 
 Install [Superpowers](https://github.com/obra/superpowers) from your runtime's plugin system when using a workflow with a listed Superpowers dependency. Each workflow loads the named skill only at the point it is needed.
 
-`feature-researching` requires [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) from Step 0. In Codex, the workflow installs that exact source through `skill-installer` when it is absent, then stops so you can begin a fresh session. In a runtime without an equivalent installer, install `grilling` first; the workflow does not substitute another interview process.
+`feature-researching` invokes the installed [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) skill to conduct the interview, then writes the agreed outcome as a Z01 specification.
 
 | Feature workflow | Dependency | Invocation point |
 | --- | --- | --- |
-| `feature-researching` | `grilling` | Step 0; installed from the approved URL when absent |
+| `feature-researching` | `grilling` | Interview; then write the agreed Z01 specification |
 | `feature-planning` | `superpowers:writing-plans` | When producing Z02 |
 | `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After execution-mode selection |
 | `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |
@@ -150,18 +150,14 @@ There are two distinct quality gates. The implementation loop validates each tas
 | Stage | Use this | Goal | Input | Output |
 | --- | --- | --- | --- | --- |
 | Streamlined small fixes | `feature-workflow:fixing-small-issues` | Reproduce, diagnose, fix, commit, and verify through two context-isolated phases | GitHub issue or direct misbehavior report | Verified commit on a `bugfix/*` branch |
-| 1. Single entry point: idea triage + repo-grounded research | `feature-workflow:feature-researching` | Act as an evidence-led sparring partner: investigate the repo, surface unresolved product and technical bifurcations, and create research only after the user resolves them | Rough idea, partial spec, or detailed request | Complete local `Z01_*_research.md` or GitHub `[Idea]` issue |
+| 1. Feature research | `feature-workflow:feature-researching` | Invoke `grilling`, then write its agreed outcome in the Z01 format | Rough idea, partial spec, or detailed request | Local `Z01_*_research.md` or GitHub `[Idea]` issue |
 | 2. Ambiguity-free planning | `feature-workflow:feature-planning` (wrapper of superpowers `writing-plans`) | Convert clear spec + research into an actionable implementation plan, then optionally publish the approved plan into GitHub issues or a Jira epic plus tasks | Complete local Z01 or GitHub `[Idea]` research | `Z02_*_plan.md` (final), optional temporary `Z02_CLARIFY_*_plan.md`, and optional approved tracker items |
 | 3. Execution | `feature-workflow:feature-implementing` (wrapper of superpowers execution workflow) | Execute phase-scoped batches from canonical Z02 or tracker state, preserving isolated commits and reusable verification evidence | `Z02_*_plan.md` or approved tracker entrypoint | Implemented code + `Z98_*_implementation_report.md` + mandatory QA handoff |
 | 4. Commit-bound QA gate | `feature-workflow:feature-qa-review` | Run a risk-adaptive independent review, validate findings, reuse valid verification evidence, and review implementation fix deltas incrementally | Implemented code + verification evidence + tracker or Z01/Z02 context | Accepted `PASS` or `BLOCKED`, finding dispositions, verification evidence, and `Z06_{feature}_qa_review.md` |
 | 5. Documentation and publication gate | `feature-workflow:feature-finishing` | Validate the accepted QA commit, remove documentation drift, record changes, and publish only after final approval | Accepted Z06 with zero unresolved blockers + implementation and documentation context | `Z05_*`, finalization commit, pushed branch, and ready-for-review PR |
 | 6. Optional artifact consolidation | `feature-workflow:feature-documenting` | Consolidate temporary workflow artifacts into a development log and update an existing PR when requested | Z-files and completed workflow results | Dev log, cleanup commit, and optional PR update |
 
-`feature-researching` uses decision provenance at every definition level. A decision may be adopted when the prompt specifies it or repository evidence leaves no credible alternative. Step 3 uses `grilling` to map the decision tree and ask each round's complete unblocked frontier with a recommendation, then waits for answers before proceeding to dependent branches.
-
-Clarification happens live inside the research conversation. `feature-researching` does not create a `Z01_CLARIFY` question backlog or persist partial research. If the conversation pauses, research remains in progress and resumes at the unresolved decision. After all known meaningful bifurcations are resolved, the validated research payload can be stored either as a local `Z01_*` artifact or as a GitHub issue titled `[Idea] <display feature name>`.
-
-`feature-researching` retains the canonical local Z01 or GitHub `[Idea]` research source. `grilling` owns Step 3's discovery: its design tree, frontier rounds, fact-finding, subagent assignments, recommendations, and shared-understanding gate. The wrapper supplies the reference roles and evidence-collector model contract.
+`grilling` owns feature discovery and the interview through confirmed shared understanding. `feature-researching` then writes the agreed outcome in seven sections: Problem Statement, Solution, Implementation Decisions, Planning Guardrails/Hotspots/Caveats, Testing, Out of Scope, and Notes. The local Z01 file and GitHub `[Idea]` issue remain alternative canonical sources.
 
 Use the full flow for large features where discovery, planning, and execution need strict structure.
 
@@ -190,10 +186,10 @@ Common temporary artifacts:
 - `docs/ai/ongoing/Z98_{feature}_batch_{phase}_{batch}_plan.md` while a Superpowers batch is active or resumable
 
 Research persistence and planning input:
-- `feature-researching` validates one self-contained research payload, then honors an already selected destination or offers `Local Z01 file` and `GitHub [Idea] issue`.
+- `feature-researching` writes one self-contained Z01 specification, then honors an already selected destination or offers `Local Z01 file` and `GitHub [Idea] issue`.
 - GitHub publication uses `[Idea] <display feature name>`, previews the resolved repository, title, and complete body, and requires separate explicit approval before mutation.
 - The local file and GitHub issue are alternative canonical sources; the GitHub path does not also create a local Z01.
-- `feature-planning` accepts either source, applies the same completeness and decision-provenance gate, and creates the local `Z02_*_plan.md` from the selected source.
+- `feature-planning` accepts either source, checks the seven-section Z01 contract, and creates the local `Z02_*_plan.md` from the selected source.
 - When no source is named and multiple local and/or GitHub research candidates exist, planning asks which one to use.
 
 Optional tracker publication after planning:

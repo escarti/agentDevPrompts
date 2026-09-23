@@ -16,11 +16,11 @@ Codex agent instructions for this repository. This repo is a local skill library
 
 ## Workflow Skill Dependencies
 
-Installed plugins expose their skills through Codex. Each workflow invokes only the dependency it needs at its point of use. `feature-researching` is the exception to passive dependency loading: it installs `grilling` from its approved source if absent, then waits for a fresh session before using it. Select native collaboration tools from the active runtime.
+Installed plugins expose their skills through Codex. Each workflow invokes only the dependency it needs at its point of use. `feature-researching` invokes the installed `grilling` skill to conduct the interview. Select native collaboration tools from the active runtime.
 
 | Feature workflow | Dependency | Invocation point |
 | --- | --- | --- |
-| `feature-researching` | `grilling` from `https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling` | Step 0; install with `skill-installer` when absent, then resume in a fresh session |
+| `feature-researching` | `grilling` | Interview; then write the agreed Z01 specification |
 | `feature-planning` | `superpowers:writing-plans` | When producing the Z02 implementation plan |
 | `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After the user selects execution mode |
 | `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |

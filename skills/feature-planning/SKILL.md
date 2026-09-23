@@ -92,14 +92,13 @@ For GitHub discovery and reads:
 #### Validate the source
 
 Before planning, verify the selected local file or GitHub issue contains:
-- summary and self-contained source requirements
-- definition-level triage result
-- a decision-provenance record for material product and technical choices
-- current repository behavior, relevant touchpoints, constraints, and existing patterns
-- resolved feature behavior and explicit non-goals
-- edge cases and failure behavior
-- dependencies, compatibility risks, and potential adaptations
-- testing expectations and acceptance criteria
+- the Z01 sections: `Problem Statement`; `Solution` (including `Required Behavior`); `Implementation Decisions`; `Planning Guardrails, Hotspots, and Caveats`; `Testing`; `Out of Scope`; and `Notes`
+- a self-contained problem statement, intended outcome, required behavior, excluded behavior, and acceptance criteria
+- the complete substantive grilling outcome: decisions, recommendations, facts, findings, evidence limitations, rejected alternatives, tradeoffs, guardrails, hotspots, caveats, edge cases, risks, dependencies, and test criteria
+- provenance and rationale for every settled grilling decision, recommendation, and rejected alternative
+- established modules, interfaces, technical clarifications, architecture, schemas, APIs, interactions, likely touchpoints, and downstream adaptations relevant to planning
+- planning guardrails, hotspots, caveats, dependencies, compatibility risks, and adaptations
+- testing expectations, important edge cases, failure behavior, and fallbacks
 - no open questions, unresolved bifurcations, competing options without a selection, or agent-selected design assumptions
 
 Apply this contract identically to both source forms. A GitHub issue is not valid merely because its title has the `[Idea] ` prefix.
@@ -107,10 +106,9 @@ Apply this contract identically to both source forms. A GitHub issue is not vali
 If the source is incomplete, stop and report: `Research source is incomplete. Resume feature-workflow:feature-researching and resolve the remaining decisions conversationally before planning.`
 
 Extract from the selected source:
-- grounded behavior and explicit non-goals
-- repo touchpoints and constraints
-- resolved decisions and their provenance
-- risks, dependencies, compatibility concerns, and acceptance criteria
+- the agreed problem, solution, behavior, decisions, and scope boundaries
+- relevant modules, interfaces, guardrails, risks, dependencies, compatibility concerns, and adaptations
+- testing expectations, edge cases, failure behavior, fallbacks, and acceptance criteria
 
 ---
 
@@ -347,7 +345,7 @@ Report to the user:
 
 Use when:
 - `Z01_{feature}_research.md` or a GitHub `[Idea] <display feature name>` issue exists
-- the selected source contains complete research with resolved, provenance-backed material decisions
+- the selected source contains a complete Z01 specification with the decisions and behavior settled through grilling
 - you need a `Z02` plan artifact that is ready for `feature-implementing`
 
 Don't use when:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "feature-workflow",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A structured harness for delivering one feature at a time.",
   "author": {
     "name": "Eduardo Escarti",

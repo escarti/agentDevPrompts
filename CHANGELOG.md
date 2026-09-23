@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows semantic versio
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-09-23
+
+### Changed
+- Simplified feature research to hand the interview to `grilling`, then capture its complete confirmed outcome in a seven-section Z01 specification.
+- Updated planning validation and repository guidance for the revised Z01 contract, including decision provenance and rationale.
+
 ## [2.3.0] - 2026-09-23
 
 ### Added
