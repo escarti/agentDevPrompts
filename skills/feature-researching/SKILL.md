@@ -5,13 +5,6 @@ description: Use when beginning feature work from a rough idea, partial specific
 
 # Feature Research
 
-## YOU ARE READING THIS SKILL RIGHT NOW
-
-**STOP. Before doing ANYTHING else:**
-
-1. ☐ Create a progress plan (see below)
-2. ☐ Mark Step 0 as `in_progress`
-
 **This skill is the single feature-workflow entry point.**
 
 Its responsibilities are:
