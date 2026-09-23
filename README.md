@@ -1,6 +1,6 @@
 # Feature Workflow Skills
 
-Research-driven feature development and streamlined small-fix workflows for Codex and Claude Code. Superpowers capabilities are invoked directly where a workflow uses them.
+Research-driven feature development and streamlined small-fix workflows for Codex and Claude Code. Superpowers capabilities and the research interview dependency are invoked directly where a workflow uses them.
 
 ## Included Skills
 
@@ -21,11 +21,13 @@ Small-fix workflow:
 
 ## Dependencies
 
-Install [Superpowers](https://github.com/obra/superpowers) from your runtime's plugin system when using a workflow with a listed dependency. Each workflow loads the named skill only at the point it is needed.
+Install [Superpowers](https://github.com/obra/superpowers) from your runtime's plugin system when using a workflow with a listed Superpowers dependency. Each workflow loads the named skill only at the point it is needed.
 
-| Feature workflow | Superpowers dependency | Invocation point |
+`feature-researching` requires [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) from Step 0. In Codex, the workflow installs that exact source through `skill-installer` when it is absent, then stops so you can begin a fresh session. In a runtime without an equivalent installer, install `grilling` first; the workflow does not substitute another interview process.
+
+| Feature workflow | Dependency | Invocation point |
 | --- | --- | --- |
-| `feature-researching` | `superpowers:brainstorming` | Only for deeper product/design refinement |
+| `feature-researching` | `grilling` | Step 0; installed from the approved URL when absent |
 | `feature-planning` | `superpowers:writing-plans` | When producing Z02 |
 | `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After execution-mode selection |
 | `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |
@@ -155,11 +157,11 @@ There are two distinct quality gates. The implementation loop validates each tas
 | 5. Documentation and publication gate | `feature-workflow:feature-finishing` | Validate the accepted QA commit, remove documentation drift, record changes, and publish only after final approval | Accepted Z06 with zero unresolved blockers + implementation and documentation context | `Z05_*`, finalization commit, pushed branch, and ready-for-review PR |
 | 6. Optional artifact consolidation | `feature-workflow:feature-documenting` | Consolidate temporary workflow artifacts into a development log and update an existing PR when requested | Z-files and completed workflow results | Dev log, cleanup commit, and optional PR update |
 
-`feature-researching` uses decision provenance at every definition level. A decision may be adopted when the prompt specifies it or repository evidence leaves no credible alternative. When multiple meaningful product or technical paths remain, research presents the evidence and repo patterns, viable options, consequences, and a recommendation, then asks the user to decide one bifurcation at a time.
+`feature-researching` uses decision provenance at every definition level. A decision may be adopted when the prompt specifies it or repository evidence leaves no credible alternative. Step 3 uses `grilling` to map the decision tree and ask each round's complete unblocked frontier with a recommendation, then waits for answers before proceeding to dependent branches.
 
 Clarification happens live inside the research conversation. `feature-researching` does not create a `Z01_CLARIFY` question backlog or persist partial research. If the conversation pauses, research remains in progress and resumes at the unresolved decision. After all known meaningful bifurcations are resolved, the validated research payload can be stored either as a local `Z01_*` artifact or as a GitHub issue titled `[Idea] <display feature name>`.
 
-`feature-researching` may still invoke `superpowers:brainstorming` internally for low-definition inputs or deeper product-level ambiguity. Brainstorming remains an internal refinement step: it can help shape the direction, but `feature-researching` still owns the stage, the live decision loop, and the canonical local Z01 or GitHub `[Idea]` research source.
+`feature-researching` retains the canonical local Z01 or GitHub `[Idea]` research source. `grilling` owns Step 3's discovery: its design tree, frontier rounds, fact-finding, subagent assignments, recommendations, and shared-understanding gate. The wrapper supplies the reference roles and evidence-collector model contract.
 
 Use the full flow for large features where discovery, planning, and execution need strict structure.
 

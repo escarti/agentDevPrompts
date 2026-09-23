@@ -14,13 +14,13 @@ Codex agent instructions for this repository. This repo is a local skill library
 - If a user names a skill (or task clearly matches one), load that skill and follow it.
 - Keep command files thin if edited (`commands/*.md`); workflow logic belongs in skills.
 
-## Superpowers Integration
+## Workflow Skill Dependencies
 
-Installed plugins are enabled and expose their skills through Codex. Repository skills do not enable other plugins: each workflow invokes only the exact `superpowers:*` skill it needs at its point of use. Select native collaboration tools from the active runtime.
+Installed plugins expose their skills through Codex. Each workflow invokes only the dependency it needs at its point of use. `feature-researching` is the exception to passive dependency loading: it installs `grilling` from its approved source if absent, then waits for a fresh session before using it. Select native collaboration tools from the active runtime.
 
-| Feature workflow | Superpowers dependency | Invocation point |
+| Feature workflow | Dependency | Invocation point |
 | --- | --- | --- |
-| `feature-researching` | `superpowers:brainstorming` | Only when deeper product/design refinement is needed |
+| `feature-researching` | `grilling` from `https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling` | Step 0; install with `skill-installer` when absent, then resume in a fresh session |
 | `feature-planning` | `superpowers:writing-plans` | When producing the Z02 implementation plan |
 | `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After the user selects execution mode |
 | `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |

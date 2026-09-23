@@ -50,11 +50,11 @@ agentDevPrompts/
 
 ## Skill Dependency Rules
 
-Superpowers is installed through the host runtime's plugin or marketplace flow. Repository skills invoke only the named capability when it is needed; they do not activate plugins or use a shared bootstrap layer.
+Superpowers is installed through the host runtime's plugin or marketplace flow. Repository skills invoke only the named capability when it is needed. `feature-researching` additionally requires `grilling`; in Codex it installs the approved source with `skill-installer` when absent and resumes in a fresh session. A runtime without an equivalent installer must stop and report the missing dependency rather than substitute another interview process.
 
-| Feature workflow | Superpowers dependency | Invocation point |
+| Feature workflow | Dependency | Invocation point |
 | --- | --- | --- |
-| `feature-researching` | `superpowers:brainstorming` | Only when deeper product/design refinement is needed |
+| `feature-researching` | `grilling` from `https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling` | Step 0; install when absent, then resume in a fresh session |
 | `feature-planning` | `superpowers:writing-plans` | When producing the Z02 implementation plan |
 | `feature-implementing` | `superpowers:subagent-driven-development` or `superpowers:executing-plans` | After the user selects execution mode |
 | `feature-pr-fixing` | `superpowers:systematic-debugging` | Only for queued fixes |

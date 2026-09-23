@@ -11,17 +11,14 @@ description: Use when beginning feature work from a rough idea, partial specific
 
 1. ☐ Create a progress plan (see below)
 2. ☐ Mark Step 0 as `in_progress`
-3. ☐ Read AGENTS.md first, then CLAUDE.md/docs before any code exploration
 
 **This skill is the single feature-workflow entry point.**
 
 Its responsibilities are:
-- Triage the request, supplied references, and evidence needed to establish the intended feature and verify target feasibility
-- Orchestrate the research: determine needed evidence, divide independent research surfaces into bounded assignments when delegation materially improves coverage, and reconcile and verify returned findings
-- Investigate the repository and distinguish established decisions from open product or technical bifurcations
-- Run a conversational sparring loop for every meaningful bifurcation not settled by the prompt or repository evidence
-- Use `superpowers:brainstorming` as an internal refinement step when deeper product/design refinement is needed
-- Produce one complete repo-grounded research payload and persist it as either `Z01_{feature}_research.md` or a GitHub issue titled `[Idea] <display feature name>`
+- Triage the request, supplied references, and context needed to establish the intended feature
+- Pass the triage context and evidence-collector contract to the installed `grilling` skill
+- Install `grilling` from its approved source when it is absent, then require a fresh session before Step 0 can continue
+- Produce and persist the settled grilling outcome as either `Z01_{feature}_research.md` or a GitHub issue titled `[Idea] <display feature name>`
 
 **This skill produces a grounded feature specification, not an implementation plan.**
 
@@ -31,14 +28,12 @@ Its responsibilities are:
 update_plan({
   "explanation": "Tracking feature research workflow",
   "plan": [
-    {"step": "Step 0: Confirm session mode", "status": "in_progress"},
-    {"step": "Step 1: Read documentation FIRST (AGENTS.md, CLAUDE.md, README, ARCHITECTURE)", "status": "pending"},
-    {"step": "Step 2: Triage the request, supplied references, and initial evidence needs", "status": "pending"},
-    {"step": "Step 3: Clarify the intended feature and establish source evidence conversationally", "status": "pending"},
-    {"step": "Step 4: Verify target feasibility through focused research; return to Step 3 for material mismatches", "status": "pending"},
-    {"step": "Step 5: Assemble candidate research content without persisting it", "status": "pending"},
-    {"step": "Step 6: Verify provenance, completeness, and the research/planning boundary", "status": "pending"},
-    {"step": "Step 7: Choose and persist the validated research destination", "status": "pending"}
+    {"step": "Step 0: Ensure required grilling dependency", "status": "in_progress"},
+    {"step": "Step 1: Triage the request, supplied references, and relevant context", "status": "pending"},
+    {"step": "Step 2: Run grilling with the triage context and evidence-collector contract", "status": "pending"},
+    {"step": "Step 3: Assemble candidate research content without persisting it", "status": "pending"},
+    {"step": "Step 4: Verify provenance, completeness, and the research/planning boundary", "status": "pending"},
+    {"step": "Step 5: Choose and persist the validated research destination", "status": "pending"}
   ]
 })
 ```
@@ -48,19 +43,13 @@ update_plan({
 ## The Iron Law
 
 ```
-NO RESEARCH WITHOUT READING AGENTS.MD FIRST
-NO AUTONOMOUS CHOICE BETWEEN MEANINGFULLY DIFFERENT PRODUCT OR TECHNICAL PATHS
-NO MATERIAL INTERPRETATION WITHOUT STATING THE ASSUMPTION AND GETTING USER CONFIRMATION
-NO USE OF A SUPPLIED REFERENCE AS EVIDENCE BEFORE ITS AUTHORITY IS CONFIRMED
-NO RESEARCH PERSISTENCE WHILE A KNOWN MEANINGFUL BIFURCATION REMAINS UNRESOLVED
-NO Z01_CLARIFY FILE; CLARIFICATION HAPPENS LIVE IN THE RESEARCH CONVERSATION
-NO CANONICAL RESEARCH SOURCE THAT REQUIRES READING ANOTHER DOCUMENT TO UNDERSTAND THE FEATURE
-NO HANDOFF TO PLANNING UNTIL A COMPLETE LOCAL Z01 OR GITHUB [IDEA] ISSUE EXISTS
+NO MATERIAL DECISION OR REFERENCE USE WITHOUT CONFIRMED AUTHORITY
+NO IMPLICIT MATERIAL ASSUMPTION WITHOUT STATING IT AND GETTING USER CONFIRMATION
+NO PERSISTENCE OR HANDOFF WITH UNRESOLVED DECISIONS
+NO CLARIFICATION ARTIFACT OR NON-SELF-CONTAINED RESEARCH SOURCE
 ```
 
 **If the research payload depends on external docs for core requirements:** Copy or summarize the required source context into the payload and rewrite it to be self-contained.
-
-**If the request remains broadly product-ambiguous after conversational sparring:** Escalate to `superpowers:brainstorming`.
 
 ## Decision Provenance Contract
 
@@ -91,10 +80,10 @@ Routine facts and mechanically determined details are not bifurcations. Immateri
 **The persisted research payload is a grounded feature specification.**
 
 It must:
-- Stand on its own for planning
+- Enable a subsequent planning agent to plan without repeating discovery
 - Be grounded in current repo behavior and constraints
-- Contain only resolved material decisions and record their provenance
-- Surface edge cases, risks, dependencies, and test criteria
+- Capture the complete substantive outcome of `grilling`: every user decision, recommendation, fact, investigation finding, evidence limitation, rejected alternative, tradeoff, guardrail, hotspot, caveat, edge case, risk, dependency, and test criterion
+- Record every settled grilling decision, recommendation, and rejected alternative with its provenance and rationale
 - Record likely touchpoints and possible downstream adaptations
 
 It must **not**:
@@ -103,146 +92,67 @@ It must **not**:
 - Promise that implementation can begin without planning
 - Turn planning into a formatting-only step
 - Contain unresolved options, open questions, or agent-selected design assumptions
+- Reduce or omit a substantive grilling result because it appears incidental or does not fit a preferred section
+
+The payload is a complete organized record of `grilling`'s substantive results, not a raw conversation transcript. Omit only mechanical conversation chronology, repeated question wording, and agent-runtime metadata after preserving the result each produced.
 
 ## Workflow Steps
 
-### Step 0: Confirm Session Mode
+### Step 0: Ensure Required `grilling` Dependency
 
-This workflow runs in Default mode or Plan mode.
-Proceed in the current mode; do not block on Plan mode availability.
+`grilling` is required before this workflow proceeds. Its approved source is:
 
----
+`https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling`
 
-### Step 1: Read Documentation FIRST
-
-**MANDATORY FIRST - read these if they exist:**
-- AGENTS.md (default repo instructions, patterns, conventions)
-- CLAUDE.md (Claude-specific patterns, conventions, forbidden approaches)
-- README.md (workflow expectations and public behavior)
-- ARCHITECTURE.md (system design)
-- All documentation (glob `**/docs/**/*.md`)
-
-Why:
-- AGENTS.md sets default repo rules
-- CLAUDE.md may add mandatory patterns or forbidden approaches
-- README and docs establish the public workflow contract this skill must preserve
+1. Check whether the `grilling` skill is available.
+2. If it is absent, invoke `skill-installer` to install the exact source URL above. Do not use a marketplace substitute, copy its contents into this skill, or fall back to another interviewing process. Tell the user that installation is available only in a new turn/session, then stop. Resume Step 0 only after `grilling` is available.
+3. If `grilling` is already available, continue to Step 1.
 
 ---
 
-### Step 2: Triage the Request, References, and Evidence Needs
+### Step 1: Triage the Request, References, and Context
 
-Before source investigation, target-feasibility research, or persistence, identify:
+Before persistence, identify:
 - The requested outcome and missing material intent
 - Each supplied reference and its proposed light or hard role
-- Evidence needed to establish the intended feature
-- Evidence needed later to verify feasibility in the target repository
-- The next blocking clarification, reference-authority confirmation, or source investigation
+- Additional documentation, contracts, or repository surfaces relevant to the request
+- The next blocking clarification or reference-authority confirmation
 
-Do not inspect or use a reference as evidence before its role is confirmed. Do not perform target-feasibility research until the intended feature is sufficiently disambiguated. Record the triage result in the research payload.
-
----
-
-### Step 3: Clarify the Intended Feature and Establish Source Evidence
-
-#### Reference authority and research orchestration
-
-Before using a supplied repository, website, document, issue, image, wireframe, running application, API, dataset, or other material as evidence, infer its light or hard role from the wording and ask the user to confirm it. For example: “You said you want something like this website, so I’m treating it as light inspiration rather than a specification. Is that correct?” or “You requested a 1:1 port, so I’m treating this repository as a hard reference whose applicable behavior must be preserved. Is that correct?”
-
-The researcher owns the final disambiguated specification, not every investigation. Determine the evidence needed and use focused research subagents when they materially improve coverage; do not require delegation for trivial research. Give each assignment one bounded question and evidence scope, then reconcile and verify its output as evidence rather than accepting it as truth. Identify contradictions, omissions, access limitations, and unresolved material decisions; interview the user about those decisions one at a time.
-
-After a reference role is confirmed, use the smallest adequate number of focused research sub-agents: at most one for a light reference and one to three for a hard reference. Three is a ceiling, not a default. Select only relevant independent surfaces, such as observable workflows, contracts, data artifacts, UX, operations, dependencies, permissions, failure behavior, or acceptance semantics.
-
-#### Research sub-agent model selection
-
-The orchestrator owns all material judgment, synthesis, recommendations, user interviews, feasibility conclusions, and the final specification.
-
-Research sub-agents are bounded evidence collectors:
-- Use `gpt-5.6-terra` for focused source or repository inspection that needs reliable code or documentation comprehension.
-- Use `gpt-5.6-luna` for narrow mechanical collection tasks, such as inventories, enumeration, or extracting already-identifiable facts.
-
-Sub-agents must not select requirements, resolve contradictions, recommend architecture, determine feasibility, or interview the user. They return only inspected evidence, citations or locations, access limitations, and unanswered questions.
-
-Use confirmed source evidence and the prompt to establish what the user wants to build, independently of the target repository's preferred architecture. A light-reference finding remains a proposal until the user explicitly accepts it. A hard-reference baseline must record what was inspected, established, contradicted, inaccessible or unverified, and still requires a user decision.
-
-For each open bifurcation, present this compact decision brief:
-
-1. **Evidence and patterns**: relevant prompt constraints, repository patterns, and any tension between them.
-2. **Viable options**: two or more credible paths; do not invent false alternatives.
-3. **Consequences**: material tradeoffs and downstream effects.
-4. **Recommendation**: the preferred direction and why.
-5. **Decision request**: one direct question asking the user to choose or refine the direction.
-
-Handle exactly one decision per turn. If several concerns are inseparable, express them as constraints or consequences within one composite decision and still ask only one question. Stop after the decision request and wait for the user's answer. Record the answer, continue discovery, and repeat until no known open bifurcation remains.
-
-The agent owns evidence gathering. Investigate source material, eliminate contradicted options, identify relevant patterns, and form an informed recommendation before asking. Do not shift raw investigation work to the user.
-
-Do not persist research during this loop. If the conversation is interrupted, keep research in progress and resume at the unresolved decision; do not externalize questions into a clarification file.
-
-If intent remains broadly product- or design-ambiguous after conversational sparring, use `superpowers:brainstorming` as an **internal refinement step**.
-
-Immediately before this refinement, load and follow the installed `superpowers:brainstorming` skill. If it is unavailable, stop and report that `superpowers:brainstorming` is missing; instruct the user to install or enable the Superpowers plugin and start a new session before retrying.
-
-Critical constraints for that invocation:
-- `feature-researching` remains the primary workflow owner
-- The goal is to refine product intent enough for repo-grounded research
-- Do NOT treat brainstorming output as the final workflow artifact
-- Do NOT hand off directly to planning from the brainstorming flow
-- Return to the Step 3 sparring loop after brainstorming
-
-Tell the dependency:
-- It is being used to refine intent only
-- After refinement, control returns to `feature-researching`
-- Refined requirements must be merged back into the candidate research payload
-- If brainstorming writes a spec because its own workflow requires it, treat that file as temporary input and fold the needed context into the research payload
-
-Continue until the desired feature has no unresolved material scope, behavior, contract, data, compatibility, security, operations, testing, or acceptance-criteria assumptions. At that point, the intended feature is disambiguated but is not yet assumed feasible in the target repository. Continue with Step 4. Return here whenever feasibility evidence exposes a material mismatch or new intent decision.
+For triage, load relevant repository documents, starting with `AGENTS.md` and `README.md`, then load any other document necessary to understand the request. Do not use a blanket documentation glob. Do not inspect or use a reference as evidence before its role is confirmed. Retain only triage findings that affect the eventual planning specification; do not record the triage process.
 
 ---
 
-### Step 4: Verify Target Feasibility Through Focused Research
+### Step 2: Run `grilling`
 
-Assess the disambiguated intended feature against the target repository. Find related files, search for patterns, read key files, and ground feasibility in what the repository can already do.
+`grilling` was verified during Step 0. Load and follow it directly. Give it the user request, Step 1 triage result, and each proposed reference role. It owns all interview behavior, the questions it asks, fact prerequisites, subagent assignments, recommendations, and its shared-understanding completion gate.
 
-For a confirmed hard reference, Step 3 must first have synthesized its source baseline; never invent missing evidence. Use the smallest adequate number of focused research sub-agents when independent target surfaces materially improve coverage. Relevant surfaces may include frontend, backend/API, data sources and schemas, operations, security, dependencies, permissions, or testing. Give each sub-agent one bounded question and evidence scope, then reconcile and verify the findings.
+Do not use a supplied reference as evidence until its proposed role is confirmed during the grilling conversation. Do not impose subagent caps or a competing interview loop.
 
-Identify existing capabilities, constraints, reusable patterns, conflicts, missing infrastructure, and compatibility risks. Only after source evidence and target feasibility are understood may the workflow present implementation or architectural options. Do not reshape the source specification around a preferred target architecture before understanding the source.
+Pass this evidence-collector contract to `grilling`:
 
-Document:
-- Current behavior and current limitations
-- Existing patterns and constraints that must be preserved
-- Likely touchpoints and integration points
-- Data shapes and contracts already in play
-- Security considerations
-- Edge cases and failure modes
-- Dependency risks and compatibility concerns
-- Testing expectations and acceptance criteria implied by the current code
-- Possible downstream or upstream adaptations that may be required
+| Fact needed | Model | Collector returns |
+| --- | --- | --- |
+| Source, repository, or documentation meaning | `gpt-5.6-terra` | Evidence, locations, and limitations |
+| Inventory or mechanical extraction | `gpt-5.6-luna` | Facts, enumeration, and locations |
 
-Prefer likely touchpoints and integration boundaries over false precision. Exact edit ranges belong in planning unless they are genuinely obvious and important for risk analysis.
-
-For every material choice found during exploration, apply the Decision Provenance Contract:
-- if the prompt specifies it, record it as user-specified
-- if repository evidence leaves no credible alternative, record it as repository-determined and cite the evidence
-- if credible alternatives remain, return to Step 3 and spar with the user before continuing toward persistence
-
-Do not call an option repository-determined merely because it is common, familiar, simpler, or recommended. When the repository contains multiple viable patterns and no governing instruction selects one, that is an open bifurcation.
-
-If feasibility evidence exposes a material mismatch, limitation, or newly meaningful decision, return to Step 3. Clarify the intended feature with the user, then repeat this step against the revised intent. Continue until the intended feature is disambiguated and the target repository has been assessed against that exact intent.
+Collectors gather evidence only; they do not make user decisions. Do not persist research during the grilling session. If it is interrupted, resume its design tree and unsettled frontier; do not create a clarification file. After `grilling` reaches shared understanding and the user confirms it, record the settled outcome and continue to Step 3.
 
 ---
 
-### Step 5: Assemble Candidate Research Content
+### Step 3: Assemble Candidate Research Content
 
-Only begin this step after the intent-feasibility loop is complete: the intended feature is disambiguated, target feasibility has been verified against that intent, and no known material decision remains unresolved.
+Only begin this step after `grilling` has reached shared understanding and no known material decision remains unresolved.
 
-Assemble the complete candidate research content in the current response context. Do not create or update a local file or GitHub issue yet; persistence happens only after the Step 6 gate passes and the user chooses a destination in Step 7.
+Write for a subsequent planning agent, not as an audit of this workflow. The candidate must be complete and self-contained enough for that agent to plan without further research. Transfer **every substantive result from `grilling`** into the appropriate Z01 section: every decision, recommendation, fact, source finding, evidence gap or limitation, rejected alternative and rationale, tradeoff, guardrail, hotspot, caveat, edge case, risk, dependency, and acceptance condition. Do not summarize away, selectively omit, or defer any such result. Omit only mechanical conversation chronology, repeated question wording, and agent-runtime metadata after preserving the result each produced.
+
+Assemble the complete candidate research content in the current response context. Do not create or update a local file or GitHub issue yet; persistence happens only after the Step 4 check passes and the user chooses a destination in Step 5.
 
 **Prepare the local destination metadata:**
 - Check for existing Z01 files
 - Common locations: `docs/ai/ongoing`, `.ai/ongoing`, `docs/ongoing`
 - Use default `docs/ai/ongoing` if none is found; create it only when the user chooses local persistence
 
-**Save ONGOING_DIR location** for Step 7 if local persistence is selected.
+**Save ONGOING_DIR location** for Step 5 if local persistence is selected.
 
 **Local file candidate**: `{ONGOING_DIR}/Z01_{feature}_research.md`
 
@@ -262,81 +172,54 @@ Keep a concise human-readable display feature name for the GitHub issue title.
 ```markdown
 # {Feature} Research
 
-## Summary
-One paragraph: what is being proposed and why it matters.
+## Goal and Success
+- The problem, intended users, intended outcome, and success measures
 
-## Source Idea / Requested Change
-- Original user proposal or refined request context
-- Functional requirements from the source prompt or refinement step
-- Non-functional requirements, constraints, and explicit out-of-scope notes
+## Scope and Non-Goals
+- Included work, explicit exclusions, deferred boundaries, and accepted limitations
 
-## Reference Authority and Evidence
-- Each supplied reference, its confirmed role, and its applicable scope
-- For each hard reference: what was inspected, established, contradicted, inaccessible or unverified, and still requires a user decision
+## Required Behavior
+- Required user-visible and system-visible behavior, including critical flows
+- Behavior explicitly ruled out
 
-## Request Triage and Research Loop
-- Requested outcome and initial evidence needs
-- Source evidence used to establish intended feature behavior
-- Intent clarifications and their provenance
-- Target-feasibility investigations, findings, constraints, and risks
-- Any return from feasibility verification to intent clarification
-- Whether brainstorming or conversational sparring was used
+## Material Decisions and Constraints
+- Every settled grilling decision that constrains planning
+- Every grilling recommendation, rejected alternative, tradeoff, and rationale
+- Provenance for each decision and result: user-specified or repository-determined
+- Binding reference treatment and source rules, only where they affect the specification
 
-## Resolved Decisions and Provenance
-- Decision
-- Provenance: user-specified | repository-determined
-- Supporting prompt statement, user response, or repository evidence
+## Existing Context That Matters
+- Relevant current behavior, contracts, data, integrations, repository patterns, and likely touchpoints
+- Constraints or limitations already present in the repository
+- Every repository, source, or evidence-collector finding from grilling, including negative findings
 
-## Current State in the Repo
-- What exists today
-- Relevant files, modules, endpoints, or workflows already involved
-- Current limitations or inconsistencies discovered during exploration
+## Planning Guardrails, Hotspots, and Caveats
+- Guardrails and patterns that planning must preserve
+- Hotspots, integration risks, dependencies, or downstream adaptations needing deliberate treatment
+- Caveats, evidence limitations, and accepted tradeoffs that affect the plan
 
-## Observed Constraints and Existing Patterns
-### From AGENTS.md and CLAUDE.md
-- Conventions that MUST be followed
-- Architectural patterns to preserve
-- Forbidden patterns/approaches
+## Edge Cases and Failure Behavior
+- Important edge cases, failure behavior, and fallback behavior
 
-### From the Codebase
-- Relevant repository structure or implementation patterns already in use
+## Acceptance Criteria
+- What must be true for the feature to be correct, including critical regression coverage and user-visible criteria
 
-## Proposed Feature Behavior
-- What the feature should do
-- What it should not do
-- User-visible behavior and system-visible behavior
-
-## Edge Cases and Failure Modes
-- Important edge cases that must be handled
-- Expected failure behavior and fallback behavior
-
-## Dependencies, Compatibility Risks, and Potential Adaptations
-- Likely touchpoints or integration points
-- Upstream/downstream contracts that may need adaptation
-- Endpoint, schema, consumer, or workflow risks
-- External dependencies or internal services affected
-
-## Testing and Acceptance Criteria
-- What must be verified for the feature to be considered correct
-- Critical regression coverage expectations
-- User-visible acceptance criteria
-
-## Known Limitations / Explicit Non-Goals
-- Constraints accepted for now
-- Things this research intentionally does not solve
+## Source Notes
+- Complete source and evidence record from grilling: authority, findings, inaccessible areas, contradictions, and limitations
 ```
 
 **Self-contained requirement (MANDATORY):**
 - The selected canonical research source must stand on its own for planning.
+- A subsequent planning agent must not need to repeat discovery to understand any substantive grilling result: required behavior, decisions, recommendations, rejected alternatives, evidence, constraints, guardrails, hotspots, caveats, risks, or acceptance criteria.
 - Do not require readers to open idea/spec/PRD/ticket documents for core requirements.
 - If external docs are mentioned, summarize or copy the relevant requirements into the research payload.
 - Phrases like `see spec`, `refer to ticket`, or `details in doc X` are only allowed for optional background, never for required planning inputs.
 
 ---
 
-### Step 6: Verify the Complete Research Payload
+### Step 4: Verify the Complete Research Payload
 
-Check the candidate research content for completeness and boundary violations before persisting it.
+Check that the candidate is a complete planning input, then remove boundary violations before persisting it.
 
 Move or remove anything that looks like:
 - exact implementation task breakdown
@@ -349,28 +232,25 @@ Move or remove anything that looks like:
 - an unconfirmed material interpretation
 - a hard reference that lacks a synthesized source baseline or whose unverified areas could affect the specification
 
-Research is **NOT complete** while a known meaningful bifurcation remains unresolved. Keep the research workflow in progress, return to the live Step 3 sparring loop, and do not create or hand off a local Z01 or GitHub `[Idea]` issue.
+Research is **NOT complete** while a known meaningful bifurcation remains unresolved. Keep the research workflow in progress, return to the live Step 2 grilling design tree, and do not create or hand off a local Z01 or GitHub `[Idea]` issue.
 
-- If a material intent decision or assumption remains unresolved, return to Step 3.
-- If target feasibility is not established against the current intended feature, return to Step 4.
-- If Step 4 exposes a material mismatch or a new intent decision, return to Step 3, then repeat Step 4 after the user resolves it.
+- If a material intent decision or assumption remains unresolved, return to Step 2.
 
 **Only mark research complete when:**
 1. Every material decision is user-specified or repository-determined
 2. The payload contains no unresolved options, questions, or agent-selected design assumptions
-3. The payload is self-contained and grounded
-4. The payload contains behavior, risks, dependencies, edge cases, and acceptance criteria
+3. A subsequent planning agent can plan from the payload without further research
+4. Every substantive grilling result is recorded: decisions, recommendations, facts, findings, evidence limitations, rejected alternatives, tradeoffs, guardrails, hotspots, caveats, risks, and acceptance conditions
 5. The payload stays on the research side of the research/planning boundary
-6. Every supplied reference has confirmed authority, and hard-reference evidence is synthesized before target-feasibility conclusions or options
-7. The intended feature is disambiguated and target feasibility is verified against that exact intent
+6. Every supplied reference has confirmed authority, and hard-reference evidence is synthesized without inventing missing behavior
 
-Only after all seven checks pass, continue to Step 7. Persistence is not an input to this gate.
+Only after all six checks pass, continue to Step 5. Persistence is not an input to this gate.
 
 ---
 
-### Step 7: Choose and Persist the Research Destination
+### Step 5: Choose and Persist the Research Destination
 
-After Step 6 passes, honor a destination the user already explicitly selected. Otherwise, offer exactly these choices:
+After Step 4 passes, honor a destination the user already explicitly selected. Otherwise, offer exactly these choices:
 - `Local Z01 file`
 - `GitHub [Idea] issue`
 
@@ -396,98 +276,24 @@ If the user chooses GitHub persistence:
 
 If the target is unresolved, the preview is not approved, publication fails, or published content does not match the approved preview, keep research incomplete and do not hand off to planning.
 
-## Red Flags - You're Failing If:
+## Failure Checks
 
-- **Did NOT read AGENTS.md/CLAUDE.md/README/docs FIRST**
-- **Stopped this skill due to missing Plan mode**
-- **Chose a meaningful product or technical path without user or repository provenance**
-- **Silently interpreted a material ambiguity instead of stating and confirming the assumption**
-- **Used a supplied reference without confirming whether it is light or hard authority**
-- **Treated light inspiration as a requirement without explicit user acceptance**
-- **Accepted subagent output without reconciling, verifying, or recording gaps and contradictions**
-- **Used more research agents than the independent evidence surfaces justify, or failed to delegate when broad independent coverage materially needs it**
-- **Presented target architecture or implementation options before synthesizing a hard reference and assessing target feasibility against it**
-- **Treated target constraints as permission to silently redefine the intended feature**
-- **Treated intended behavior as feasible before target research verified it**
-- **Continued to payload assembly after feasibility exposed a material mismatch**
-- **Returned to target research without first resolving changed intent with the user**
-- **Treated a recommendation, confidence, simplicity, or time pressure as permission to decide**
-- **Called a choice repository-determined while multiple viable repo patterns remained**
-- **Skipped the live sparring loop because the request wording appeared detailed**
-- **Treated brainstorming as a separate workflow owner or canonical artifact instead of an internal refinement step**
-- **Allowed brainstorming artifacts to replace the validated canonical research source**
-- **Skipped triage of the request, supplied references, or evidence needs**
-- **Presented options without evidence, consequences, a recommendation, and a direct decision request**
-- **Asked more than one decision question in a turn instead of framing one composite decision**
-- **Persisted research while a known meaningful bifurcation remained unresolved**
-- **Persisted a candidate research payload before the Step 6 completeness gate passed**
-- **Persisted research before the user chose `Local Z01 file` or `GitHub [Idea] issue`**
-- **Created a GitHub issue without a resolved repository, complete preview, and explicit publication approval**
-- **Created both a local Z01 and GitHub issue without a separate explicit request**
-- **Published a GitHub research issue whose title did not use `[Idea] <display feature name>`**
-- **Published an `[Idea]` issue that was less complete or self-contained than the local Z01 contract**
-- **Handed off an unverified or unpublished `[Idea]` issue to planning**
-- **Created a Z01 clarification file or question backlog instead of continuing the conversation**
-- **Stored unresolved choices or agent-selected design assumptions in the research payload**
-- **No triage result recorded in the research payload**
-- **No decision provenance recorded in the research payload**
-- **No edge cases or failure modes captured**
-- **No dependency/adaptation warnings captured**
-- **The canonical research source depends on external docs for core requirements**
-- **The research payload reads like an implementation plan instead of grounded research**
+Stop and correct course if you:
 
-## Common Rationalizations
+- bypassed Step 0, triage, or a triage-driven document need;
+- overrode `grilling`, asked the user for a discoverable fact, or treated an unresolved fact as settled;
+- adopted a material requirement without user or repository provenance, including unconfirmed reference authority;
+- accepted unverified evidence or silently selected among credible alternatives;
+- presented a requirement as established without supporting prompt, user, or collected evidence;
+- persisted or handed off while decisions, assumptions, provenance, risks, or acceptance criteria remained incomplete; or
+- violated the selected canonical-destination contract, including GitHub preview and publication approval.
 
-| Excuse | Reality |
-|--------|---------|
-| **"This is only a rough idea, research can't start"** | **NO.** Research is now the single entry point. Triage it and route internally. |
-| **"The prompt is detailed, so I can fill in the remaining technical choices"** | **NO.** Detail does not authorize choices without user or repository provenance. |
-| **"I am highly confident this is the best option"** | **NO.** Confidence supports a recommendation; it does not convert an open bifurcation into a decision. |
-| **"This is the simplest or most conventional path"** | **NO.** Simplicity and convention are tradeoff evidence, not user approval or a repository constraint. |
-| **"The repository uses this pattern in several places"** | **NO.** If another viable pattern also exists and no governing instruction selects one, surface the bifurcation. |
-| **"Brainstorming should own the whole flow for vague requests"** | **NO.** Brainstorming is an internal refinement tool here. Workflow and artifact ownership remain with research. |
-| **"I can put the unresolved choice in the research source and let planning settle it"** | **NO.** Research is persisted only after all known meaningful bifurcations are resolved. |
-| **"A clarification file lets me keep moving"** | **NO.** Research clarification is live. Keep the workflow in progress and wait for the user's decision. |
-| **"If I keep the conversation short, it doesn't need options or tradeoffs"** | **NO.** Every decision brief includes evidence, viable options, consequences, a recommendation, and one direct question. |
-| **"The repo touchpoints are obvious, I'll skip documenting risks"** | **NO.** Surfacing compatibility and adaptation risks is a core deliverable of research. |
-| **"Exact file edits belong in research so planning stays easy"** | **NO.** That collapses the stage boundary. Research should identify likely touchpoints, not replace planning. |
-| **"The user said to make sensible defaults"** | **NO.** That does not authorize material product or technical decisions with credible alternatives. |
-| **"The reference wording is obvious, so confirmation is unnecessary"** | **NO.** Propose light or hard authority from the wording, then confirm it before using the source as evidence. |
-| **"A subagent inspected the source, so its findings are the specification"** | **NO.** Returned findings are evidence; reconcile and verify them, then resolve material gaps with the user. |
-| **"Research is done because a file or issue exists"** | **NO.** A research source is valid only when its material decisions have provenance and no unresolved choices remain. |
+## Guardrails Against Rationalizing
 
-## Success Criteria
-
-You followed the workflow if:
-- ✓ Read AGENTS.md/CLAUDE.md/README/docs FIRST
-- ✓ Verified Superpowers dependencies before proceeding
-- ✓ Triaged the request, supplied references, and initial evidence needs
-- ✓ Applied the Decision Provenance Contract to product and technical decisions throughout the intent-feasibility loop
-- ✓ Stated and confirmed every material assumption before persistence
-- ✓ Classified and confirmed each supplied reference as light or hard before using it as evidence
-- ✓ Delegated only when independent research surfaces materially improved coverage, using bounded assignments and verified synthesis
-- ✓ Treated light-reference findings as proposals until explicitly accepted
-- ✓ Synthesized each hard-reference baseline, including evidence gaps and contradictions, before assessing target feasibility or presenting options
-- ✓ Established intended feature behavior before assessing target-repository feasibility
-- ✓ Used focused target research only where independent frontend, backend/API, data-source, operational, security, or testing surfaces materially improved coverage
-- ✓ Returned from a material feasibility mismatch to live intent clarification, then re-verified feasibility against the revised intent
-- ✓ Gathered target-repository evidence autonomously before asking the user to decide
-- ✓ Used a live sparring loop for every meaningful open bifurcation
-- ✓ Presented evidence, viable options, consequences, a recommendation, and one direct decision request
-- ✓ Asked exactly one decision question per turn
-- ✓ Used brainstorming internally for deeper refinement without surrendering workflow or artifact ownership
-- ✓ Recorded the triage result in the research payload
-- ✓ Recorded resolved material decisions and their provenance in the research payload
-- ✓ Produced a self-contained canonical research source grounded in repo behavior and constraints
-- ✓ Captured current state, proposed behavior, edge cases, risks, dependencies, and acceptance criteria
-- ✓ Used likely touchpoints/integration points instead of forcing planning-level edit detail
-- ✓ Kept research conversational and in progress until all known meaningful bifurcations were resolved
-- ✓ Created no Z01 clarification file or unresolved-question backlog
-- ✓ Persisted the research payload only after the decision loop completed
-- ✓ Honored an explicit destination selection, or otherwise offered `Local Z01 file` or `GitHub [Idea] issue`, only after the research payload passed the completeness gate
-- ✓ Previewed and explicitly approved GitHub publication before mutation
-- ✓ Persisted exactly one canonical research source and verified the stored content
-- ✓ Handed planning a grounded feature spec rather than a pseudo-plan
+- A detailed prompt, confidence, convention, or a repository pattern does not authorize an open decision.
+- A light reference is inspiration until the user adopts a specific idea; a hard reference still needs verified evidence.
+- Grilling asks the entire unblocked frontier. Do not replace it with a single-question loop or a clarification file.
+- Planning cannot resolve research ambiguity, and a saved file or issue does not make research complete.
 
 ## When to Use
 
@@ -495,7 +301,7 @@ Use when:
 - You have a rough idea, partial spec, or well-defined feature request
 - You need one entry point that can refine intent and then ground the work in the repo
 - You need to surface integration risks, edge cases, constraints, and test criteria before planning
-- You want an evidence-led sparring partner for unresolved product and technical choices before research is persisted locally or as a GitHub `[Idea]` issue
+- You want a relentless, evidence-led interview before research is persisted locally or as a GitHub `[Idea]` issue
 
 **Don't use when:**
 - The change is trivial enough that no research artifact is needed
@@ -507,7 +313,7 @@ If any meaningful bifurcation is unresolved:
 1. Keep the live research conversation and progress plan open.
 2. Do not persist research or hand off to planning.
 
-When all known meaningful bifurcations are resolved and Step 7 verifies the selected destination:
+When all known meaningful bifurcations are resolved and Step 5 verifies the selected destination:
 1. For local persistence, announce: `Research complete. Z01_{feature}_research.md ready for planning.`
 2. For GitHub persistence, announce: `Research complete. [Idea] issue <issue reference> ready for planning.`
 3. Then proceed to planning workflow
@@ -517,6 +323,6 @@ When all known meaningful bifurcations are resolved and Step 7 verifies the sele
 - Patterns that MUST be preserved
 - Grounded feature behavior and explicit non-goals
 - Current repo state and likely touchpoints
-- Edge cases, failure modes, and compatibility risks
+- Planning guardrails, hotspots, caveats, edge cases, failure modes, and compatibility risks
 - Test and acceptance criteria
 - Resolved material decisions with user or repository provenance
